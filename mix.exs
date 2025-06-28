@@ -57,7 +57,12 @@ defmodule Blog.MixProject do
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
-      {:bandit, "~> 1.2"}
+      {:bandit, "~> 1.2"},
+      # Blog-specific dependencies
+      {:live_svelte, "~> 0.13"},
+      {:nimble_totp, "~> 1.0"},
+      {:earmark, "~> 1.4"},
+      {:bcrypt_elixir, "~> 3.0"}
     ]
   end
 
