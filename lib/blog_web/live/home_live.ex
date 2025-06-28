@@ -80,7 +80,7 @@ defmodule BlogWeb.HomeLive do
                   <div class="text-subtext1 leading-relaxed overflow-hidden h-36">
                     <%= raw(Blog.Content.Post.render_content(post) |> String.slice(0, 400)) %>
                   </div>
-                  <div class="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-surface0 via-surface0/80 to-transparent pointer-events-none"></div>
+                  <div class="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-surface0 via-surface0/90 via-surface0/60 to-transparent pointer-events-none"></div>
                 </div>
               </.link>
             </article>
