@@ -701,13 +701,6 @@ defmodule BlogWeb.CoreComponents do
     ~H"""
     <!-- Navigation Bar Adjacent to Content -->
     <nav class="w-3/10 bg-surface0 border border-surface1 rounded-lg flex flex-col" style="width: 30%">
-      <!-- Logo/Brand Area -->
-      <div class="p-6 border-b border-surface1">
-        <.link navigate="/" class="text-2xl font-bold text-text hover:text-blue transition-colors">
-          Blog
-        </.link>
-      </div>
-      
       <!-- Navigation Links -->
       <div class="flex-1 p-6">
         <ul class="space-y-4">
@@ -733,7 +726,7 @@ defmodule BlogWeb.CoreComponents do
       
       <!-- User Info/Logout (if logged in) -->
       <%= if @current_user do %>
-        <div class="p-6 border-t border-surface1">
+        <div class="p-6 border-t border-surface1 mt-auto">
           <div class="text-subtext1 text-sm mb-2"><%= @current_user.email %></div>
           <.link 
             href="/users/log_out" 
