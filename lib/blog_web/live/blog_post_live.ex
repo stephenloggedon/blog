@@ -23,22 +23,27 @@ defmodule BlogWeb.BlogPostLive do
 
   def render(assigns) do
     ~H"""
-    <div class="min-h-screen bg-base">
-      <!-- Navigation -->
-      <.nav current_user={assigns[:current_user]} />
+    <div class="min-h-screen bg-base flex">
+      <!-- Left Sidebar Navigation -->
+      <.sidebar_nav current_user={assigns[:current_user]} />
 
-      <!-- Back to Blog Link -->
-      <div class="w-full px-6 py-4">
-        <div class="max-w-4xl mx-auto">
-          <.link navigate="/" class="text-blue hover:text-lavender transition-colors inline-flex items-center">
-            ← Back to Blog
-          </.link>
+      <!-- Main Content Area -->
+      <div class="flex-1 ml-64">
+        <!-- Page Header -->
+        <.page_header page_title={@post.title} />
+
+        <!-- Back to Blog Link -->
+        <div class="w-full px-6 py-4">
+          <div class="max-w-4xl mx-auto">
+            <.link navigate="/" class="text-blue hover:text-lavender transition-colors inline-flex items-center">
+              ← Back to Blog
+            </.link>
+          </div>
         </div>
-      </div>
 
-      <!-- Article -->
-      <main class="w-full px-6 py-8">
-        <div class="max-w-4xl mx-auto">
+        <!-- Article -->
+        <main class="w-full px-6 py-8">
+          <div class="max-w-4xl mx-auto">
           <article class="bg-surface0 rounded-lg border border-surface1 overflow-hidden">
           <div class="p-8">
             <!-- Article Header -->
@@ -78,7 +83,8 @@ defmodule BlogWeb.BlogPostLive do
             </.link>
           </div>
         </div>
-      </main>
+        </main>
+      </div>
     </div>
     """
   end

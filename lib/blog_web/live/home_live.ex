@@ -38,13 +38,18 @@ defmodule BlogWeb.HomeLive do
 
   def render(assigns) do
     ~H"""
-    <div class="min-h-screen bg-base">
-      <!-- Navigation -->
-      <.nav current_user={assigns[:current_user]} />
+    <div class="min-h-screen bg-base flex">
+      <!-- Left Sidebar Navigation -->
+      <.sidebar_nav current_user={assigns[:current_user]} />
 
-      <!-- Main Content -->
-      <main class="w-full px-6 py-8">
-        <div class="max-w-4xl mx-auto space-y-8" id="posts-container">
+      <!-- Main Content Area -->
+      <div class="flex-1 ml-64">
+        <!-- Page Header -->
+        <.page_header page_title="Blog" />
+        
+        <!-- Main Content -->
+        <main class="w-full px-6 py-8">
+          <div class="max-w-4xl mx-auto space-y-8" id="posts-container">
           <%= for post <- @posts do %>
             <article class="bg-surface0 rounded-lg border border-surface1 overflow-hidden hover:border-surface2 transition-colors">
               <div class="p-6">
@@ -112,7 +117,8 @@ defmodule BlogWeb.HomeLive do
             <p class="text-subtext1">Check back later for new content.</p>
           </div>
         <% end %>
-      </main>
+        </main>
+      </div>
     </div>
     """
   end

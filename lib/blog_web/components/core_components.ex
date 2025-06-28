@@ -675,51 +675,75 @@ defmodule BlogWeb.CoreComponents do
   end
 
   @doc """
-  Renders the main navigation bar.
+  Renders the page header with title only.
+  """
+  attr :page_title, :string, required: true
+
+  def page_header(assigns) do
+    ~H"""
+    <!-- Page Header -->
+    <header class="bg-surface0 border-b border-surface1 w-full">
+      <div class="w-full px-6 py-6">
+        <h1 class="text-4xl font-bold text-text text-center">
+          <%= @page_title %>
+        </h1>
+      </div>
+    </header>
+    """
+  end
+
+  @doc """
+  Renders the left sidebar navigation.
   """
   attr :current_user, :map, default: nil
 
-  def nav(assigns) do
+  def sidebar_nav(assigns) do
     ~H"""
-    <!-- Main Navigation Bar -->
-    <nav class="bg-surface0 border-b border-surface1 sticky top-0 z-50">
-      <div class="w-full px-6 py-4">
-        <div class="flex items-center justify-between">
-          <!-- Blog Title - spans full width when centered -->
-          <div class="flex-1">
-            <h1 class="text-3xl font-bold text-text">
-              <.link navigate="/" class="hover:text-blue transition-colors">
-                Blog
-              </.link>
-            </h1>
-          </div>
-          
-          <!-- Navigation Links -->
-          <div class="flex items-center space-x-6">
-            <%= if @current_user do %>
-              <div class="flex items-center space-x-4">
-                <.link navigate="/posts" class="text-subtext1 hover:text-text transition-colors font-medium">
-                  Admin
-                </.link>
-                <span class="text-subtext1 text-sm"><%= @current_user.email %></span>
-                <.link 
-                  href="/users/settings" 
-                  class="text-subtext1 hover:text-text transition-colors"
-                >
-                  Settings
-                </.link>
-                <.link 
-                  href="/users/log_out" 
-                  method="delete"
-                  class="text-subtext1 hover:text-text transition-colors"
-                >
-                  Log out
-                </.link>
-              </div>
-            <% end %>
-          </div>
-        </div>
+    <!-- Left Sidebar Navigation -->
+    <nav class="fixed left-0 top-0 h-full w-64 bg-surface0 border-r border-surface1 z-40 flex flex-col">
+      <!-- Logo/Brand Area -->
+      <div class="p-6 border-b border-surface1">
+        <.link navigate="/" class="text-2xl font-bold text-text hover:text-blue transition-colors">
+          Blog
+        </.link>
       </div>
+      
+      <!-- Navigation Links -->
+      <div class="flex-1 p-6">
+        <ul class="space-y-4">
+          <li>
+            <.link navigate="/" class="block text-subtext1 hover:text-text transition-colors py-2">
+              Home
+            </.link>
+          </li>
+          <%= if @current_user do %>
+            <li>
+              <.link navigate="/posts" class="block text-subtext1 hover:text-text transition-colors py-2">
+                Admin
+              </.link>
+            </li>
+            <li>
+              <.link href="/users/settings" class="block text-subtext1 hover:text-text transition-colors py-2">
+                Settings
+              </.link>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+      
+      <!-- User Info/Logout (if logged in) -->
+      <%= if @current_user do %>
+        <div class="p-6 border-t border-surface1">
+          <div class="text-subtext1 text-sm mb-2"><%= @current_user.email %></div>
+          <.link 
+            href="/users/log_out" 
+            method="delete"
+            class="text-subtext1 hover:text-text transition-colors text-sm"
+          >
+            Log out
+          </.link>
+        </div>
+      <% end %>
     </nav>
     """
   end
