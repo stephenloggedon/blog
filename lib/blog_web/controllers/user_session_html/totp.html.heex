@@ -1,0 +1,58 @@
+<div class="min-h-screen bg-base flex items-center justify-center">
+  <div class="max-w-md w-full bg-surface0 rounded-lg p-6 border border-surface1">
+    <div class="text-center mb-6">
+      <h1 class="text-2xl font-bold text-text">Two-Factor Authentication</h1>
+      <p class="text-subtext1 mt-2">Enter your verification code to continue</p>
+    </div>
+
+    <.simple_form for={%{}} as={:user} action={~p"/users/totp_verify"} method="post">
+      <div class="space-y-4">
+        <div>
+          <.label class="text-text">Verification Code</.label>
+          <.input 
+            type="text" 
+            name="user[totp_code]" 
+            placeholder="000000" 
+            class="bg-surface1 border-surface2 text-text placeholder-subtext0 focus:ring-blue focus:border-blue"
+            maxlength="6"
+            pattern="[0-9]{6}"
+            autocomplete="one-time-code"
+            required
+          />
+        </div>
+
+        <div class="text-center">
+          <p class="text-subtext1 text-sm mb-2">Or use a backup code:</p>
+          <.input 
+            type="text" 
+            name="user[backup_code]" 
+            placeholder="backup code" 
+            class="bg-surface1 border-surface2 text-text placeholder-subtext0 focus:ring-blue focus:border-blue"
+          />
+        </div>
+
+        <%= if @error_message do %>
+          <div class="bg-red bg-opacity-20 border border-red text-red px-4 py-3 rounded-lg">
+            <%= @error_message %>
+          </div>
+        <% end %>
+
+        <div class="space-y-3">
+          <.button 
+            type="submit" 
+            class="w-full bg-blue hover:bg-opacity-80 text-base py-2 px-4 rounded-lg transition-colors"
+          >
+            Verify
+          </.button>
+          
+          <.link 
+            href={~p"/users/log_in"} 
+            class="block text-center text-subtext1 hover:text-text transition-colors"
+          >
+            ← Back to login
+          </.link>
+        </div>
+      </div>
+    </.simple_form>
+  </div>
+</div>
