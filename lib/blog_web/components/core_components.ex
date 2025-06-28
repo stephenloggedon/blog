@@ -673,4 +673,65 @@ defmodule BlogWeb.CoreComponents do
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
   end
+
+  @doc """
+  Renders the main navigation bar.
+  """
+  attr :current_user, :map, default: nil
+  attr :show_admin_link, :boolean, default: false
+
+  def nav(assigns) do
+    ~H"""
+    <!-- Main Navigation Bar -->
+    <nav class="bg-surface0 border-b border-surface1 sticky top-0 z-50">
+      <div class="w-full px-6 py-4">
+        <div class="flex items-center justify-between">
+          <!-- Blog Title - spans full width when centered -->
+          <div class="flex-1">
+            <h1 class="text-3xl font-bold text-text">
+              <.link navigate="/" class="hover:text-blue transition-colors">
+                Blog
+              </.link>
+            </h1>
+          </div>
+          
+          <!-- Navigation Links -->
+          <div class="flex items-center space-x-6">
+            <%= if @show_admin_link do %>
+              <.link navigate="/posts" class="text-subtext1 hover:text-text transition-colors font-medium">
+                Admin
+              </.link>
+            <% end %>
+            
+            <%= if @current_user do %>
+              <div class="flex items-center space-x-4">
+                <span class="text-subtext1 text-sm"><%= @current_user.email %></span>
+                <.link 
+                  href="/users/settings" 
+                  class="text-subtext1 hover:text-text transition-colors"
+                >
+                  Settings
+                </.link>
+                <.link 
+                  href="/users/log_out" 
+                  method="delete"
+                  class="text-subtext1 hover:text-text transition-colors"
+                >
+                  Log out
+                </.link>
+              </div>
+            <% else %>
+              <.link 
+                href="/users/log_in" 
+                class="text-subtext1 hover:text-text transition-colors font-medium"
+              >
+                Log in
+              </.link>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </nav>
+    """
+  end
 end

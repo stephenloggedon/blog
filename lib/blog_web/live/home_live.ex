@@ -37,22 +37,12 @@ defmodule BlogWeb.HomeLive do
   def render(assigns) do
     ~H"""
     <div class="min-h-screen bg-base">
-      <!-- Header -->
-      <header class="bg-surface0 border-b border-surface1 sticky top-0 z-10">
-        <div class="max-w-4xl mx-auto px-6 py-4">
-          <div class="flex items-center justify-between">
-            <h1 class="text-2xl font-bold text-text">Blog</h1>
-            <nav class="flex items-center space-x-4">
-              <a href="/posts" class="text-blue hover:text-lavender transition-colors">Admin</a>
-              <a href="/users/log_in" class="text-subtext1 hover:text-text transition-colors">Login</a>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <!-- Navigation -->
+      <.nav current_user={assigns[:current_user]} show_admin_link={true} />
 
       <!-- Main Content -->
-      <main class="max-w-4xl mx-auto px-6 py-8">
-        <div class="space-y-8" id="posts-container">
+      <main class="w-full px-6 py-8">
+        <div class="max-w-4xl mx-auto space-y-8" id="posts-container">
           <%= for post <- @posts do %>
             <article class="bg-surface0 rounded-lg border border-surface1 overflow-hidden hover:border-surface2 transition-colors">
               <div class="p-6">

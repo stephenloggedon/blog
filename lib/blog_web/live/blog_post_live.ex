@@ -22,24 +22,22 @@ defmodule BlogWeb.BlogPostLive do
   def render(assigns) do
     ~H"""
     <div class="min-h-screen bg-base">
-      <!-- Header -->
-      <header class="bg-surface0 border-b border-surface1">
-        <div class="max-w-4xl mx-auto px-6 py-4">
-          <div class="flex items-center justify-between">
-            <a href="/" class="text-blue hover:text-lavender transition-colors">
-              ← Back to Blog
-            </a>
-            <nav class="flex items-center space-x-4">
-              <a href="/posts" class="text-blue hover:text-lavender transition-colors">Admin</a>
-              <a href="/users/log_in" class="text-subtext1 hover:text-text transition-colors">Login</a>
-            </nav>
-          </div>
+      <!-- Navigation -->
+      <.nav current_user={assigns[:current_user]} show_admin_link={true} />
+
+      <!-- Back to Blog Link -->
+      <div class="w-full px-6 py-4">
+        <div class="max-w-4xl mx-auto">
+          <.link navigate="/" class="text-blue hover:text-lavender transition-colors inline-flex items-center">
+            ← Back to Blog
+          </.link>
         </div>
-      </header>
+      </div>
 
       <!-- Article -->
-      <main class="max-w-4xl mx-auto px-6 py-8">
-        <article class="bg-surface0 rounded-lg border border-surface1 overflow-hidden">
+      <main class="w-full px-6 py-8">
+        <div class="max-w-4xl mx-auto">
+          <article class="bg-surface0 rounded-lg border border-surface1 overflow-hidden">
           <div class="p-8">
             <!-- Article Header -->
             <header class="mb-8">
@@ -68,14 +66,15 @@ defmodule BlogWeb.BlogPostLive do
           </div>
         </article>
 
-        <!-- Navigation -->
-        <div class="mt-8 flex justify-center">
-          <a 
-            href="/" 
-            class="bg-blue hover:bg-opacity-80 text-base px-6 py-3 rounded-lg font-medium transition-all"
-          >
-            ← Back to All Posts
-          </a>
+          <!-- Navigation -->
+          <div class="mt-8 flex justify-center">
+            <.link 
+              navigate="/" 
+              class="bg-blue hover:bg-opacity-80 text-base px-6 py-3 rounded-lg font-medium transition-all"
+            >
+              ← Back to All Posts
+            </.link>
+          </div>
         </div>
       </main>
     </div>
