@@ -693,14 +693,14 @@ defmodule BlogWeb.CoreComponents do
   end
 
   @doc """
-  Renders the left sidebar navigation.
+  Renders the navigation bar adjacent to content.
   """
   attr :current_user, :map, default: nil
 
-  def sidebar_nav(assigns) do
+  def content_nav(assigns) do
     ~H"""
-    <!-- Left Sidebar Navigation -->
-    <nav class="fixed left-0 top-0 h-full w-64 bg-surface0 border-r border-surface1 z-40 flex flex-col">
+    <!-- Navigation Bar Adjacent to Content -->
+    <nav class="w-64 bg-surface0 border-r border-surface1 flex flex-col">
       <!-- Logo/Brand Area -->
       <div class="p-6 border-b border-surface1">
         <.link navigate="/" class="text-2xl font-bold text-text hover:text-blue transition-colors">

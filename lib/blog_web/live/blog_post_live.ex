@@ -23,26 +23,24 @@ defmodule BlogWeb.BlogPostLive do
 
   def render(assigns) do
     ~H"""
-    <div class="min-h-screen bg-base flex">
-      <!-- Left Sidebar Navigation -->
-      <.sidebar_nav current_user={assigns[:current_user]} />
-
-      <!-- Main Content Area -->
-      <div class="flex-1 ml-64">
-        <!-- Page Header -->
-        <.page_header page_title={@post.title} />
-
-        <!-- Back to Blog Link -->
-        <div class="w-full px-6 py-4">
-          <div class="max-w-4xl mx-auto">
+    <div class="min-h-screen bg-base">
+      <!-- Page Header -->
+      <.page_header page_title={@post.title} />
+      
+      <!-- Content Area with Navigation -->
+      <div class="flex">
+        <!-- Navigation Adjacent to Content -->
+        <.content_nav current_user={assigns[:current_user]} />
+        
+        <!-- Main Content -->
+        <main class="flex-1 px-6 py-8">
+          <!-- Back to Blog Link -->
+          <div class="max-w-4xl mx-auto mb-6">
             <.link navigate="/" class="text-blue hover:text-lavender transition-colors inline-flex items-center">
               ← Back to Blog
             </.link>
           </div>
-        </div>
 
-        <!-- Article -->
-        <main class="w-full px-6 py-8">
           <div class="max-w-4xl mx-auto">
           <article class="bg-surface0 rounded-lg border border-surface1 overflow-hidden">
           <div class="p-8">
@@ -73,16 +71,16 @@ defmodule BlogWeb.BlogPostLive do
           </div>
         </article>
 
-          <!-- Navigation -->
-          <div class="mt-8 flex justify-center">
-            <.link 
-              navigate="/" 
-              class="bg-blue hover:bg-opacity-80 text-base px-6 py-3 rounded-lg font-medium transition-all"
-            >
-              ← Back to All Posts
-            </.link>
+            <!-- Navigation -->
+            <div class="mt-8 flex justify-center">
+              <.link 
+                navigate="/" 
+                class="bg-blue hover:bg-opacity-80 text-base px-6 py-3 rounded-lg font-medium transition-all"
+              >
+                ← Back to All Posts
+              </.link>
+            </div>
           </div>
-        </div>
         </main>
       </div>
     </div>
