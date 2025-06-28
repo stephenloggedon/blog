@@ -29,20 +29,20 @@ defmodule BlogWeb.BlogPostLive do
       
       <!-- Main Content with Adjacent Navigation -->
       <div class="flex-1 w-full px-6 pt-8 overflow-hidden">
-        <div class="max-w-4xl mx-auto flex gap-5 h-full">
+        <div class="max-w-4xl mx-auto flex h-full bg-surface0 rounded-lg overflow-hidden">
           <!-- Navigation Adjacent to Article -->
           <.content_nav current_user={assigns[:current_user]} />
 
           <!-- Article Content Area -->
-          <main class="flex-1 overflow-y-auto scrollbar-hide">
+          <main class="flex-1 overflow-y-auto scrollbar-hide px-6">
             <!-- Back to Blog Link -->
             <div class="mb-6">
               <.link navigate="/" class="text-blue hover:text-lavender transition-colors inline-flex items-center">
                 ← Back to Blog
               </.link>
             </div>
-          <article class="bg-surface0 rounded-lg border border-surface1 overflow-hidden">
-          <div class="p-8">
+          <article class="py-6">
+          <div>
             <!-- Article Header -->
             <header class="mb-8">
               <h1 class="text-3xl font-bold text-text mb-4"><%= @post.title %></h1>

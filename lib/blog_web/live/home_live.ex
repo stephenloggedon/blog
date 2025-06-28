@@ -44,20 +44,18 @@ defmodule BlogWeb.HomeLive do
       
       <!-- Main Content with Adjacent Navigation -->
       <div class="flex-1 w-full px-6 pt-8 overflow-hidden">
-        <div class="max-w-4xl mx-auto flex gap-5 h-full">
+        <div class="max-w-4xl mx-auto flex h-full bg-surface0 rounded-lg overflow-hidden">
           <!-- Navigation Adjacent to Blog Posts -->
           <.content_nav current_user={assigns[:current_user]} />
 
           <!-- Blog Posts Scroll Area -->
-          <main class="flex-1 overflow-y-auto scrollbar-hide space-y-8" id="posts-container">
+          <main class="flex-1 overflow-y-auto scrollbar-hide px-6" id="posts-container">
           <%= for post <- @posts do %>
-            <article class="bg-surface0 rounded-lg border border-surface1 overflow-hidden hover:border-surface2 transition-colors">
-              <div class="p-6">
+            <article class="border-b border-surface1 last:border-b-0">
+              <.link navigate={"/blog/#{post.slug}"} class="block py-6 hover:bg-surface0/20 transition-colors cursor-pointer">
                 <header class="mb-4">
-                  <h2 class="text-xl font-semibold text-text mb-2">
-                    <a href={"/blog/#{post.slug}"} class="hover:text-blue transition-colors">
-                      <%= post.title %>
-                    </a>
+                  <h2 class="text-xl font-semibold text-text mb-2 hover:text-blue transition-colors">
+                    <%= post.title %>
                   </h2>
                   <div class="flex items-center text-sm text-subtext1 space-x-4">
                     <time datetime={post.published_at}>
@@ -78,21 +76,13 @@ defmodule BlogWeb.HomeLive do
                   </div>
                 </header>
                 
-                <div class="prose prose-invert max-w-none">
-                  <p class="text-subtext1 leading-relaxed">
-                    <%= post.excerpt || String.slice(post.content, 0, 200) <> "..." %>
-                  </p>
+                <div class="relative">
+                  <div class="text-subtext1 leading-relaxed overflow-hidden">
+                    <%= raw(Blog.Content.Post.render_content(post) |> String.slice(0, 800)) %>
+                  </div>
+                  <div class="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-surface0 to-transparent pointer-events-none"></div>
                 </div>
-                
-                <footer class="mt-4">
-                  <a 
-                    href={"/blog/#{post.slug}"} 
-                    class="text-blue hover:text-lavender transition-colors text-sm font-medium"
-                  >
-                    Read more →
-                  </a>
-                </footer>
-              </div>
+              </.link>
             </article>
           <% end %>
 

@@ -700,7 +700,7 @@ defmodule BlogWeb.CoreComponents do
   def content_nav(assigns) do
     ~H"""
     <!-- Navigation Bar Adjacent to Content -->
-    <nav class="bg-surface0 border border-surface1 rounded-lg flex flex-col h-full" style="width: 30%">
+    <nav class="flex flex-col h-full border-r border-surface1" style="width: 30%">
       <!-- Navigation Links -->
       <div class="flex-1 p-6">
         <ul class="space-y-4">
