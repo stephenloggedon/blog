@@ -1,0 +1,17 @@
+{
+  "name": "blog-assets",
+  "version": "1.0.0",
+  "description": "Blog asset dependencies",
+  "main": "js/app.js",
+  "scripts": {
+    "build": "esbuild js/app.js --bundle --target=es2017 --outdir=../priv/static/assets",
+    "dev": "esbuild js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.5.7",
+    "esbuild": "^0.17.11",
+    "esbuild-svelte": "^0.8.0",
+    "svelte": "^4.0.0"
+  },
+  "dependencies": {}
+}

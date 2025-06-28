@@ -22,10 +22,14 @@ import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 
+// Import LiveSvelte hooks
+import { getHooks } from "../../deps/live_svelte/priv/static/live_svelte.esm.js"
+
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
-  params: {_csrf_token: csrfToken}
+  params: {_csrf_token: csrfToken},
+  hooks: getHooks({})
 })
 
 // Show progress bar on live navigation and form submits
