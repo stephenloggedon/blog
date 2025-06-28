@@ -704,11 +704,6 @@ defmodule BlogWeb.CoreComponents do
       <!-- Navigation Links -->
       <div class="flex-1 p-6">
         <ul class="space-y-4">
-          <li>
-            <.link navigate="/" class="block text-subtext1 hover:text-text transition-colors py-2">
-              Home
-            </.link>
-          </li>
           <%= if @current_user do %>
             <li>
               <.link navigate="/posts" class="block text-subtext1 hover:text-text transition-colors py-2">
