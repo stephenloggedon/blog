@@ -22,6 +22,53 @@ defmodule Blog.Content do
   end
 
   @doc """
+  Returns published posts with pagination support.
+
+  ## Examples
+
+      iex> list_published_posts()
+      [%Post{}, ...]
+
+      iex> list_published_posts(page: 2, per_page: 5)
+      [%Post{}, ...]
+
+  """
+  def list_published_posts(opts \\ []) do
+    page = Keyword.get(opts, :page, 1)
+    per_page = Keyword.get(opts, :per_page, 10)
+    offset = (page - 1) * per_page
+
+    from(p in Post,
+      where: not is_nil(p.published_at),
+      order_by: [desc: p.published_at],
+      limit: ^per_page,
+      offset: ^offset
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a published post by slug.
+
+  Returns nil if the post does not exist or is not published.
+
+  ## Examples
+
+      iex> get_published_post_by_slug("my-post")
+      %Post{}
+
+      iex> get_published_post_by_slug("nonexistent")
+      nil
+
+  """
+  def get_published_post_by_slug(slug) do
+    from(p in Post,
+      where: p.slug == ^slug and not is_nil(p.published_at)
+    )
+    |> Repo.one()
+  end
+
+  @doc """
   Gets a single post.
 
   Raises `Ecto.NoResultsError` if the Post does not exist.
