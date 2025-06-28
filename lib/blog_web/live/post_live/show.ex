@@ -3,6 +3,8 @@ defmodule BlogWeb.PostLive.Show do
 
   alias Blog.Content
 
+  on_mount {BlogWeb.UserAuth, :ensure_authenticated}
+
   @impl true
   def mount(_params, _session, socket) do
     {:ok, socket}

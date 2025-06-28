@@ -70,6 +70,9 @@ defmodule BlogWeb.PostLive.FormComponent do
   end
 
   defp save_post(socket, :new, post_params) do
+    # Add current user ID to post params
+    post_params = Map.put(post_params, "user_id", socket.assigns.current_user.id)
+    
     case Content.create_post(post_params) do
       {:ok, post} ->
         notify_parent({:saved, post})

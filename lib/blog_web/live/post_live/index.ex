@@ -4,6 +4,8 @@ defmodule BlogWeb.PostLive.Index do
   alias Blog.Content
   alias Blog.Content.Post
 
+  on_mount {BlogWeb.UserAuth, :ensure_authenticated}
+
   @impl true
   def mount(_params, _session, socket) do
     {:ok, stream(socket, :posts, Content.list_posts())}

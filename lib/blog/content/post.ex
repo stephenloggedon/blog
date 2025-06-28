@@ -22,8 +22,8 @@ defmodule Blog.Content.Post do
   @doc false
   def changeset(post, attrs) do
     post
-    |> cast(attrs, [:title, :slug, :content, :excerpt, :tags, :published, :published_at])
-    |> validate_required([:title, :content])
+    |> cast(attrs, [:title, :slug, :content, :excerpt, :tags, :published, :published_at, :user_id])
+    |> validate_required([:title, :content, :user_id])
     |> validate_length(:title, min: 1, max: 200)
     |> validate_length(:content, min: 1)
     |> maybe_generate_slug()
@@ -31,6 +31,7 @@ defmodule Blog.Content.Post do
     |> maybe_set_published_at()
     |> parse_tags()
     |> unique_constraint(:slug)
+    |> foreign_key_constraint(:user_id)
   end
 
   @doc """
