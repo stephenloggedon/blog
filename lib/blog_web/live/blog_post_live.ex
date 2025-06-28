@@ -23,18 +23,18 @@ defmodule BlogWeb.BlogPostLive do
 
   def render(assigns) do
     ~H"""
-    <div class="min-h-screen bg-base">
+    <div class="h-screen bg-base flex flex-col">
       <!-- Page Header -->
       <.page_header page_title={@post.title} />
       
       <!-- Main Content with Adjacent Navigation -->
-      <div class="w-full px-6 py-8">
-        <div class="max-w-4xl mx-auto flex gap-5">
+      <div class="flex-1 w-full px-6 py-8 overflow-hidden">
+        <div class="max-w-4xl mx-auto flex gap-5 h-full">
           <!-- Navigation Adjacent to Article -->
           <.content_nav current_user={assigns[:current_user]} />
 
           <!-- Article Content Area -->
-          <main class="flex-1">
+          <main class="flex-1 overflow-y-auto pr-2">
             <!-- Back to Blog Link -->
             <div class="mb-6">
               <.link navigate="/" class="text-blue hover:text-lavender transition-colors inline-flex items-center">

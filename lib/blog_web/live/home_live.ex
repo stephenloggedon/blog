@@ -38,18 +38,18 @@ defmodule BlogWeb.HomeLive do
 
   def render(assigns) do
     ~H"""
-    <div class="min-h-screen bg-base">
+    <div class="h-screen bg-base flex flex-col">
       <!-- Page Header -->
       <.page_header page_title="Blog" />
       
       <!-- Main Content with Adjacent Navigation -->
-      <div class="w-full px-6 py-8">
-        <div class="max-w-4xl mx-auto flex gap-5">
+      <div class="flex-1 w-full px-6 py-8 overflow-hidden">
+        <div class="max-w-4xl mx-auto flex gap-5 h-full">
           <!-- Navigation Adjacent to Blog Posts -->
           <.content_nav current_user={assigns[:current_user]} />
 
           <!-- Blog Posts Scroll Area -->
-          <main class="flex-1 space-y-8" id="posts-container">
+          <main class="flex-1 overflow-y-auto space-y-8 pr-2" id="posts-container">
           <%= for post <- @posts do %>
             <article class="bg-surface0 rounded-lg border border-surface1 overflow-hidden hover:border-surface2 transition-colors">
               <div class="p-6">
