@@ -42,14 +42,14 @@ defmodule BlogWeb.HomeLive do
       <!-- Page Header -->
       <.page_header page_title="Blog" />
       
-      <!-- Content Area with Navigation -->
-      <div class="flex">
-        <!-- Navigation Adjacent to Content -->
-        <.content_nav current_user={assigns[:current_user]} />
-        
-        <!-- Main Content -->
-        <main class="flex-1 px-6 py-8">
-          <div class="max-w-4xl mx-auto space-y-8" id="posts-container">
+      <!-- Main Content with Adjacent Navigation -->
+      <div class="w-full px-6 py-8">
+        <div class="max-w-4xl mx-auto flex gap-5">
+          <!-- Navigation Adjacent to Blog Posts -->
+          <.content_nav current_user={assigns[:current_user]} />
+
+          <!-- Blog Posts Scroll Area -->
+          <main class="flex-1 space-y-8" id="posts-container">
           <%= for post <- @posts do %>
             <article class="bg-surface0 rounded-lg border border-surface1 overflow-hidden hover:border-surface2 transition-colors">
               <div class="p-6">
@@ -95,29 +95,29 @@ defmodule BlogWeb.HomeLive do
               </div>
             </article>
           <% end %>
+
+            <!-- Load More Button -->
+            <%= if @has_more do %>
+              <div class="mt-12 text-center">
+                <button
+                  phx-click="load_more"
+                  class="bg-blue hover:bg-opacity-80 text-base px-6 py-3 rounded-lg font-medium transition-all"
+                >
+                  Load More Posts
+                </button>
+              </div>
+            <% end %>
+
+            <!-- Empty State -->
+            <%= if @posts == [] do %>
+              <div class="text-center py-12">
+                <div class="text-6xl mb-4">📝</div>
+                <h2 class="text-xl font-semibold text-text mb-2">No posts yet</h2>
+                <p class="text-subtext1">Check back later for new content.</p>
+              </div>
+            <% end %>
+          </main>
         </div>
-
-        <!-- Load More Button -->
-        <%= if @has_more do %>
-          <div class="mt-12 text-center">
-            <button
-              phx-click="load_more"
-              class="bg-blue hover:bg-opacity-80 text-base px-6 py-3 rounded-lg font-medium transition-all"
-            >
-              Load More Posts
-            </button>
-          </div>
-        <% end %>
-
-        <!-- Empty State -->
-        <%= if @posts == [] do %>
-          <div class="text-center py-12">
-            <div class="text-6xl mb-4">📝</div>
-            <h2 class="text-xl font-semibold text-text mb-2">No posts yet</h2>
-            <p class="text-subtext1">Check back later for new content.</p>
-          </div>
-        <% end %>
-        </main>
       </div>
     </div>
     """

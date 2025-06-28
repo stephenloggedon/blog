@@ -27,21 +27,20 @@ defmodule BlogWeb.BlogPostLive do
       <!-- Page Header -->
       <.page_header page_title={@post.title} />
       
-      <!-- Content Area with Navigation -->
-      <div class="flex">
-        <!-- Navigation Adjacent to Content -->
-        <.content_nav current_user={assigns[:current_user]} />
-        
-        <!-- Main Content -->
-        <main class="flex-1 px-6 py-8">
-          <!-- Back to Blog Link -->
-          <div class="max-w-4xl mx-auto mb-6">
-            <.link navigate="/" class="text-blue hover:text-lavender transition-colors inline-flex items-center">
-              ← Back to Blog
-            </.link>
-          </div>
+      <!-- Main Content with Adjacent Navigation -->
+      <div class="w-full px-6 py-8">
+        <div class="max-w-4xl mx-auto flex gap-5">
+          <!-- Navigation Adjacent to Article -->
+          <.content_nav current_user={assigns[:current_user]} />
 
-          <div class="max-w-4xl mx-auto">
+          <!-- Article Content Area -->
+          <main class="flex-1">
+            <!-- Back to Blog Link -->
+            <div class="mb-6">
+              <.link navigate="/" class="text-blue hover:text-lavender transition-colors inline-flex items-center">
+                ← Back to Blog
+              </.link>
+            </div>
           <article class="bg-surface0 rounded-lg border border-surface1 overflow-hidden">
           <div class="p-8">
             <!-- Article Header -->
@@ -80,8 +79,8 @@ defmodule BlogWeb.BlogPostLive do
                 ← Back to All Posts
               </.link>
             </div>
-          </div>
-        </main>
+          </main>
+        </div>
       </div>
     </div>
     """
