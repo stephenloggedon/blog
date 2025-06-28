@@ -21,7 +21,7 @@ defmodule Blog.ContentTest do
     end
 
     test "create_post/1 with valid data creates a post" do
-      valid_attrs = %{title: "some title", slug: "some slug", content: "some content", excerpt: "some excerpt", tags: "some tags", published: true, published_at: ~U[2025-06-27 20:59:00Z]}
+      valid_attrs = %{title: "some title", slug: "some slug", content: "some content", excerpt: "some excerpt", tags: "some tags", published: true}
 
       assert {:ok, %Post{} = post} = Content.create_post(valid_attrs)
       assert post.title == "some title"
@@ -30,7 +30,9 @@ defmodule Blog.ContentTest do
       assert post.excerpt == "some excerpt"
       assert post.tags == "some tags"
       assert post.published == true
-      assert post.published_at == ~U[2025-06-27 20:59:00Z]
+      # Check that published_at was auto-generated
+      assert post.published_at != nil
+      assert DateTime.diff(DateTime.utc_now(), post.published_at, :second) < 5
     end
 
     test "create_post/1 with invalid data returns error changeset" do

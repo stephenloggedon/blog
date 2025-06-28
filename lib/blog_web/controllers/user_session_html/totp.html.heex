@@ -8,7 +8,7 @@
     <.simple_form for={%{}} as={:user} action={~p"/users/totp_verify"} method="post">
       <div class="space-y-4">
         <div>
-          <.label class="text-text">Verification Code</.label>
+          <.label>Verification Code</.label>
           <.input 
             type="text" 
             name="user[totp_code]" 

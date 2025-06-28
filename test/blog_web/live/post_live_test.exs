@@ -4,8 +4,8 @@ defmodule BlogWeb.PostLiveTest do
   import Phoenix.LiveViewTest
   import Blog.ContentFixtures
 
-  @create_attrs %{title: "some title", slug: "some slug", content: "some content", excerpt: "some excerpt", tags: "some tags", published: true, published_at: "2025-06-27T20:59:00Z"}
-  @update_attrs %{title: "some updated title", slug: "some updated slug", content: "some updated content", excerpt: "some updated excerpt", tags: "some updated tags", published: false, published_at: "2025-06-28T20:59:00Z"}
+  @create_attrs %{title: "some title", slug: "some slug", content: "some content", excerpt: "some excerpt", tags: "some tags", published: true}
+  @update_attrs %{title: "some updated title", slug: "some updated slug", content: "some updated content", excerpt: "some updated excerpt", tags: "some updated tags", published: false}
   @invalid_attrs %{title: nil, slug: nil, content: nil, excerpt: nil, tags: nil, published: false, published_at: nil}
 
   defp create_post(_) do
@@ -14,7 +14,7 @@ defmodule BlogWeb.PostLiveTest do
   end
 
   describe "Index" do
-    setup [:create_post]
+    setup [:register_and_log_in_user, :create_post]
 
     test "lists all posts", %{conn: conn, post: post} do
       {:ok, _index_live, html} = live(conn, ~p"/posts")
@@ -78,7 +78,7 @@ defmodule BlogWeb.PostLiveTest do
   end
 
   describe "Show" do
-    setup [:create_post]
+    setup [:register_and_log_in_user, :create_post]
 
     test "displays post", %{conn: conn, post: post} do
       {:ok, _show_live, html} = live(conn, ~p"/posts/#{post}")
