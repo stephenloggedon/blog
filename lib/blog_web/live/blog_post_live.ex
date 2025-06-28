@@ -2,6 +2,8 @@ defmodule BlogWeb.BlogPostLive do
   use BlogWeb, :live_view
   alias Blog.Content
 
+  on_mount {BlogWeb.UserAuth, :mount_current_user}
+
   def mount(%{"slug" => slug}, _session, socket) do
     case Content.get_published_post_by_slug(slug) do
       nil ->
@@ -23,7 +25,7 @@ defmodule BlogWeb.BlogPostLive do
     ~H"""
     <div class="min-h-screen bg-base">
       <!-- Navigation -->
-      <.nav current_user={assigns[:current_user]} show_admin_link={true} />
+      <.nav current_user={assigns[:current_user]} />
 
       <!-- Back to Blog Link -->
       <div class="w-full px-6 py-4">
