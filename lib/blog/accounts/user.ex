@@ -12,6 +12,8 @@ defmodule Blog.Accounts.User do
     field :totp_enabled, :boolean, default: false
     field :backup_codes, {:array, :string}, default: []
 
+    has_many :posts, Blog.Content.Post
+
     timestamps(type: :utc_datetime)
   end
 

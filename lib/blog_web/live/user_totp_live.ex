@@ -189,7 +189,9 @@ defmodule BlogWeb.UserTotpLive do
     # Generate QR code as SVG
     qr_code_svg = case QRCode.create(uri) do
       {:ok, qr_code} ->
-        QRCode.Svg.save_as(qr_code) |> elem(1)
+        qr_code
+        |> QRCode.render(:svg)
+        |> elem(1)
       {:error, _} -> 
         ""
     end

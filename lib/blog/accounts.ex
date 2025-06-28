@@ -93,6 +93,22 @@ defmodule Blog.Accounts do
     User.registration_changeset(user, attrs, hash_password: false, validate_email: false)
   end
 
+  @doc """
+  Updates a user with the given changeset.
+
+  ## Examples
+
+      iex> update_user(user, changeset)
+      {:ok, %User{}}
+
+      iex> update_user(user, bad_changeset)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_user(%User{} = _user, changeset) do
+    Repo.update(changeset)
+  end
+
   ## Settings
 
   @doc """
