@@ -21,7 +21,8 @@ defmodule Blog.ContentTest do
     end
 
     test "create_post/1 with valid data creates a post" do
-      valid_attrs = %{title: "some title", slug: "some slug", content: "some content", excerpt: "some excerpt", tags: "some tags", published: true}
+      user = Blog.AccountsFixtures.user_fixture()
+      valid_attrs = %{title: "some title", slug: "some slug", content: "some content", excerpt: "some excerpt", tags: "some tags", published: true, user_id: user.id}
 
       assert {:ok, %Post{} = post} = Content.create_post(valid_attrs)
       assert post.title == "some title"
