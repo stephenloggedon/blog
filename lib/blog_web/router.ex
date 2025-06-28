@@ -20,7 +20,9 @@ defmodule BlogWeb.Router do
   scope "/", BlogWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live "/", HomeLive
+    live "/blog/:slug", BlogPostLive
+    live "/test-svelte", TestSvelteLive
   end
 
   # Other scopes may use custom stacks.
