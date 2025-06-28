@@ -77,10 +77,10 @@ defmodule BlogWeb.HomeLive do
                 </header>
                 
                 <div class="relative">
-                  <div class="text-subtext1 leading-relaxed overflow-hidden">
-                    <%= raw(Blog.Content.Post.render_content(post) |> String.slice(0, 800)) %>
+                  <div class="text-subtext1 leading-relaxed overflow-hidden h-36">
+                    <%= raw(Blog.Content.Post.render_content(post) |> String.slice(0, 400)) %>
                   </div>
-                  <div class="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-surface0 to-transparent pointer-events-none"></div>
+                  <div class="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-surface0 via-surface0/80 to-transparent pointer-events-none"></div>
                 </div>
               </.link>
             </article>
