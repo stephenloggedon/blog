@@ -103,7 +103,10 @@ jobs:
             ${{ runner.os }}-mix-release-
 
       - name: Install dependencies
-        run: mix deps.get --only prod
+        run: |
+          mix local.hex --force
+          mix local.rebar --force
+          mix deps.get --only prod
 
       - name: Set up Node.js for asset compilation
         uses: actions/setup-node@v4
@@ -116,7 +119,7 @@ jobs:
         run: npm install --prefix assets
 
       - name: Compile assets
-        run: mix assets.deploy
+        run: MIX_ENV=prod mix assets.deploy
 
       - name: Build release
         run: MIX_ENV=prod mix release
