@@ -88,9 +88,7 @@ jobs:
 
       - name: Setup Gigalixir CLI
         run: |
-          curl -fsSL https://github.com/gigalixir/gigalixir-cli/releases/download/v1.4.0/gigalixir_linux -o gigalixir
-          chmod +x gigalixir
-          sudo mv gigalixir /usr/local/bin/
+          pip install gigalixir
 
       - name: Deploy to Gigalixir
         run: |
