@@ -696,28 +696,143 @@ defmodule BlogWeb.CoreComponents do
   Renders the navigation bar adjacent to content.
   """
   attr :current_user, :map, default: nil
+  attr :top_tags, :list, default: []
+  attr :available_tags, :list, default: []
+  attr :selected_tags, :list, default: []
+  attr :search_query, :string, default: ""
+  attr :search_suggestions, :list, default: []
 
   def content_nav(assigns) do
     ~H"""
     <!-- Navigation Bar Adjacent to Content -->
     <nav class="flex flex-col h-full border-r border-surface1" style="width: 30%">
-      <!-- Navigation Links -->
-      <div class="flex-1 p-6">
-        <ul class="space-y-4">
-          <%= if @current_user do %>
+      <!-- Search and Filters -->
+      <div class="p-6 border-b border-surface1">
+        <!-- Enhanced Search Box with Tag Bubbles -->
+        <div class="relative mb-4">
+          <div class="rounded-lg focus-within:border-blue transition-colors">
+            <!-- Selected Tag Bubbles -->
+            <div class="flex flex-wrap gap-1 mb-2" phx-update="ignore" id="tag-bubbles">
+              <%= for tag <- @selected_tags do %>
+                <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue text-white text-xs rounded-full">
+                  <%= tag %>
+                  <button
+                    type="button"
+                    phx-click="remove_tag"
+                    phx-value-tag={tag}
+                    class="hover:bg-blue/80 rounded-full p-0.5 transition-colors"
+                  >
+                    ×
+                  </button>
+                </span>
+              <% end %>
+            </div>
+            
+            <!-- Search Input -->
+            <form phx-submit="search" class="relative">
+              <input
+                type="text"
+                name="query"
+                value={@search_query}
+                placeholder="Search posts and/or filter by tags..."
+                class="w-full bg-transparent text-text placeholder-subtext0 focus:outline-none text-sm"
+                phx-keyup="search_input"
+                phx-debounce="300"
+                autocomplete="off"
+              />
+            </form>
+            
+            <!-- Tag Suggestions -->
+            <%= if @search_query != "" && @search_suggestions != [] do %>
+              <div class="absolute z-10 w-full mt-1 bg-surface0 border border-surface1 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                <%= for suggestion <- @search_suggestions do %>
+                  <button
+                    type="button"
+                    phx-click="add_tag_from_search"
+                    phx-value-tag={suggestion}
+                    class="w-full text-left px-3 py-2 text-sm text-text hover:bg-surface1 transition-colors flex items-center gap-2"
+                  >
+                    <span class="w-4 h-4 bg-blue/20 rounded-full flex items-center justify-center">
+                      <span class="w-2 h-2 bg-blue rounded-full"></span>
+                    </span>
+                    <%= suggestion %>
+                  </button>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Tag Filters -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-medium text-text">Popular Tags</h3>
+            <%= if @selected_tags != [] do %>
+              <button
+                phx-click="clear_filters"
+                class="text-xs text-subtext0 hover:text-text transition-colors px-2 py-1 hover:bg-surface0 rounded"
+              >
+                Clear
+              </button>
+            <% end %>
+          </div>
+          
+          <!-- Tag Grid Layout -->
+          <div class="flex flex-wrap gap-2 mb-4">
+            <%= for tag <- @top_tags do %>
+              <button
+                phx-click="toggle_tag"
+                phx-value-tag={tag}
+                class={[
+                  "px-3 py-1 text-xs rounded-full border transition-all duration-200 hover:scale-105",
+                  if(tag in @selected_tags, 
+                    do: "border-blue text-white bg-blue", 
+                    else: "border-surface2 text-subtext1 hover:border-blue/50 hover:text-blue")
+                ]}
+              >
+                <%= tag %>
+              </button>
+            <% end %>
+          </div>
+
+          <!-- Show more tags if any are selected that aren't in top tags -->
+          <%= if Enum.any?(@selected_tags, fn tag -> tag not in @top_tags end) do %>
+            <div class="mb-4">
+              <h4 class="text-xs font-medium text-subtext1 mb-2">Additional Tags</h4>
+              <div class="flex flex-wrap gap-2">
+                <%= for tag <- @selected_tags, tag not in @top_tags do %>
+                  <button
+                    phx-click="toggle_tag"
+                    phx-value-tag={tag}
+                    class="px-3 py-1 text-xs rounded-full border border-blue text-white bg-blue transition-all duration-200 hover:scale-105"
+                  >
+                    <%= tag %>
+                  </button>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Admin Navigation Links -->
+      <%= if @current_user do %>
+        <div class="p-6 flex-1">
+          <h3 class="text-sm font-medium text-text mb-3">Admin</h3>
+          <ul class="space-y-2">
             <li>
-              <.link navigate="/posts" class="block text-subtext1 hover:text-text transition-colors py-2">
-                Admin
+              <.link navigate="/posts" class="block text-subtext1 hover:text-text transition-colors py-2 px-3 rounded-lg hover:bg-surface0">
+                Manage Posts
               </.link>
             </li>
             <li>
-              <.link href="/users/settings" class="block text-subtext1 hover:text-text transition-colors py-2">
+              <.link href="/users/settings" class="block text-subtext1 hover:text-text transition-colors py-2 px-3 rounded-lg hover:bg-surface0">
                 Settings
               </.link>
             </li>
-          <% end %>
-        </ul>
-      </div>
+          </ul>
+        </div>
+      <% end %>
       
       <!-- User Info/Logout (if logged in) -->
       <%= if @current_user do %>
