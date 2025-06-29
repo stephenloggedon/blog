@@ -25,6 +25,7 @@ end
 sample_posts = [
   %{
     title: "Welcome to My Blog",
+    subtitle: "My first blog post and introduction to what you can expect here",
     content: """
     # Welcome to My Blog
 
@@ -55,6 +56,7 @@ sample_posts = [
   },
   %{
     title: "Building a Phoenix LiveView Blog",
+    subtitle: "A deep dive into creating this blog with Phoenix, Svelte, and Tailwind CSS",
     content: """
     # Building a Phoenix LiveView Blog
 
@@ -101,6 +103,7 @@ sample_posts = [
   },
   %{
     title: "The Power of Elixir for Web Development",
+    subtitle: "Why Elixir has become my go-to language for building web applications",
     content: """
     # The Power of Elixir for Web Development
 
@@ -134,6 +137,7 @@ sample_posts = [
   },
   %{
     title: "Deploying Phoenix Apps to Production",
+    subtitle: "A comprehensive guide to deploying Phoenix applications using modern hosting platforms",
     content: """
     # Deploying Phoenix Apps to Production
 

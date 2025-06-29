@@ -9,6 +9,7 @@ defmodule Blog.Content.Post do
     field :slug, :string
     field :content, :string
     field :excerpt, :string
+    field :subtitle, :string
     field :tags, :string
     field :published, :boolean, default: false
     field :published_at, :utc_datetime
@@ -22,7 +23,7 @@ defmodule Blog.Content.Post do
   @doc false
   def changeset(post, attrs) do
     post
-    |> cast(attrs, [:title, :slug, :content, :excerpt, :tags, :published, :published_at, :user_id])
+    |> cast(attrs, [:title, :slug, :content, :excerpt, :subtitle, :tags, :published, :published_at, :user_id])
     |> validate_required([:title, :content, :user_id])
     |> validate_length(:title, min: 1, max: 200)
     |> validate_length(:content, min: 1)
