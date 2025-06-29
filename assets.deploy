@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
-cd "$( dirname "${BASH_SOURCE[0]}" )"
+# Get the directory of this script
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Go to the parent directory (project root)
+cd "$SCRIPT_DIR/.."
 
 # Run the mix task for asset deployment
-cd ..
 mix assets.deploy
