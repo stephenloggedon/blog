@@ -5,7 +5,8 @@
   "main": "js/app.js",
   "scripts": {
     "build": "esbuild js/app.js --bundle --target=es2017 --outdir=../priv/static/assets",
-    "dev": "esbuild js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --watch"
+    "dev": "esbuild js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --watch",
+    "deploy": "cd .. && mix assets.deploy && rm -f _build/esbuild*"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.7",
