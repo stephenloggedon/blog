@@ -1,18 +1,21 @@
-# Blog
+# stephenloggedon-blog
 
-To start your Phoenix server:
+A Phoenix LiveView blog with advanced search and filtering capabilities.
 
-  * Run `mix setup` to install and setup dependencies
-  * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
+## Live Demo
+🚀 **[stephenloggedon-blog.gigalixirapp.com](https://stephenloggedon-blog.gigalixirapp.com)**
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+## Features
+- Real-time search with tag autocomplete
+- Multi-tag filtering with OR logic  
+- Responsive design with Catppuccin color scheme
+- Markdown content rendering
+- Single-user authentication with 2FA TOTP
+- Infinite scroll homepage
 
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
+## Tech Stack
+- Phoenix LiveView + PostgreSQL
+- Tailwind CSS + Catppuccin theme
+- Deployed on Gigalixir with GitHub Actions CI/CD
 
-## Learn more
-
-  * Official website: https://www.phoenixframework.org/
-  * Guides: https://hexdocs.pm/phoenix/overview.html
-  * Docs: https://hexdocs.pm/phoenix
-  * Forum: https://elixirforum.com/c/phoenix-forum
-  * Source: https://github.com/phoenixframework/phoenix
+Built with Phoenix LiveView for real-time interactivity.
