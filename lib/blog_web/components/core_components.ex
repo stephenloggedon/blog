@@ -17,7 +17,7 @@ defmodule BlogWeb.CoreComponents do
   use Phoenix.Component
 
   alias Phoenix.LiveView.JS
-  import BlogWeb.Gettext
+  use Gettext, backend: BlogWeb.Gettext
 
   @doc """
   Renders a modal.
