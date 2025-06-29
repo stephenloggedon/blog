@@ -14,8 +14,8 @@ cmds = [
   "mix deps.get --only prod",
   "npm install --prefix assets",
   "mix assets.deploy",
-  "mix release"
+  "mix compile"
 ]
 
 [start]
-cmd = "_build/prod/rel/blog/bin/server"
+cmd = "mix phx.server"
