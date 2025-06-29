@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+cd "$( dirname "${BASH_SOURCE[0]}" )"
+
+# Run the mix task for asset deployment
+cd ..
+mix assets.deploy
