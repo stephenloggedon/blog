@@ -92,7 +92,9 @@ jobs:
 
       - name: Deploy to Gigalixir
         run: |
-          git remote add gigalixir https://$GIGALIXIR_API_KEY@git.gigalixir.com/$GIGALIXIR_APP_NAME.git
+          echo "machine git.gigalixir.com login $GIGALIXIR_API_KEY password x" > ~/.netrc
+          chmod 600 ~/.netrc
+          git remote add gigalixir https://git.gigalixir.com/$GIGALIXIR_APP_NAME.git
           git push gigalixir HEAD:main
         env:
           GIGALIXIR_API_KEY: ${{ secrets.GIGALIXIR_API_KEY }}
