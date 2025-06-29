@@ -38,13 +38,18 @@ defmodule Blog.Content do
     per_page = Keyword.get(opts, :per_page, 10)
     offset = (page - 1) * per_page
 
-    from(p in Post,
+    posts = from(p in Post,
       where: not is_nil(p.published_at),
       order_by: [desc: p.published_at],
       limit: ^per_page,
       offset: ^offset
     )
     |> Repo.all()
+    
+    # Render content for each post
+    Enum.map(posts, fn post ->
+      %{post | rendered_content: Post.render_content(post)}
+    end)
   end
 
   @doc """
@@ -62,10 +67,15 @@ defmodule Blog.Content do
 
   """
   def get_published_post_by_slug(slug) do
-    from(p in Post,
+    post = from(p in Post,
       where: p.slug == ^slug and not is_nil(p.published_at)
     )
     |> Repo.one()
+    
+    case post do
+      nil -> nil
+      post -> %{post | rendered_content: Post.render_content(post)}
+    end
   end
 
   @doc """
