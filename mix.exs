@@ -9,7 +9,8 @@ defmodule Blog.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      releases: releases()
     ]
   end
 
@@ -87,5 +88,20 @@ defmodule Blog.MixProject do
         "phx.digest"
       ]
     ]
+  end
+
+  defp releases do
+    [
+      blog: [
+        include_executables_for: [:unix],
+        applications: [runtime_tools: :permanent],
+        steps: [:assemble, &copy_bin_files/1, :tar]
+      ]
+    ]
+  end
+
+  defp copy_bin_files(release) do
+    File.cp_r!("rel/overlays", release.path)
+    release
   end
 end
