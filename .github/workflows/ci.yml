@@ -64,6 +64,8 @@ jobs:
       - name: Run tests
         run: mix test
         env:
+          DATABASE_USER: postgres
+          DATABASE_PASSWORD: postgres
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/blog_test
 
       - name: Check formatting
