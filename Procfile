@@ -1,1 +1,2 @@
-web: mix phx.server
+web: bin/server
+release: bin/migrate
