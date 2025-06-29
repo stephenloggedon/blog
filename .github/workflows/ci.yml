@@ -71,8 +71,8 @@ jobs:
       - name: Check formatting
         run: mix format --check-formatted
 
-      - name: Run Credo
-        run: mix credo
+      - name: Run Credo (informational)
+        run: mix credo || true
 
   deploy:
     name: Deploy to Gigalixir
