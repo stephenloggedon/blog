@@ -23,64 +23,55 @@ defmodule BlogWeb.BlogPostLive do
 
   def render(assigns) do
     ~H"""
-    <div class="h-screen bg-base flex flex-col">
-      <!-- Page Header -->
-      <.page_header page_title={@post.title} />
-      
-      <!-- Main Content with Adjacent Navigation -->
-      <div class="flex-1 w-full px-6 pt-8 overflow-hidden">
-        <div class="max-w-4xl mx-auto flex h-full bg-surface0 rounded-lg overflow-hidden">
-          <!-- Navigation Adjacent to Article -->
-          <.content_nav current_user={assigns[:current_user]} />
-
-          <!-- Article Content Area -->
-          <main class="flex-1 overflow-y-auto scrollbar-hide px-6">
-            <!-- Back to Blog Link -->
-            <div class="mb-6">
-              <.link navigate="/" class="text-blue hover:text-lavender transition-colors inline-flex items-center">
-                ← Back to Blog
-              </.link>
-            </div>
-          <article class="py-6">
-          <div>
-            <!-- Article Header -->
-            <header class="mb-8">
-              <h1 class="text-3xl font-bold text-text mb-4"><%= @post.title %></h1>
-              <div class="flex items-center text-sm text-subtext1 space-x-4">
-                <time datetime={@post.published_at}>
-                  <%= Calendar.strftime(@post.published_at, "%B %d, %Y") %>
-                </time>
-                <%= if Blog.Content.Post.tag_list(@post) != [] do %>
-                  <span>•</span>
-                  <div class="flex flex-wrap gap-2">
-                    <%= for tag <- Blog.Content.Post.tag_list(@post) do %>
-                      <span class="bg-surface1 text-subtext0 px-2 py-1 rounded text-xs">
-                        <%= tag %>
-                      </span>
-                    <% end %>
-                  </div>
-                <% end %>
+    <div class="min-h-screen bg-base">
+      <!-- Main Article Content -->
+      <main class="max-w-4xl mx-auto px-6 py-12">
+        <article class="prose prose-invert prose-xl max-w-none">
+          <!-- Article Header -->
+          <header class="mb-12 text-center">
+            <h1 class="text-4xl font-bold text-text mb-6 leading-tight"><%= @post.title %></h1>
+            
+            <%= if @post.subtitle do %>
+              <div class="text-xl text-subtext0 mb-6 font-medium">
+                <%= @post.subtitle %>
               </div>
-            </header>
-
-            <!-- Article Content -->
-            <div class="prose prose-invert prose-lg max-w-none">
-              <%= raw(@post.rendered_content) %>
+            <% end %>
+            
+            <div class="flex items-center justify-center text-sm text-subtext1 space-x-4">
+              <time datetime={@post.published_at}>
+                <%= Calendar.strftime(@post.published_at, "%B %d, %Y") %>
+              </time>
+              <%= if Blog.Content.Post.tag_list(@post) != [] do %>
+                <span>•</span>
+                <div class="flex flex-wrap gap-2 justify-center">
+                  <%= for tag <- Blog.Content.Post.tag_list(@post) do %>
+                    <span class="bg-surface1 text-subtext0 px-3 py-1 rounded-full text-xs font-medium">
+                      <%= tag %>
+                    </span>
+                  <% end %>
+                </div>
+              <% end %>
             </div>
+          </header>
+
+          <!-- Article Content -->
+          <div class="prose-catppuccin">
+            <%= raw(@post.rendered_content) %>
           </div>
         </article>
+      </main>
 
-            <!-- Navigation -->
-            <div class="mt-8 flex justify-center">
-              <.link 
-                navigate="/" 
-                class="bg-blue hover:bg-opacity-80 text-base px-6 py-3 rounded-lg font-medium transition-all"
-              >
-                ← Back to All Posts
-              </.link>
-            </div>
-          </main>
-        </div>
+      <!-- Floating Back Button -->
+      <div class="fixed bottom-6 left-6 z-50">
+        <.link 
+          navigate="/" 
+          class="flex items-center justify-center w-14 h-14 bg-blue hover:bg-blue/80 text-base rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+          title="Back to Blog"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+        </.link>
       </div>
     </div>
     """
