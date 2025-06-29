@@ -92,10 +92,8 @@ jobs:
 
       - name: Deploy to Gigalixir
         run: |
-          echo "$GIGALIXIR_EMAIL" | gigalixir login
           gigalixir git:remote $GIGALIXIR_APP_NAME
           git push gigalixir HEAD:main
         env:
-          GIGALIXIR_EMAIL: ${{ secrets.GIGALIXIR_EMAIL }}
-          GIGALIXIR_PASSWORD: ${{ secrets.GIGALIXIR_PASSWORD }}
+          GIGALIXIR_API_KEY: ${{ secrets.GIGALIXIR_API_KEY }}
           GIGALIXIR_APP_NAME: ${{ secrets.GIGALIXIR_APP_NAME }}
