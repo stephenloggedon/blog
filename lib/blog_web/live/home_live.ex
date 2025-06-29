@@ -5,7 +5,7 @@ defmodule BlogWeb.HomeLive do
   on_mount {BlogWeb.UserAuth, :mount_current_user}
 
   def mount(_params, _session, socket) do
-    {:ok, 
+    {:ok,
      socket
      |> assign(:page_title, "Blog")
      |> assign(:posts, [])
@@ -18,7 +18,7 @@ defmodule BlogWeb.HomeLive do
 
   def handle_event("load_more", _params, socket) do
     next_page = socket.assigns.page + 1
-    
+
     {:noreply,
      socket
      |> assign(:page, next_page)
@@ -28,60 +28,66 @@ defmodule BlogWeb.HomeLive do
 
   defp load_posts(socket) do
     %{page: page, per_page: per_page, posts: existing_posts} = socket.assigns
-    
+
     new_posts = Content.list_published_posts(page: page, per_page: per_page)
     all_posts = existing_posts ++ new_posts
     has_more = length(new_posts) == per_page
-    
+
     assign(socket, posts: all_posts, has_more: has_more)
   end
 
   def render(assigns) do
     ~H"""
-    <div class="h-screen bg-base flex flex-col">
-      <!-- Page Header -->
-      <.page_header page_title="Blog" />
-      
+    <div class="h-screen bg-mantle overflow-hidden">
       <!-- Main Content with Adjacent Navigation -->
-      <div class="flex-1 w-full px-6 pt-8 overflow-hidden">
-        <div class="max-w-4xl mx-auto flex h-full bg-surface0 rounded-lg overflow-hidden">
+      <div class="w-full h-full px-8">
+        <div class="max-w-6xl mx-auto flex h-full overflow-hidden">
           <!-- Navigation Adjacent to Blog Posts -->
           <.content_nav current_user={assigns[:current_user]} />
 
           <!-- Blog Posts Scroll Area -->
           <main class="flex-1 overflow-y-auto scrollbar-hide px-6" id="posts-container">
           <%= for post <- @posts do %>
-            <article class="border-b border-surface1 last:border-b-0">
-              <.link navigate={"/blog/#{post.slug}"} class="block py-6 hover:bg-surface0/20 transition-colors cursor-pointer">
-                <header class="mb-4">
-                  <h2 class="text-xl font-semibold text-text mb-2 hover:text-blue transition-colors">
-                    <%= post.title %>
-                  </h2>
-                  <div class="flex items-center text-sm text-subtext1 space-x-4">
-                    <time datetime={post.published_at}>
-                      <%= Calendar.strftime(post.published_at, "%B %d, %Y") %>
-                    </time>
-                    <%= if Blog.Content.Post.tag_list(post) != [] do %>
-                      <div class="flex items-center space-x-2">
-                        <span>•</span>
-                        <div class="flex flex-wrap gap-2">
-                          <%= for tag <- Blog.Content.Post.tag_list(post) do %>
-                            <span class="bg-surface1 text-subtext0 px-2 py-1 rounded text-xs">
-                              <%= tag %>
-                            </span>
-                          <% end %>
+            <article>
+              <.link navigate={"/blog/#{post.slug}"} class="block py-6 mx-2 hover:bg-surface1/20 transition-all duration-300 cursor-pointer rounded-2xl hover:shadow-[0_0_50px_10px_rgba(49,50,68,0.3)] relative">
+                <div class="space-y-4">
+                  <header class="px-4">
+                    <h2 class="text-xl font-semibold text-text mb-2">
+                      <%= post.title %>
+                    </h2>
+                    <div class="flex items-center text-sm text-subtext1 space-x-4">
+                      <time datetime={post.published_at}>
+                        <%= Calendar.strftime(post.published_at, "%B %d, %Y") %>
+                      </time>
+                      <%= if Blog.Content.Post.tag_list(post) != [] do %>
+                        <div class="flex items-center space-x-2">
+                          <span>•</span>
+                          <div class="flex flex-wrap gap-2">
+                            <%= for tag <- Blog.Content.Post.tag_list(post) do %>
+                              <span class="bg-surface1 text-subtext0 px-2 py-1 rounded text-xs">
+                                <%= tag %>
+                              </span>
+                            <% end %>
+                          </div>
                         </div>
-                      </div>
-                    <% end %>
+                      <% end %>
+                    </div>
+                  </header>
+
+                  <%= if post.subtitle do %>
+                    <div class="text-subtext1 text-sm px-4">
+                      <%= post.subtitle %>
+                    </div>
+                  <% end %>
+
+                  <div class="relative">
+                    <div class="text-subtext1 overflow-hidden h-36 px-4">
+                      <%= raw(Blog.Content.Post.render_content(post) |> String.slice(0, 400)) %>
+                    </div>
                   </div>
-                </header>
-                
-                <div class="relative">
-                  <div class="text-subtext1 leading-relaxed overflow-hidden h-36">
-                    <%= raw(Blog.Content.Post.render_content(post) |> String.slice(0, 400)) %>
-                  </div>
-                  <div class="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-surface0 via-surface0/90 via-surface0/60 to-transparent pointer-events-none"></div>
                 </div>
+                <!-- Fade effect covering the entire link area -->
+                <div class="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-mantle via-mantle/90 via-mantle/60 via-mantle/40 to-transparent pointer-events-none"></div>
               </.link>
             </article>
           <% end %>
