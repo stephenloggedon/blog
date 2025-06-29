@@ -92,9 +92,7 @@ jobs:
 
       - name: Deploy to Gigalixir
         run: |
-          git config --global credential.helper store
-          echo "https://$GIGALIXIR_API_KEY@git.gigalixir.com" > ~/.git-credentials
-          gigalixir git:remote $GIGALIXIR_APP_NAME
+          git remote add gigalixir https://$GIGALIXIR_API_KEY@git.gigalixir.com/$GIGALIXIR_APP_NAME.git
           git push gigalixir HEAD:main
         env:
           GIGALIXIR_API_KEY: ${{ secrets.GIGALIXIR_API_KEY }}
