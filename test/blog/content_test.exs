@@ -8,7 +8,15 @@ defmodule Blog.ContentTest do
 
     import Blog.ContentFixtures
 
-    @invalid_attrs %{title: nil, slug: nil, content: nil, excerpt: nil, tags: nil, published: nil, published_at: nil}
+    @invalid_attrs %{
+      title: nil,
+      slug: nil,
+      content: nil,
+      excerpt: nil,
+      tags: nil,
+      published: nil,
+      published_at: nil
+    }
 
     test "list_posts/0 returns all posts" do
       post = post_fixture()
@@ -22,7 +30,16 @@ defmodule Blog.ContentTest do
 
     test "create_post/1 with valid data creates a post" do
       user = Blog.AccountsFixtures.user_fixture()
-      valid_attrs = %{title: "some title", slug: "some slug", content: "some content", excerpt: "some excerpt", tags: "some tags", published: true, user_id: user.id}
+
+      valid_attrs = %{
+        title: "some title",
+        slug: "some slug",
+        content: "some content",
+        excerpt: "some excerpt",
+        tags: "some tags",
+        published: true,
+        user_id: user.id
+      }
 
       assert {:ok, %Post{} = post} = Content.create_post(valid_attrs)
       assert post.title == "some title"
@@ -42,7 +59,16 @@ defmodule Blog.ContentTest do
 
     test "update_post/2 with valid data updates the post" do
       post = post_fixture()
-      update_attrs = %{title: "some updated title", slug: "some updated slug", content: "some updated content", excerpt: "some updated excerpt", tags: "some updated tags", published: false, published_at: ~U[2025-06-28 20:59:00Z]}
+
+      update_attrs = %{
+        title: "some updated title",
+        slug: "some updated slug",
+        content: "some updated content",
+        excerpt: "some updated excerpt",
+        tags: "some updated tags",
+        published: false,
+        published_at: ~U[2025-06-28 20:59:00Z]
+      }
 
       assert {:ok, %Post{} = post} = Content.update_post(post, update_attrs)
       assert post.title == "some updated title"
@@ -74,9 +100,25 @@ defmodule Blog.ContentTest do
     test "list_published_posts/1 with search filters by title" do
       user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
-      {:ok, post1} = Content.create_post(%{title: "Phoenix LiveView Guide", content: "Content about Phoenix", user_id: user.id, published: true, published_at: now})
-      {:ok, _post2} = Content.create_post(%{title: "Elixir Patterns", content: "Content about patterns", user_id: user.id, published: true, published_at: now})
-      
+
+      {:ok, post1} =
+        Content.create_post(%{
+          title: "Phoenix LiveView Guide",
+          content: "Content about Phoenix",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
+      {:ok, _post2} =
+        Content.create_post(%{
+          title: "Elixir Patterns",
+          content: "Content about patterns",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
       # Search by title
       results = Content.list_published_posts(search: "Phoenix")
       assert length(results) == 1
@@ -86,9 +128,25 @@ defmodule Blog.ContentTest do
     test "list_published_posts/1 with search filters by content" do
       user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
-      {:ok, post1} = Content.create_post(%{title: "Guide One", content: "Content about Phoenix LiveView", user_id: user.id, published: true, published_at: now})
-      {:ok, _post2} = Content.create_post(%{title: "Guide Two", content: "Content about Elixir", user_id: user.id, published: true, published_at: now})
-      
+
+      {:ok, post1} =
+        Content.create_post(%{
+          title: "Guide One",
+          content: "Content about Phoenix LiveView",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
+      {:ok, _post2} =
+        Content.create_post(%{
+          title: "Guide Two",
+          content: "Content about Elixir",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
       # Search by content
       results = Content.list_published_posts(search: "LiveView")
       assert length(results) == 1
@@ -98,9 +156,27 @@ defmodule Blog.ContentTest do
     test "list_published_posts/1 with search filters by subtitle" do
       user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
-      {:ok, post1} = Content.create_post(%{title: "Guide One", subtitle: "Phoenix tutorial", content: "Content", user_id: user.id, published: true, published_at: now})
-      {:ok, _post2} = Content.create_post(%{title: "Guide Two", subtitle: "Elixir tutorial", content: "Content", user_id: user.id, published: true, published_at: now})
-      
+
+      {:ok, post1} =
+        Content.create_post(%{
+          title: "Guide One",
+          subtitle: "Phoenix tutorial",
+          content: "Content",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
+      {:ok, _post2} =
+        Content.create_post(%{
+          title: "Guide Two",
+          subtitle: "Elixir tutorial",
+          content: "Content",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
       # Search by subtitle
       results = Content.list_published_posts(search: "Phoenix")
       assert length(results) == 1
@@ -110,9 +186,27 @@ defmodule Blog.ContentTest do
     test "list_published_posts/1 with tag filter" do
       user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
-      {:ok, post1} = Content.create_post(%{title: "Guide One", content: "Content", tags: "phoenix, web", user_id: user.id, published: true, published_at: now})
-      {:ok, _post2} = Content.create_post(%{title: "Guide Two", content: "Content", tags: "elixir, functional", user_id: user.id, published: true, published_at: now})
-      
+
+      {:ok, post1} =
+        Content.create_post(%{
+          title: "Guide One",
+          content: "Content",
+          tags: "phoenix, web",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
+      {:ok, _post2} =
+        Content.create_post(%{
+          title: "Guide Two",
+          content: "Content",
+          tags: "elixir, functional",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
       # Filter by tag using new tags parameter
       results = Content.list_published_posts(tags: ["phoenix"])
       assert length(results) == 1
@@ -122,10 +216,37 @@ defmodule Blog.ContentTest do
     test "list_published_posts/1 with multiple tag filter (OR logic)" do
       user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
-      {:ok, post1} = Content.create_post(%{title: "Phoenix Guide", content: "Content", tags: "phoenix, web", user_id: user.id, published: true, published_at: now})
-      {:ok, post2} = Content.create_post(%{title: "Elixir Basics", content: "Content", tags: "elixir, functional", user_id: user.id, published: true, published_at: now})
-      {:ok, _post3} = Content.create_post(%{title: "CSS Guide", content: "Content", tags: "css, design", user_id: user.id, published: true, published_at: now})
-      
+
+      {:ok, post1} =
+        Content.create_post(%{
+          title: "Phoenix Guide",
+          content: "Content",
+          tags: "phoenix, web",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
+      {:ok, post2} =
+        Content.create_post(%{
+          title: "Elixir Basics",
+          content: "Content",
+          tags: "elixir, functional",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
+      {:ok, _post3} =
+        Content.create_post(%{
+          title: "CSS Guide",
+          content: "Content",
+          tags: "css, design",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
       # Filter by multiple tags with OR logic - should return posts with phoenix OR elixir
       results = Content.list_published_posts(tags: ["phoenix", "elixir"])
       assert length(results) == 2
@@ -135,10 +256,37 @@ defmodule Blog.ContentTest do
     test "list_published_posts/1 with combined search and tag filter" do
       user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
-      {:ok, post1} = Content.create_post(%{title: "Phoenix Guide", content: "LiveView content", tags: "phoenix, web", user_id: user.id, published: true, published_at: now})
-      {:ok, _post2} = Content.create_post(%{title: "Phoenix Basics", content: "Basic content", tags: "elixir, basics", user_id: user.id, published: true, published_at: now})
-      {:ok, post3} = Content.create_post(%{title: "Elixir Guide", content: "LiveView content", tags: "phoenix, advanced", user_id: user.id, published: true, published_at: now})
-      
+
+      {:ok, post1} =
+        Content.create_post(%{
+          title: "Phoenix Guide",
+          content: "LiveView content",
+          tags: "phoenix, web",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
+      {:ok, _post2} =
+        Content.create_post(%{
+          title: "Phoenix Basics",
+          content: "Basic content",
+          tags: "elixir, basics",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
+      {:ok, post3} =
+        Content.create_post(%{
+          title: "Elixir Guide",
+          content: "LiveView content",
+          tags: "phoenix, advanced",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
       # Search for "LiveView" AND tag "phoenix" using new tags parameter
       results = Content.list_published_posts(search: "LiveView", tags: ["phoenix"])
       assert length(results) == 2
@@ -148,10 +296,37 @@ defmodule Blog.ContentTest do
     test "list_available_tags/0 returns unique sorted tags" do
       user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
-      {:ok, _post1} = Content.create_post(%{title: "Post One", content: "Content", tags: "phoenix, web, elixir", user_id: user.id, published: true, published_at: now})
-      {:ok, _post2} = Content.create_post(%{title: "Post Two", content: "Content", tags: "elixir, functional", user_id: user.id, published: true, published_at: now})
-      {:ok, _post3} = Content.create_post(%{title: "Post Three", content: "Content", tags: "web, css", user_id: user.id, published: true, published_at: now})
-      
+
+      {:ok, _post1} =
+        Content.create_post(%{
+          title: "Post One",
+          content: "Content",
+          tags: "phoenix, web, elixir",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
+      {:ok, _post2} =
+        Content.create_post(%{
+          title: "Post Two",
+          content: "Content",
+          tags: "elixir, functional",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
+      {:ok, _post3} =
+        Content.create_post(%{
+          title: "Post Three",
+          content: "Content",
+          tags: "web, css",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
       tags = Content.list_available_tags()
       assert tags == ["css", "elixir", "functional", "phoenix", "web"]
     end
@@ -159,9 +334,26 @@ defmodule Blog.ContentTest do
     test "list_available_tags/0 ignores unpublished posts" do
       user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
-      {:ok, _post1} = Content.create_post(%{title: "Published", content: "Content", tags: "phoenix", user_id: user.id, published: true, published_at: now})
-      {:ok, _post2} = Content.create_post(%{title: "Draft", content: "Content", tags: "draft-tag", user_id: user.id, published: false})
-      
+
+      {:ok, _post1} =
+        Content.create_post(%{
+          title: "Published",
+          content: "Content",
+          tags: "phoenix",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
+      {:ok, _post2} =
+        Content.create_post(%{
+          title: "Draft",
+          content: "Content",
+          tags: "draft-tag",
+          user_id: user.id,
+          published: false
+        })
+
       tags = Content.list_available_tags()
       assert tags == ["phoenix"]
     end
@@ -170,12 +362,56 @@ defmodule Blog.ContentTest do
       user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
       # Create posts with various tag frequencies
-      {:ok, _post1} = Content.create_post(%{title: "Post 1", content: "Content", tags: "elixir, phoenix", user_id: user.id, published: true, published_at: now})
-      {:ok, _post2} = Content.create_post(%{title: "Post 2", content: "Content", tags: "elixir, web", user_id: user.id, published: true, published_at: now})
-      {:ok, _post3} = Content.create_post(%{title: "Post 3", content: "Content", tags: "elixir, functional", user_id: user.id, published: true, published_at: now})
-      {:ok, _post4} = Content.create_post(%{title: "Post 4", content: "Content", tags: "phoenix, web", user_id: user.id, published: true, published_at: now})
-      {:ok, _post5} = Content.create_post(%{title: "Post 5", content: "Content", tags: "css", user_id: user.id, published: true, published_at: now})
-      
+      {:ok, _post1} =
+        Content.create_post(%{
+          title: "Post 1",
+          content: "Content",
+          tags: "elixir, phoenix",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
+      {:ok, _post2} =
+        Content.create_post(%{
+          title: "Post 2",
+          content: "Content",
+          tags: "elixir, web",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
+      {:ok, _post3} =
+        Content.create_post(%{
+          title: "Post 3",
+          content: "Content",
+          tags: "elixir, functional",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
+      {:ok, _post4} =
+        Content.create_post(%{
+          title: "Post 4",
+          content: "Content",
+          tags: "phoenix, web",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
+      {:ok, _post5} =
+        Content.create_post(%{
+          title: "Post 5",
+          content: "Content",
+          tags: "css",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
       # elixir: 3, phoenix: 2, web: 2, functional: 1, css: 1
       top_tags = Content.list_top_tags(3)
       assert length(top_tags) == 3
@@ -187,25 +423,62 @@ defmodule Blog.ContentTest do
     test "list_top_tags/1 respects limit parameter" do
       user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
-      {:ok, _post1} = Content.create_post(%{title: "Post 1", content: "Content", tags: "tag1, tag2, tag3, tag4, tag5, tag6", user_id: user.id, published: true, published_at: now})
-      
+
+      {:ok, _post1} =
+        Content.create_post(%{
+          title: "Post 1",
+          content: "Content",
+          tags: "tag1, tag2, tag3, tag4, tag5, tag6",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
       top_tags_3 = Content.list_top_tags(3)
       assert length(top_tags_3) == 3
-      
+
       top_tags_5 = Content.list_top_tags(5)
       assert length(top_tags_5) == 5
-      
+
       top_tags_10 = Content.list_top_tags(10)
-      assert length(top_tags_10) == 6  # Only 6 unique tags exist
+      # Only 6 unique tags exist
+      assert length(top_tags_10) == 6
     end
 
     test "list_published_posts/1 with combined text search and tag filtering" do
       user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
-      {:ok, post1} = Content.create_post(%{title: "Phoenix LiveView Guide", content: "Advanced Phoenix tutorial", tags: "phoenix, tutorial", user_id: user.id, published: true, published_at: now})
-      {:ok, _post2} = Content.create_post(%{title: "Elixir Basics", content: "Phoenix introduction", tags: "elixir, basics", user_id: user.id, published: true, published_at: now})
-      {:ok, post3} = Content.create_post(%{title: "Advanced Phoenix", content: "Deep dive tutorial", tags: "phoenix, advanced", user_id: user.id, published: true, published_at: now})
-      
+
+      {:ok, post1} =
+        Content.create_post(%{
+          title: "Phoenix LiveView Guide",
+          content: "Advanced Phoenix tutorial",
+          tags: "phoenix, tutorial",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
+      {:ok, _post2} =
+        Content.create_post(%{
+          title: "Elixir Basics",
+          content: "Phoenix introduction",
+          tags: "elixir, basics",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
+      {:ok, post3} =
+        Content.create_post(%{
+          title: "Advanced Phoenix",
+          content: "Deep dive tutorial",
+          tags: "phoenix, advanced",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
       # Search for "tutorial" AND tag "phoenix" - should find posts with both
       results = Content.list_published_posts(search: "tutorial", tags: ["phoenix"])
       assert length(results) == 2
@@ -215,9 +488,25 @@ defmodule Blog.ContentTest do
     test "list_published_posts/1 with empty search and no tags returns all posts" do
       user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
-      {:ok, post1} = Content.create_post(%{title: "Post 1", content: "Content", user_id: user.id, published: true, published_at: now})
-      {:ok, post2} = Content.create_post(%{title: "Post 2", content: "Content", user_id: user.id, published: true, published_at: now})
-      
+
+      {:ok, post1} =
+        Content.create_post(%{
+          title: "Post 1",
+          content: "Content",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
+      {:ok, post2} =
+        Content.create_post(%{
+          title: "Post 2",
+          content: "Content",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
       results = Content.list_published_posts(search: "", tags: [])
       assert length(results) == 2
       assert Enum.map(results, & &1.id) |> Enum.sort() == [post1.id, post2.id] |> Enum.sort()
@@ -226,11 +515,19 @@ defmodule Blog.ContentTest do
     test "list_published_posts/1 with whitespace-only search is treated as empty" do
       user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
-      {:ok, _post1} = Content.create_post(%{title: "Post 1", content: "Content", user_id: user.id, published: true, published_at: now})
-      
+
+      {:ok, _post1} =
+        Content.create_post(%{
+          title: "Post 1",
+          content: "Content",
+          user_id: user.id,
+          published: true,
+          published_at: now
+        })
+
       results_empty = Content.list_published_posts(search: "")
       results_whitespace = Content.list_published_posts(search: "   ")
-      
+
       assert length(results_empty) == length(results_whitespace)
       assert results_empty == results_whitespace
     end

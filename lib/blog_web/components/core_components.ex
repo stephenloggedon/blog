@@ -79,7 +79,7 @@ defmodule BlogWeb.CoreComponents do
                 </button>
               </div>
               <div id={"#{@id}-content"}>
-                <%= render_slot(@inner_block) %>
+                {render_slot(@inner_block)}
               </div>
             </.focus_wrap>
           </div>
@@ -124,9 +124,9 @@ defmodule BlogWeb.CoreComponents do
       <p :if={@title} class="flex items-center gap-1.5 text-sm font-semibold leading-6">
         <.icon :if={@kind == :info} name="hero-information-circle-mini" class="h-4 w-4" />
         <.icon :if={@kind == :error} name="hero-exclamation-circle-mini" class="h-4 w-4" />
-        <%= @title %>
+        {@title}
       </p>
-      <p class="mt-2 text-sm leading-5"><%= msg %></p>
+      <p class="mt-2 text-sm leading-5">{msg}</p>
       <button type="button" class="group absolute top-1 right-1 p-2" aria-label={gettext("close")}>
         <.icon name="hero-x-mark-solid" class="h-5 w-5 opacity-40 group-hover:opacity-70" />
       </button>
@@ -157,7 +157,7 @@ defmodule BlogWeb.CoreComponents do
         phx-connected={hide("#client-error")}
         hidden
       >
-        <%= gettext("Attempting to reconnect") %>
+        {gettext("Attempting to reconnect")}
         <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
       </.flash>
 
@@ -169,7 +169,7 @@ defmodule BlogWeb.CoreComponents do
         phx-connected={hide("#server-error")}
         hidden
       >
-        <%= gettext("Hang in there while we get back on track") %>
+        {gettext("Hang in there while we get back on track")}
         <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
       </.flash>
     </div>
@@ -203,9 +203,9 @@ defmodule BlogWeb.CoreComponents do
     ~H"""
     <.form :let={f} for={@for} as={@as} {@rest}>
       <div class="mt-10 space-y-8 bg-white">
-        <%= render_slot(@inner_block, f) %>
+        {render_slot(@inner_block, f)}
         <div :for={action <- @actions} class="mt-2 flex items-center justify-between gap-6">
-          <%= render_slot(action, f) %>
+          {render_slot(action, f)}
         </div>
       </div>
     </.form>
@@ -237,7 +237,7 @@ defmodule BlogWeb.CoreComponents do
       ]}
       {@rest}
     >
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </button>
     """
   end
@@ -321,9 +321,9 @@ defmodule BlogWeb.CoreComponents do
           class="rounded border-zinc-300 text-zinc-900 focus:ring-0"
           {@rest}
         />
-        <%= @label %>
+        {@label}
       </label>
-      <.error :for={msg <- @errors}><%= msg %></.error>
+      <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
   end
@@ -331,7 +331,7 @@ defmodule BlogWeb.CoreComponents do
   def input(%{type: "select"} = assigns) do
     ~H"""
     <div phx-feedback-for={@name}>
-      <.label for={@id}><%= @label %></.label>
+      <.label for={@id}>{@label}</.label>
       <select
         id={@id}
         name={@name}
@@ -339,10 +339,10 @@ defmodule BlogWeb.CoreComponents do
         multiple={@multiple}
         {@rest}
       >
-        <option :if={@prompt} value=""><%= @prompt %></option>
-        <%= Phoenix.HTML.Form.options_for_select(@options, @value) %>
+        <option :if={@prompt} value="">{@prompt}</option>
+        {Phoenix.HTML.Form.options_for_select(@options, @value)}
       </select>
-      <.error :for={msg <- @errors}><%= msg %></.error>
+      <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
   end
@@ -350,7 +350,7 @@ defmodule BlogWeb.CoreComponents do
   def input(%{type: "textarea"} = assigns) do
     ~H"""
     <div phx-feedback-for={@name}>
-      <.label for={@id}><%= @label %></.label>
+      <.label for={@id}>{@label}</.label>
       <textarea
         id={@id}
         name={@name}
@@ -362,7 +362,7 @@ defmodule BlogWeb.CoreComponents do
         ]}
         {@rest}
       ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
-      <.error :for={msg <- @errors}><%= msg %></.error>
+      <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
   end
@@ -371,7 +371,7 @@ defmodule BlogWeb.CoreComponents do
   def input(assigns) do
     ~H"""
     <div phx-feedback-for={@name}>
-      <.label for={@id}><%= @label %></.label>
+      <.label for={@id}>{@label}</.label>
       <input
         type={@type}
         name={@name}
@@ -385,7 +385,7 @@ defmodule BlogWeb.CoreComponents do
         ]}
         {@rest}
       />
-      <.error :for={msg <- @errors}><%= msg %></.error>
+      <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
   end
@@ -399,7 +399,7 @@ defmodule BlogWeb.CoreComponents do
   def label(assigns) do
     ~H"""
     <label for={@for} class="block text-sm font-semibold leading-6 text-zinc-800">
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </label>
     """
   end
@@ -413,7 +413,7 @@ defmodule BlogWeb.CoreComponents do
     ~H"""
     <p class="mt-3 flex gap-3 text-sm leading-6 text-rose-600 phx-no-feedback:hidden">
       <.icon name="hero-exclamation-circle-mini" class="mt-0.5 h-5 w-5 flex-none" />
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </p>
     """
   end
@@ -432,13 +432,13 @@ defmodule BlogWeb.CoreComponents do
     <header class={[@actions != [] && "flex items-center justify-between gap-6", @class]}>
       <div>
         <h1 class="text-lg font-semibold leading-8 text-zinc-800">
-          <%= render_slot(@inner_block) %>
+          {render_slot(@inner_block)}
         </h1>
         <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-zinc-600">
-          <%= render_slot(@subtitle) %>
+          {render_slot(@subtitle)}
         </p>
       </div>
-      <div class="flex-none"><%= render_slot(@actions) %></div>
+      <div class="flex-none">{render_slot(@actions)}</div>
     </header>
     """
   end
@@ -479,9 +479,9 @@ defmodule BlogWeb.CoreComponents do
       <table class="w-[40rem] mt-11 sm:w-full">
         <thead class="text-sm text-left leading-6 text-zinc-500">
           <tr>
-            <th :for={col <- @col} class="p-0 pb-4 pr-6 font-normal"><%= col[:label] %></th>
+            <th :for={col <- @col} class="p-0 pb-4 pr-6 font-normal">{col[:label]}</th>
             <th :if={@action != []} class="relative p-0 pb-4">
-              <span class="sr-only"><%= gettext("Actions") %></span>
+              <span class="sr-only">{gettext("Actions")}</span>
             </th>
           </tr>
         </thead>
@@ -499,7 +499,7 @@ defmodule BlogWeb.CoreComponents do
               <div class="block py-4 pr-6">
                 <span class="absolute -inset-y-px right-0 -left-4 group-hover:bg-zinc-50 sm:rounded-l-xl" />
                 <span class={["relative", i == 0 && "font-semibold text-zinc-900"]}>
-                  <%= render_slot(col, @row_item.(row)) %>
+                  {render_slot(col, @row_item.(row))}
                 </span>
               </div>
             </td>
@@ -510,7 +510,7 @@ defmodule BlogWeb.CoreComponents do
                   :for={action <- @action}
                   class="relative ml-4 font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
                 >
-                  <%= render_slot(action, @row_item.(row)) %>
+                  {render_slot(action, @row_item.(row))}
                 </span>
               </div>
             </td>
@@ -540,8 +540,8 @@ defmodule BlogWeb.CoreComponents do
     <div class="mt-14">
       <dl class="-my-4 divide-y divide-zinc-100">
         <div :for={item <- @item} class="flex gap-4 py-4 text-sm leading-6 sm:gap-8">
-          <dt class="w-1/4 flex-none text-zinc-500"><%= item.title %></dt>
-          <dd class="text-zinc-700"><%= render_slot(item) %></dd>
+          <dt class="w-1/4 flex-none text-zinc-500">{item.title}</dt>
+          <dd class="text-zinc-700">{render_slot(item)}</dd>
         </div>
       </dl>
     </div>
@@ -566,7 +566,7 @@ defmodule BlogWeb.CoreComponents do
         class="text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
       >
         <.icon name="hero-arrow-left-solid" class="h-3 w-3" />
-        <%= render_slot(@inner_block) %>
+        {render_slot(@inner_block)}
       </.link>
     </div>
     """
@@ -685,7 +685,7 @@ defmodule BlogWeb.CoreComponents do
     <header class="bg-surface0 border-b border-surface1 w-full">
       <div class="w-full px-6 py-6">
         <h1 class="text-4xl font-bold text-text text-center">
-          <%= @page_title %>
+          {@page_title}
         </h1>
       </div>
     </header>
@@ -715,7 +715,7 @@ defmodule BlogWeb.CoreComponents do
             <div class="flex flex-wrap gap-1 mb-2" phx-update="ignore" id="tag-bubbles">
               <%= for tag <- @selected_tags do %>
                 <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue text-white text-xs rounded-full">
-                  <%= tag %>
+                  {tag}
                   <button
                     type="button"
                     phx-click="remove_tag"
@@ -728,7 +728,7 @@ defmodule BlogWeb.CoreComponents do
               <% end %>
             </div>
             
-            <!-- Search Input -->
+    <!-- Search Input -->
             <form phx-submit="search" class="relative">
               <input
                 type="text"
@@ -742,7 +742,7 @@ defmodule BlogWeb.CoreComponents do
               />
             </form>
             
-            <!-- Tag Suggestions -->
+    <!-- Tag Suggestions -->
             <%= if @search_query != "" && @search_suggestions != [] do %>
               <div class="absolute z-10 w-full mt-1 bg-surface0 border border-surface1 rounded-lg shadow-lg max-h-40 overflow-y-auto">
                 <%= for suggestion <- @search_suggestions do %>
@@ -755,16 +755,24 @@ defmodule BlogWeb.CoreComponents do
                     <span class="w-4 h-4 bg-blue/20 rounded-full flex items-center justify-center">
                       <span class="w-2 h-2 bg-blue rounded-full"></span>
                     </span>
-                    <%= suggestion %>
+                    {suggestion}
                   </button>
                 <% end %>
               </div>
             <% end %>
           </div>
         </div>
-
-        <!-- Tag Filters -->
+        
+    <!-- Tag Filters -->
         <div>
+          <!-- Tag Count -->
+          <div class="mb-4 text-center">
+            <div class="text-2xl font-bold text-text">
+              {length(@available_tags)} tags
+            </div>
+            <div class="text-xs text-subtext1">Available</div>
+          </div>
+
           <div class="flex items-center justify-between mb-3">
             <h3 class="text-sm font-medium text-text">Popular Tags</h3>
             <%= if @selected_tags != [] do %>
@@ -777,7 +785,7 @@ defmodule BlogWeb.CoreComponents do
             <% end %>
           </div>
           
-          <!-- Tag Grid Layout -->
+    <!-- Tag Grid Layout -->
           <div class="flex flex-wrap gap-2 mb-4">
             <%= for tag <- @top_tags do %>
               <button
@@ -785,17 +793,18 @@ defmodule BlogWeb.CoreComponents do
                 phx-value-tag={tag}
                 class={[
                   "px-3 py-1 text-xs rounded-full border transition-all duration-200 hover:scale-105",
-                  if(tag in @selected_tags, 
-                    do: "border-blue text-white bg-blue", 
-                    else: "border-surface2 text-subtext1 hover:border-blue/50 hover:text-blue")
+                  if(tag in @selected_tags,
+                    do: "border-blue text-white bg-blue",
+                    else: "border-surface2 text-subtext1 hover:border-blue/50 hover:text-blue"
+                  )
                 ]}
               >
-                <%= tag %>
+                {tag}
               </button>
             <% end %>
           </div>
-
-          <!-- Show more tags if any are selected that aren't in top tags -->
+          
+    <!-- Show more tags if any are selected that aren't in top tags -->
           <%= if Enum.any?(@selected_tags, fn tag -> tag not in @top_tags end) do %>
             <div class="mb-4">
               <h4 class="text-xs font-medium text-subtext1 mb-2">Additional Tags</h4>
@@ -806,7 +815,7 @@ defmodule BlogWeb.CoreComponents do
                     phx-value-tag={tag}
                     class="px-3 py-1 text-xs rounded-full border border-blue text-white bg-blue transition-all duration-200 hover:scale-105"
                   >
-                    <%= tag %>
+                    {tag}
                   </button>
                 <% end %>
               </div>
@@ -814,19 +823,25 @@ defmodule BlogWeb.CoreComponents do
           <% end %>
         </div>
       </div>
-
-      <!-- Admin Navigation Links -->
+      
+    <!-- Admin Navigation Links -->
       <%= if @current_user do %>
         <div class="p-6 flex-1">
           <h3 class="text-sm font-medium text-text mb-3">Admin</h3>
           <ul class="space-y-2">
             <li>
-              <.link navigate="/posts" class="block text-subtext1 hover:text-text transition-colors py-2 px-3 rounded-lg hover:bg-surface0">
+              <.link
+                navigate="/posts"
+                class="block text-subtext1 hover:text-text transition-colors py-2 px-3 rounded-lg hover:bg-surface0"
+              >
                 Manage Posts
               </.link>
             </li>
             <li>
-              <.link href="/users/settings" class="block text-subtext1 hover:text-text transition-colors py-2 px-3 rounded-lg hover:bg-surface0">
+              <.link
+                href="/users/settings"
+                class="block text-subtext1 hover:text-text transition-colors py-2 px-3 rounded-lg hover:bg-surface0"
+              >
                 Settings
               </.link>
             </li>
@@ -834,12 +849,12 @@ defmodule BlogWeb.CoreComponents do
         </div>
       <% end %>
       
-      <!-- User Info/Logout (if logged in) -->
+    <!-- User Info/Logout (if logged in) -->
       <%= if @current_user do %>
         <div class="p-6 border-t border-surface1 mt-auto">
-          <div class="text-subtext1 text-sm mb-2"><%= @current_user.email %></div>
-          <.link 
-            href="/users/log_out" 
+          <div class="text-subtext1 text-sm mb-2">{@current_user.email}</div>
+          <.link
+            href="/users/log_out"
             method="delete"
             class="text-subtext1 hover:text-text transition-colors text-sm"
           >

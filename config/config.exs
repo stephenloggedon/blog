@@ -36,7 +36,7 @@ config :esbuild,
   version: "0.17.11",
   blog: [
     args:
-      ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/* --external:svelte --external:svelte/server --external:svelte/internal/client),
+      ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
@@ -60,13 +60,6 @@ config :logger, :console,
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
-
-# Configure LiveSvelte
-config :live_svelte,
-  # Example: Enable SSR for production
-  ssr: config_env() == :prod,
-  # Server-side rendering URL (if using SSR)
-  server_url: "http://localhost:3000"
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

@@ -174,7 +174,8 @@ defmodule Blog.Accounts.User do
   @doc """
   Returns the provisioning URI for setting up TOTP.
   """
-  def totp_provisioning_uri(%__MODULE__{email: email, totp_secret: secret}) when not is_nil(secret) do
+  def totp_provisioning_uri(%__MODULE__{email: email, totp_secret: secret})
+      when not is_nil(secret) do
     NimbleTOTP.otpauth_uri("Blog:#{email}", secret, issuer: "Blog")
   end
 

@@ -59,11 +59,11 @@ defmodule Blog.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.2"},
       # Blog-specific dependencies
-      {:live_svelte, "~> 0.13"},
       {:nimble_totp, "~> 1.0"},
       {:earmark, "~> 1.4"},
       {:bcrypt_elixir, "~> 3.0"},
-      {:qr_code, "~> 3.1"}
+      {:qr_code, "~> 3.1"},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
     ]
   end
 
@@ -75,7 +75,7 @@ defmodule Blog.MixProject do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
+      setup: ["deps.get", "ecto.setup", "cmd --cd assets npm install"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],

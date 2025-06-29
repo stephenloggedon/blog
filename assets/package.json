@@ -9,9 +9,16 @@
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.7",
-    "esbuild": "^0.17.11",
-    "esbuild-svelte": "^0.8.0",
-    "svelte": "^4.0.0"
+    "esbuild": "^0.17.19",
+    "esbuild-plugin-import-glob": "^0.1.1",
+    "esbuild-svelte": "^0.8.2",
+    "svelte": "^4.2.20",
+    "svelte-preprocess": "^6.0.3"
   },
-  "dependencies": {}
+  "dependencies": {
+    "live_svelte": "file:../deps/live_svelte",
+    "phoenix": "file:../deps/phoenix",
+    "phoenix_html": "file:../deps/phoenix_html",
+    "phoenix_live_view": "file:../deps/phoenix_live_view"
+  }
 }

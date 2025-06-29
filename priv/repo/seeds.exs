@@ -13,13 +13,14 @@
 alias Blog.{Repo, Accounts, Content}
 
 # Create a user for blog posts
-user = case Accounts.register_user(%{
-  email: "admin@example.com",
-  password: "password123456789"
-}) do
-  {:ok, user} -> user
-  {:error, _changeset} -> Accounts.get_user_by_email("admin@example.com")
-end
+user =
+  case Accounts.register_user(%{
+         email: "admin@example.com",
+         password: "password123456789"
+       }) do
+    {:ok, user} -> user
+    {:error, _changeset} -> Accounts.get_user_by_email("admin@example.com")
+  end
 
 # Create some sample blog posts
 sample_posts = [
@@ -137,7 +138,8 @@ sample_posts = [
   },
   %{
     title: "Deploying Phoenix Apps to Production",
-    subtitle: "A comprehensive guide to deploying Phoenix applications using modern hosting platforms",
+    subtitle:
+      "A comprehensive guide to deploying Phoenix applications using modern hosting platforms",
     content: """
     # Deploying Phoenix Apps to Production
 

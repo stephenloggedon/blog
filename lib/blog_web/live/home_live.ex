@@ -16,28 +16,34 @@ defmodule BlogWeb.HomeLive do
      |> assign(:search_query, "")
      |> assign(:search_suggestions, [])
      |> assign(:top_tags, Content.list_top_tags(5))
-     |> assign(:available_tags, Content.list_available_tags())
-    }
+     |> assign(:available_tags, Content.list_available_tags())}
   end
 
   def handle_params(params, _url, socket) do
     # Handle multiple selected tags from URL parameters
-    selected_tags = case Map.get(params, "tags") do
-      nil -> []
-      tags_string when is_binary(tags_string) -> String.split(tags_string, ",") |> Enum.map(&String.trim/1)
-      _ -> []
-    end
-    
+    selected_tags =
+      case Map.get(params, "tags") do
+        nil ->
+          []
+
+        tags_string when is_binary(tags_string) ->
+          String.split(tags_string, ",") |> Enum.map(&String.trim/1)
+
+        _ ->
+          []
+      end
+
     search_param = Map.get(params, "search")
-    
+
     # Ensure search_query is always a clean string
-    search_query = case search_param do
-      nil -> ""
-      query when is_binary(query) -> String.trim(query)
-      %{"query" => query} when is_binary(query) -> String.trim(query)
-      _ -> ""
-    end
-    
+    search_query =
+      case search_param do
+        nil -> ""
+        query when is_binary(query) -> String.trim(query)
+        %{"query" => query} when is_binary(query) -> String.trim(query)
+        _ -> ""
+      end
+
     {:noreply,
      socket
      |> assign(:selected_tags, selected_tags)
@@ -45,8 +51,7 @@ defmodule BlogWeb.HomeLive do
      |> assign(:search_suggestions, [])
      |> assign(:posts, [])
      |> assign(:page, 1)
-     |> load_posts()
-    }
+     |> load_posts()}
   end
 
   def handle_event("load_more", _params, socket) do
@@ -55,96 +60,93 @@ defmodule BlogWeb.HomeLive do
     {:noreply,
      socket
      |> assign(:page, next_page)
-     |> load_posts()
-    }
+     |> load_posts()}
   end
 
   def handle_event("toggle_tag", %{"tag" => tag}, socket) do
     current_tags = socket.assigns.selected_tags
-    
-    updated_tags = if tag in current_tags do
-      # Remove tag if already selected
-      List.delete(current_tags, tag)
-    else
-      # Add tag if not selected
-      [tag | current_tags]
-    end
-    
+
+    updated_tags =
+      if tag in current_tags do
+        # Remove tag if already selected
+        List.delete(current_tags, tag)
+      else
+        # Add tag if not selected
+        [tag | current_tags]
+      end
+
     {:noreply,
      socket
-     |> push_patch(to: build_path_with_tags(socket, updated_tags))
-    }
+     |> push_patch(to: build_path_with_tags(socket, updated_tags))}
   end
 
   def handle_event("remove_tag", %{"tag" => tag}, socket) do
     updated_tags = List.delete(socket.assigns.selected_tags, tag)
-    
+
     {:noreply,
      socket
-     |> push_patch(to: build_path_with_tags(socket, updated_tags))
-    }
+     |> push_patch(to: build_path_with_tags(socket, updated_tags))}
   end
 
   def handle_event("add_tag_from_search", %{"tag" => tag}, socket) do
     current_tags = socket.assigns.selected_tags
-    
-    updated_tags = if tag in current_tags do
-      current_tags
-    else
-      [tag | current_tags]
-    end
-    
+
+    updated_tags =
+      if tag in current_tags do
+        current_tags
+      else
+        [tag | current_tags]
+      end
+
     {:noreply,
      socket
      |> assign(:search_query, "")
      |> assign(:search_suggestions, [])
-     |> push_patch(to: build_path_with_tags(socket, updated_tags))
-    }
+     |> push_patch(to: build_path_with_tags(socket, updated_tags))}
   end
 
   def handle_event("search_input", %{"value" => value}, socket) do
     search_input = String.trim(value || "")
-    
+
     # Get tag suggestions if query looks like it might be a tag
-    suggestions = if String.length(search_input) >= 2 do
-      socket.assigns.available_tags
-      |> Enum.filter(fn tag ->
-        String.contains?(String.downcase(tag), String.downcase(search_input)) and
-        tag not in socket.assigns.selected_tags
-      end)
-      |> Enum.take(5)
-    else
-      []
-    end
-    
+    suggestions =
+      if String.length(search_input) >= 2 do
+        socket.assigns.available_tags
+        |> Enum.filter(fn tag ->
+          String.contains?(String.downcase(tag), String.downcase(search_input)) and
+            tag not in socket.assigns.selected_tags
+        end)
+        |> Enum.take(5)
+      else
+        []
+      end
+
     {:noreply,
      socket
-     |> assign(:search_query, search_input)  # Update for display only
-     |> assign(:search_suggestions, suggestions)
-    }
+     # Update for display only
+     |> assign(:search_query, search_input)
+     |> assign(:search_suggestions, suggestions)}
   end
 
   def handle_event("search", %{"query" => query}, socket) do
     search_query = String.trim(query || "")
-    
+
     # If the search query matches an available tag exactly, add it as a tag
-    if search_query in socket.assigns.available_tags and 
-       search_query not in socket.assigns.selected_tags do
+    if search_query in socket.assigns.available_tags and
+         search_query not in socket.assigns.selected_tags do
       updated_tags = [search_query | socket.assigns.selected_tags]
-      
+
       {:noreply,
        socket
        |> assign(:search_query, "")
        |> assign(:search_suggestions, [])
-       |> push_patch(to: build_path_with_tags(socket, updated_tags))
-      }
+       |> push_patch(to: build_path_with_tags(socket, updated_tags))}
     else
       # Otherwise, treat it as a text search
       {:noreply,
        socket
        |> assign(:search_suggestions, [])
-       |> push_patch(to: build_path_with_search(socket, search_query))
-      }
+       |> push_patch(to: build_path_with_search(socket, search_query))}
     end
   end
 
@@ -157,12 +159,17 @@ defmodule BlogWeb.HomeLive do
      |> assign(:posts, [])
      |> assign(:page, 1)
      |> load_posts()
-     |> push_patch(to: "/")
-    }
+     |> push_patch(to: "/")}
   end
 
   defp load_posts(socket) do
-    %{page: page, per_page: per_page, posts: existing_posts, selected_tags: selected_tags, search_query: search_query} = socket.assigns
+    %{
+      page: page,
+      per_page: per_page,
+      posts: existing_posts,
+      selected_tags: selected_tags,
+      search_query: search_query
+    } = socket.assigns
 
     opts = [page: page, per_page: per_page]
     opts = if selected_tags != [], do: Keyword.put(opts, :tags, selected_tags), else: opts
@@ -174,7 +181,6 @@ defmodule BlogWeb.HomeLive do
 
     assign(socket, posts: all_posts, has_more: has_more)
   end
-
 
   defp build_path_with_tags(socket, tags) do
     %{search_query: search_query} = socket.assigns
@@ -188,16 +194,21 @@ defmodule BlogWeb.HomeLive do
 
   defp build_path_with_params(selected_tags, search_query) do
     # Ensure search_query is always a string
-    clean_search_query = case search_query do
-      query when is_binary(query) -> String.trim(query)
-      %{"query" => query} when is_binary(query) -> String.trim(query)
-      _ -> ""
-    end
-    
+    clean_search_query =
+      case search_query do
+        query when is_binary(query) -> String.trim(query)
+        %{"query" => query} when is_binary(query) -> String.trim(query)
+        _ -> ""
+      end
+
     params = []
-    params = if selected_tags != [], do: [{"tags", Enum.join(selected_tags, ",")} | params], else: params
-    params = if clean_search_query != "", do: [{"search", clean_search_query} | params], else: params
-    
+
+    params =
+      if selected_tags != [], do: [{"tags", Enum.join(selected_tags, ",")} | params], else: params
+
+    params =
+      if clean_search_query != "", do: [{"search", clean_search_query} | params], else: params
+
     case params do
       [] -> "/"
       _ -> "/?" <> URI.encode_query(params)
@@ -211,7 +222,7 @@ defmodule BlogWeb.HomeLive do
       <div class="w-full h-full px-8">
         <div class="max-w-6xl mx-auto flex h-full overflow-hidden">
           <!-- Navigation Adjacent to Blog Posts -->
-          <.content_nav 
+          <.content_nav
             current_user={assigns[:current_user]}
             top_tags={@top_tags}
             available_tags={@available_tags}
@@ -219,8 +230,8 @@ defmodule BlogWeb.HomeLive do
             search_query={@search_query}
             search_suggestions={@search_suggestions}
           />
-
-          <!-- Blog Posts Scroll Area -->
+          
+    <!-- Blog Posts Scroll Area -->
           <main class="flex-1 overflow-y-auto scrollbar-hide px-6" id="posts-container">
             <!-- Filter Status -->
             <%= if @selected_tags != [] || @search_query != "" do %>
@@ -229,9 +240,12 @@ defmodule BlogWeb.HomeLive do
                   <div class="text-sm text-subtext1">
                     <%= cond do %>
                       <% @selected_tags != [] && @search_query != "" -> %>
-                        Showing posts tagged with <span class="text-blue"><%= Enum.join(@selected_tags, ", ") %></span> matching "<span class="text-blue"><%= @search_query %></span>"
+                        Showing posts tagged with
+                        <span class="text-blue">{Enum.join(@selected_tags, ", ")}</span>
+                        matching "<span class="text-blue"><%= @search_query %></span>"
                       <% @selected_tags != [] -> %>
-                        Showing posts tagged with <span class="text-blue"><%= Enum.join(@selected_tags, ", ") %></span>
+                        Showing posts tagged with
+                        <span class="text-blue">{Enum.join(@selected_tags, ", ")}</span>
                       <% @search_query != "" -> %>
                         Showing posts matching "<span class="text-blue"><%= @search_query %></span>"
                     <% end %>
@@ -245,54 +259,58 @@ defmodule BlogWeb.HomeLive do
                 </div>
               </div>
             <% end %>
-
-            <!-- Posts List -->
+            
+    <!-- Posts List -->
             <%= for post <- @posts do %>
-            <article>
-              <.link navigate={"/blog/#{post.slug}"} class="block py-6 mx-2 hover:bg-surface1/20 transition-all duration-300 cursor-pointer rounded-2xl hover:shadow-[0_0_50px_10px_rgba(49,50,68,0.3)] relative">
-                <div class="space-y-4">
-                  <header class="px-4">
-                    <h2 class="text-xl font-semibold text-text mb-2">
-                      <%= post.title %>
-                    </h2>
-                    <div class="flex items-center text-sm text-subtext1 space-x-4">
-                      <time datetime={post.published_at}>
-                        <%= Calendar.strftime(post.published_at, "%B %d, %Y") %>
-                      </time>
-                      <%= if Blog.Content.Post.tag_list(post) != [] do %>
-                        <div class="flex items-center space-x-2">
-                          <span>•</span>
-                          <div class="flex flex-wrap gap-2">
-                            <%= for tag <- Blog.Content.Post.tag_list(post) do %>
-                              <span class="bg-surface1 text-subtext0 px-2 py-1 rounded text-xs">
-                                <%= tag %>
-                              </span>
-                            <% end %>
+              <article>
+                <.link
+                  navigate={"/blog/#{post.slug}"}
+                  class="block py-6 mx-2 hover:bg-surface1/20 transition-all duration-300 cursor-pointer rounded-2xl hover:shadow-[0_0_50px_10px_rgba(49,50,68,0.3)] relative"
+                >
+                  <div class="space-y-4">
+                    <header class="px-4">
+                      <h2 class="text-xl font-semibold text-text mb-2">
+                        {post.title}
+                      </h2>
+                      <div class="flex items-center text-sm text-subtext1 space-x-4">
+                        <time datetime={post.published_at}>
+                          {Calendar.strftime(post.published_at, "%B %d, %Y")}
+                        </time>
+                        <%= if Blog.Content.Post.tag_list(post) != [] do %>
+                          <div class="flex items-center space-x-2">
+                            <span>•</span>
+                            <div class="flex flex-wrap gap-2">
+                              <%= for tag <- Blog.Content.Post.tag_list(post) do %>
+                                <span class="bg-surface1 text-subtext0 px-2 py-1 rounded text-xs">
+                                  {tag}
+                                </span>
+                              <% end %>
+                            </div>
                           </div>
-                        </div>
-                      <% end %>
-                    </div>
-                  </header>
+                        <% end %>
+                      </div>
+                    </header>
 
-                  <%= if post.subtitle do %>
-                    <div class="text-subtext1 text-sm px-4">
-                      <%= post.subtitle %>
-                    </div>
-                  <% end %>
+                    <%= if post.subtitle do %>
+                      <div class="text-subtext1 text-sm px-4">
+                        {post.subtitle}
+                      </div>
+                    <% end %>
 
-                  <div class="relative">
-                    <div class="text-subtext1 overflow-hidden h-36 px-4">
-                      <%= raw(Blog.Content.Post.render_content(post) |> String.slice(0, 400)) %>
+                    <div class="relative">
+                      <div class="text-subtext1 overflow-hidden h-36 px-4">
+                        {raw(Blog.Content.Post.render_content(post) |> String.slice(0, 400))}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <!-- Fade effect covering the entire link area -->
-                <div class="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-mantle via-mantle/90 via-mantle/60 via-mantle/40 to-transparent pointer-events-none"></div>
-              </.link>
-            </article>
-          <% end %>
-
-            <!-- Load More Button -->
+                  <!-- Fade effect covering the entire link area -->
+                  <div class="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-mantle via-mantle/90 via-mantle/60 via-mantle/40 to-transparent pointer-events-none">
+                  </div>
+                </.link>
+              </article>
+            <% end %>
+            
+    <!-- Load More Button -->
             <%= if @has_more do %>
               <div class="mt-12 text-center">
                 <button
@@ -303,8 +321,8 @@ defmodule BlogWeb.HomeLive do
                 </button>
               </div>
             <% end %>
-
-            <!-- Empty State -->
+            
+    <!-- Empty State -->
             <%= if @posts == [] do %>
               <div class="text-center py-12">
                 <%= if @selected_tags != [] || @search_query != "" do %>

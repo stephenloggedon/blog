@@ -14,7 +14,7 @@ defmodule Blog.Content.Post do
     field :published, :boolean, default: false
     field :published_at, :utc_datetime
     field :rendered_content, :string, virtual: true
-    
+
     belongs_to :user, User
 
     timestamps(type: :utc_datetime)
@@ -23,7 +23,17 @@ defmodule Blog.Content.Post do
   @doc false
   def changeset(post, attrs) do
     post
-    |> cast(attrs, [:title, :slug, :content, :excerpt, :subtitle, :tags, :published, :published_at, :user_id])
+    |> cast(attrs, [
+      :title,
+      :slug,
+      :content,
+      :excerpt,
+      :subtitle,
+      :tags,
+      :published,
+      :published_at,
+      :user_id
+    ])
     |> validate_required([:title, :content, :user_id])
     |> validate_length(:title, min: 1, max: 200)
     |> validate_length(:content, min: 1)
@@ -77,7 +87,9 @@ defmodule Blog.Content.Post do
           nil -> changeset
           title -> put_change(changeset, :slug, generate_slug(title))
         end
-      _ -> changeset
+
+      _ ->
+        changeset
     end
   end
 
@@ -93,16 +105,22 @@ defmodule Blog.Content.Post do
     case get_change(changeset, :excerpt) do
       nil ->
         case get_change(changeset, :content) do
-          nil -> changeset
-          content -> 
-            excerpt = content
-            |> String.split("\n")
-            |> Enum.take(3)
-            |> Enum.join(" ")
-            |> String.slice(0, 200)
+          nil ->
+            changeset
+
+          content ->
+            excerpt =
+              content
+              |> String.split("\n")
+              |> Enum.take(3)
+              |> Enum.join(" ")
+              |> String.slice(0, 200)
+
             put_change(changeset, :excerpt, excerpt)
         end
-      _ -> changeset
+
+      _ ->
+        changeset
     end
   end
 
@@ -119,17 +137,22 @@ defmodule Blog.Content.Post do
 
   defp parse_tags(changeset) do
     case get_change(changeset, :tags) do
-      nil -> changeset
+      nil ->
+        changeset
+
       tags when is_binary(tags) ->
-        cleaned_tags = tags
-        |> String.split(",")
-        |> Enum.map(&String.trim/1)
-        |> Enum.reject(&(&1 == ""))
-        |> Enum.uniq()
-        |> Enum.join(", ")
-        
+        cleaned_tags =
+          tags
+          |> String.split(",")
+          |> Enum.map(&String.trim/1)
+          |> Enum.reject(&(&1 == ""))
+          |> Enum.uniq()
+          |> Enum.join(", ")
+
         put_change(changeset, :tags, cleaned_tags)
-      _ -> changeset
+
+      _ ->
+        changeset
     end
   end
 end

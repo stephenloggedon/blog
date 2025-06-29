@@ -47,47 +47,55 @@ defmodule Blog.Content do
     search = Keyword.get(opts, :search)
 
     query = from(p in Post, where: not is_nil(p.published_at))
-    
+
     # Apply tag filter with OR logic for multiple tags
-    query = if tags != [] do
-      case tags do
-        [single_tag] ->
-          # Single tag case
-          from(p in query, where: ilike(p.tags, ^"%#{single_tag}%"))
-        multiple_tags ->
-          # Multiple tags case - combine with OR
-          tag_conditions = Enum.map(multiple_tags, fn tag ->
-            dynamic([p], ilike(p.tags, ^"%#{tag}%"))
-          end)
-          
-          combined_condition = Enum.reduce(tag_conditions, fn condition, acc ->
-            dynamic([], ^acc or ^condition)
-          end)
-          
-          from(p in query, where: ^combined_condition)
+    query =
+      if tags != [] do
+        case tags do
+          [single_tag] ->
+            # Single tag case
+            from(p in query, where: ilike(p.tags, ^"%#{single_tag}%"))
+
+          multiple_tags ->
+            # Multiple tags case - combine with OR
+            tag_conditions =
+              Enum.map(multiple_tags, fn tag ->
+                dynamic([p], ilike(p.tags, ^"%#{tag}%"))
+              end)
+
+            combined_condition =
+              Enum.reduce(tag_conditions, fn condition, acc ->
+                dynamic([], ^acc or ^condition)
+              end)
+
+            from(p in query, where: ^combined_condition)
+        end
+      else
+        query
       end
-    else
-      query
-    end
-    
+
     # Apply search filter
-    query = if search && String.trim(search) != "" do
-      search_term = "%#{String.trim(search)}%"
-      from(p in query, 
-        where: ilike(p.title, ^search_term) or 
-               ilike(p.content, ^search_term) or
-               (not is_nil(p.subtitle) and ilike(p.subtitle, ^search_term))
-      )
-    else
+    query =
+      if search && String.trim(search) != "" do
+        search_term = "%#{String.trim(search)}%"
+
+        from(p in query,
+          where:
+            ilike(p.title, ^search_term) or
+              ilike(p.content, ^search_term) or
+              (not is_nil(p.subtitle) and ilike(p.subtitle, ^search_term))
+        )
+      else
+        query
+      end
+
+    posts =
       query
-    end
-    
-    posts = query
-    |> order_by([p], desc: p.published_at)
-    |> limit(^per_page)
-    |> offset(^offset)
-    |> Repo.all()
-    
+      |> order_by([p], desc: p.published_at)
+      |> limit(^per_page)
+      |> offset(^offset)
+      |> Repo.all()
+
     # Render content for each post
     Enum.map(posts, fn post ->
       %{post | rendered_content: Post.render_content(post)}
@@ -109,11 +117,12 @@ defmodule Blog.Content do
 
   """
   def get_published_post_by_slug(slug) do
-    post = from(p in Post,
-      where: p.slug == ^slug and not is_nil(p.published_at)
-    )
-    |> Repo.one()
-    
+    post =
+      from(p in Post,
+        where: p.slug == ^slug and not is_nil(p.published_at)
+      )
+      |> Repo.one()
+
     case post do
       nil -> nil
       post -> %{post | rendered_content: Post.render_content(post)}

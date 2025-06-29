@@ -42,14 +42,19 @@ defmodule BlogWeb.UserSessionController do
 
     if pending_user_id do
       user = Accounts.get_user!(pending_user_id)
-      
+
       cond do
         totp_code != "" and Blog.Accounts.User.valid_totp?(user, totp_code) ->
           complete_login(conn, user)
 
         backup_code != "" and Blog.Accounts.User.valid_backup_code?(user, backup_code) ->
           # Use the backup code and complete login
-          {:ok, updated_user} = Accounts.update_user(user, Blog.Accounts.User.use_backup_code_changeset(user, backup_code))
+          {:ok, updated_user} =
+            Accounts.update_user(
+              user,
+              Blog.Accounts.User.use_backup_code_changeset(user, backup_code)
+            )
+
           complete_login(conn, updated_user)
 
         true ->
