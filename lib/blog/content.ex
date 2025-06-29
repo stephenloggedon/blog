@@ -40,66 +40,71 @@ defmodule Blog.Content do
 
   """
   def list_published_posts(opts \\ []) do
-    page = Keyword.get(opts, :page, 1)
-    per_page = Keyword.get(opts, :per_page, 10)
-    offset = (page - 1) * per_page
-    tags = Keyword.get(opts, :tags, [])
-    search = Keyword.get(opts, :search)
+    try do
+      page = Keyword.get(opts, :page, 1)
+      per_page = Keyword.get(opts, :per_page, 10)
+      offset = (page - 1) * per_page
+      tags = Keyword.get(opts, :tags, [])
+      search = Keyword.get(opts, :search)
 
-    query = from(p in Post, where: not is_nil(p.published_at))
+      query = from(p in Post, where: not is_nil(p.published_at))
 
-    # Apply tag filter with OR logic for multiple tags
-    query =
-      if tags != [] do
-        case tags do
-          [single_tag] ->
-            # Single tag case
-            from(p in query, where: ilike(p.tags, ^"%#{single_tag}%"))
+      # Apply tag filter with OR logic for multiple tags
+      query =
+        if tags != [] do
+          case tags do
+            [single_tag] ->
+              # Single tag case
+              from(p in query, where: ilike(p.tags, ^"%#{single_tag}%"))
 
-          multiple_tags ->
-            # Multiple tags case - combine with OR
-            tag_conditions =
-              Enum.map(multiple_tags, fn tag ->
-                dynamic([p], ilike(p.tags, ^"%#{tag}%"))
-              end)
+            multiple_tags ->
+              # Multiple tags case - combine with OR
+              tag_conditions =
+                Enum.map(multiple_tags, fn tag ->
+                  dynamic([p], ilike(p.tags, ^"%#{tag}%"))
+                end)
 
-            combined_condition =
-              Enum.reduce(tag_conditions, fn condition, acc ->
-                dynamic([], ^acc or ^condition)
-              end)
+              combined_condition =
+                Enum.reduce(tag_conditions, fn condition, acc ->
+                  dynamic([], ^acc or ^condition)
+                end)
 
-            from(p in query, where: ^combined_condition)
+              from(p in query, where: ^combined_condition)
+          end
+        else
+          query
         end
-      else
+
+      # Apply search filter
+      query =
+        if search && String.trim(search) != "" do
+          search_term = "%#{String.trim(search)}%"
+
+          from(p in query,
+            where:
+              ilike(p.title, ^search_term) or
+                ilike(p.content, ^search_term) or
+                (not is_nil(p.subtitle) and ilike(p.subtitle, ^search_term))
+          )
+        else
+          query
+        end
+
+      posts =
         query
-      end
+        |> order_by([p], desc: p.published_at)
+        |> limit(^per_page)
+        |> offset(^offset)
+        |> Repo.all()
 
-    # Apply search filter
-    query =
-      if search && String.trim(search) != "" do
-        search_term = "%#{String.trim(search)}%"
-
-        from(p in query,
-          where:
-            ilike(p.title, ^search_term) or
-              ilike(p.content, ^search_term) or
-              (not is_nil(p.subtitle) and ilike(p.subtitle, ^search_term))
-        )
-      else
-        query
-      end
-
-    posts =
-      query
-      |> order_by([p], desc: p.published_at)
-      |> limit(^per_page)
-      |> offset(^offset)
-      |> Repo.all()
-
-    # Render content for each post
-    Enum.map(posts, fn post ->
-      %{post | rendered_content: Post.render_content(post)}
-    end)
+      # Render content for each post
+      Enum.map(posts, fn post ->
+        %{post | rendered_content: Post.render_content(post)}
+      end)
+    rescue
+      Postgrex.Error -> []
+      _ -> []
+    end
   end
 
   @doc """
@@ -220,19 +225,24 @@ defmodule Blog.Content do
 
   """
   def list_available_tags do
-    from(p in Post,
-      where: not is_nil(p.published_at) and not is_nil(p.tags) and p.tags != "",
-      select: p.tags
-    )
-    |> Repo.all()
-    |> Enum.flat_map(fn tags_string ->
-      tags_string
-      |> String.split(",")
-      |> Enum.map(&String.trim/1)
-      |> Enum.reject(&(&1 == ""))
-    end)
-    |> Enum.uniq()
-    |> Enum.sort()
+    try do
+      from(p in Post,
+        where: not is_nil(p.published_at) and not is_nil(p.tags) and p.tags != "",
+        select: p.tags
+      )
+      |> Repo.all()
+      |> Enum.flat_map(fn tags_string ->
+        tags_string
+        |> String.split(",")
+        |> Enum.map(&String.trim/1)
+        |> Enum.reject(&(&1 == ""))
+      end)
+      |> Enum.uniq()
+      |> Enum.sort()
+    rescue
+      Postgrex.Error -> []
+      _ -> []
+    end
   end
 
   @doc """
@@ -245,20 +255,25 @@ defmodule Blog.Content do
 
   """
   def list_top_tags(limit \\ 5) do
-    from(p in Post,
-      where: not is_nil(p.published_at) and not is_nil(p.tags) and p.tags != "",
-      select: p.tags
-    )
-    |> Repo.all()
-    |> Enum.flat_map(fn tags_string ->
-      tags_string
-      |> String.split(",")
-      |> Enum.map(&String.trim/1)
-      |> Enum.reject(&(&1 == ""))
-    end)
-    |> Enum.frequencies()
-    |> Enum.sort_by(fn {_tag, count} -> count end, :desc)
-    |> Enum.take(limit)
-    |> Enum.map(fn {tag, _count} -> tag end)
+    try do
+      from(p in Post,
+        where: not is_nil(p.published_at) and not is_nil(p.tags) and p.tags != "",
+        select: p.tags
+      )
+      |> Repo.all()
+      |> Enum.flat_map(fn tags_string ->
+        tags_string
+        |> String.split(",")
+        |> Enum.map(&String.trim/1)
+        |> Enum.reject(&(&1 == ""))
+      end)
+      |> Enum.frequencies()
+      |> Enum.sort_by(fn {_tag, count} -> count end, :desc)
+      |> Enum.take(limit)
+      |> Enum.map(fn {tag, _count} -> tag end)
+    rescue
+      Postgrex.Error -> []
+      _ -> []
+    end
   end
 end
