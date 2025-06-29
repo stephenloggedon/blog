@@ -92,8 +92,7 @@ jobs:
 
       - name: Deploy to Gigalixir
         run: |
-          gigalixir git:remote $GIGALIXIR_APP_NAME
-          git push https://$GIGALIXIR_API_KEY@git.gigalixir.com/$GIGALIXIR_APP_NAME.git HEAD:main
+          gigalixir deploy --app=$GIGALIXIR_APP_NAME
         env:
           GIGALIXIR_API_KEY: ${{ secrets.GIGALIXIR_API_KEY }}
           GIGALIXIR_APP_NAME: ${{ secrets.GIGALIXIR_APP_NAME }}
