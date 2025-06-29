@@ -123,6 +123,11 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
+      - name: Login to Railway
+        run: railway login --browserless
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
       - name: Link Railway Project
         run: railway link --project ${{ secrets.RAILWAY_PROJECT_ID }}
         env:
