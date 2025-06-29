@@ -75,7 +75,7 @@ jobs:
         run: mix credo || true
 
   deploy:
-    name: Deploy to Heroku
+    name: Deploy to Railway
     runs-on: ubuntu-latest
     needs: test
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -86,12 +86,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Deploy to Heroku
-        uses: akhileshns/heroku-deploy@v3.13.15
-        with:
-          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
-          heroku_email: ${{ secrets.HEROKU_EMAIL }}
-          buildpack: |
-            https://github.com/paulstn/heroku-buildpack-elixir.git
-            https://github.com/gjaldon/heroku-buildpack-phoenix-static.git
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway
+        run: railway up --service ${{ secrets.RAILWAY_SERVICE_ID }}
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}

@@ -1,0 +1,20 @@
+[variables]
+NIXPACKS_ELIXIR_VERSION = "1.16.3"
+NIXPACKS_ERLANG_VERSION = "26.2.5"
+NODE_VERSION = "20"
+
+[phases.setup]
+nixPkgs = ["nodejs", "npm"]
+
+[phases.build]
+cmds = [
+  "mix local.hex --force",
+  "mix local.rebar --force", 
+  "mix deps.get --only prod",
+  "npm install --prefix assets",
+  "mix assets.deploy",
+  "mix release"
+]
+
+[start]
+cmd = "bin/server"
