@@ -31,6 +31,61 @@
   }
 }
 
+/* Custom prose styling for Catppuccin theme */
+@layer components {
+  .prose-catppuccin {
+    @apply prose prose-invert prose-xl max-w-none;
+  }
+  
+  .prose-catppuccin h1 {
+    @apply text-text font-bold text-4xl mb-6 mt-8;
+  }
+  
+  .prose-catppuccin h2 {
+    @apply text-text font-semibold text-2xl mb-4 mt-8;
+  }
+  
+  .prose-catppuccin h3 {
+    @apply text-text font-semibold text-xl mb-3 mt-6;
+  }
+  
+  .prose-catppuccin p {
+    @apply text-subtext1 leading-relaxed mb-4;
+  }
+  
+  .prose-catppuccin ul {
+    @apply text-subtext1 mb-4;
+  }
+  
+  .prose-catppuccin ol {
+    @apply text-subtext1 mb-4;
+  }
+  
+  .prose-catppuccin li {
+    @apply mb-2;
+  }
+  
+  .prose-catppuccin code {
+    @apply bg-surface1 text-text px-2 py-1 rounded text-sm;
+  }
+  
+  .prose-catppuccin pre {
+    @apply bg-surface0 border border-surface1 rounded-lg p-4 overflow-x-auto;
+  }
+  
+  .prose-catppuccin pre code {
+    @apply bg-transparent p-0;
+  }
+  
+  .prose-catppuccin blockquote {
+    @apply border-l-4 border-blue pl-4 italic text-subtext0;
+  }
+  
+  .prose-catppuccin a {
+    @apply text-blue hover:text-lavender transition-colors;
+  }
+}
+
 /* Utility to hide scrollbars */
 @layer utilities {
   .scrollbar-hide {
