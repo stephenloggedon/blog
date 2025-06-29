@@ -86,16 +86,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Gigalixir CLI
-        run: |
-          pip install gigalixir
-
       - name: Deploy to Gigalixir
-        run: |
-          echo "machine git.gigalixir.com login $GIGALIXIR_API_KEY password x" > ~/.netrc
-          chmod 600 ~/.netrc
-          git remote add gigalixir https://git.gigalixir.com/$GIGALIXIR_APP_NAME.git
-          git push gigalixir HEAD:main
-        env:
-          GIGALIXIR_API_KEY: ${{ secrets.GIGALIXIR_API_KEY }}
-          GIGALIXIR_APP_NAME: ${{ secrets.GIGALIXIR_APP_NAME }}
+        uses: mhanberg/gigalixir-action@v0.6.0
+        with:
+          GIGALIXIR_APP: ${{ secrets.GIGALIXIR_APP_NAME }}
+          GIGALIXIR_USERNAME: ${{ secrets.GIGALIXIR_USERNAME }}
+          GIGALIXIR_PASSWORD: ${{ secrets.GIGALIXIR_PASSWORD }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          MIGRATIONS: false
