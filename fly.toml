@@ -8,9 +8,11 @@ primary_region = 'sea'
 kill_signal = 'SIGTERM'
 
 [build]
+  builder = "paketobuildpacks/builder:base"
+  buildpacks = ["gcr.io/paketo-buildpacks/elixir"]
 
 [deploy]
-  release_command = '/app/bin/migrate'
+  release_command = '/workspace/bin/blog eval "Blog.Release.migrate"'
 
 [env]
   PHX_HOST = 'blog-nameless-grass-3626.fly.dev'
