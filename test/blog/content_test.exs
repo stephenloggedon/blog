@@ -29,16 +29,13 @@ defmodule Blog.ContentTest do
     end
 
     test "create_post/1 with valid data creates a post" do
-      user = Blog.AccountsFixtures.user_fixture()
-
       valid_attrs = %{
         title: "some title",
         slug: "some slug",
         content: "some content",
         excerpt: "some excerpt",
         tags: "some tags",
-        published: true,
-        user_id: user.id
+        published: true
       }
 
       assert {:ok, %Post{} = post} = Content.create_post(valid_attrs)
@@ -98,14 +95,12 @@ defmodule Blog.ContentTest do
     end
 
     test "list_published_posts/1 with search filters by title" do
-      user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
 
       {:ok, post1} =
         Content.create_post(%{
           title: "Phoenix LiveView Guide",
           content: "Content about Phoenix",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -114,7 +109,6 @@ defmodule Blog.ContentTest do
         Content.create_post(%{
           title: "Elixir Patterns",
           content: "Content about patterns",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -126,14 +120,12 @@ defmodule Blog.ContentTest do
     end
 
     test "list_published_posts/1 with search filters by content" do
-      user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
 
       {:ok, post1} =
         Content.create_post(%{
           title: "Guide One",
           content: "Content about Phoenix LiveView",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -142,7 +134,6 @@ defmodule Blog.ContentTest do
         Content.create_post(%{
           title: "Guide Two",
           content: "Content about Elixir",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -154,7 +145,6 @@ defmodule Blog.ContentTest do
     end
 
     test "list_published_posts/1 with search filters by subtitle" do
-      user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
 
       {:ok, post1} =
@@ -162,7 +152,6 @@ defmodule Blog.ContentTest do
           title: "Guide One",
           subtitle: "Phoenix tutorial",
           content: "Content",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -172,7 +161,6 @@ defmodule Blog.ContentTest do
           title: "Guide Two",
           subtitle: "Elixir tutorial",
           content: "Content",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -184,7 +172,6 @@ defmodule Blog.ContentTest do
     end
 
     test "list_published_posts/1 with tag filter" do
-      user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
 
       {:ok, post1} =
@@ -192,7 +179,6 @@ defmodule Blog.ContentTest do
           title: "Guide One",
           content: "Content",
           tags: "phoenix, web",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -202,7 +188,6 @@ defmodule Blog.ContentTest do
           title: "Guide Two",
           content: "Content",
           tags: "elixir, functional",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -214,7 +199,6 @@ defmodule Blog.ContentTest do
     end
 
     test "list_published_posts/1 with multiple tag filter (OR logic)" do
-      user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
 
       {:ok, post1} =
@@ -222,7 +206,6 @@ defmodule Blog.ContentTest do
           title: "Phoenix Guide",
           content: "Content",
           tags: "phoenix, web",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -232,7 +215,6 @@ defmodule Blog.ContentTest do
           title: "Elixir Basics",
           content: "Content",
           tags: "elixir, functional",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -242,7 +224,6 @@ defmodule Blog.ContentTest do
           title: "CSS Guide",
           content: "Content",
           tags: "css, design",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -254,7 +235,6 @@ defmodule Blog.ContentTest do
     end
 
     test "list_published_posts/1 with combined search and tag filter" do
-      user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
 
       {:ok, post1} =
@@ -262,7 +242,6 @@ defmodule Blog.ContentTest do
           title: "Phoenix Guide",
           content: "LiveView content",
           tags: "phoenix, web",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -272,7 +251,6 @@ defmodule Blog.ContentTest do
           title: "Phoenix Basics",
           content: "Basic content",
           tags: "elixir, basics",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -282,7 +260,6 @@ defmodule Blog.ContentTest do
           title: "Elixir Guide",
           content: "LiveView content",
           tags: "phoenix, advanced",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -294,7 +271,6 @@ defmodule Blog.ContentTest do
     end
 
     test "list_available_tags/0 returns unique sorted tags" do
-      user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
 
       {:ok, _post1} =
@@ -302,7 +278,6 @@ defmodule Blog.ContentTest do
           title: "Post One",
           content: "Content",
           tags: "phoenix, web, elixir",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -312,7 +287,6 @@ defmodule Blog.ContentTest do
           title: "Post Two",
           content: "Content",
           tags: "elixir, functional",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -322,7 +296,6 @@ defmodule Blog.ContentTest do
           title: "Post Three",
           content: "Content",
           tags: "web, css",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -332,7 +305,6 @@ defmodule Blog.ContentTest do
     end
 
     test "list_available_tags/0 ignores unpublished posts" do
-      user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
 
       {:ok, _post1} =
@@ -340,7 +312,6 @@ defmodule Blog.ContentTest do
           title: "Published",
           content: "Content",
           tags: "phoenix",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -350,7 +321,6 @@ defmodule Blog.ContentTest do
           title: "Draft",
           content: "Content",
           tags: "draft-tag",
-          user_id: user.id,
           published: false
         })
 
@@ -359,7 +329,6 @@ defmodule Blog.ContentTest do
     end
 
     test "list_top_tags/1 returns most frequent tags" do
-      user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
       # Create posts with various tag frequencies
       {:ok, _post1} =
@@ -367,7 +336,6 @@ defmodule Blog.ContentTest do
           title: "Post 1",
           content: "Content",
           tags: "elixir, phoenix",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -377,7 +345,6 @@ defmodule Blog.ContentTest do
           title: "Post 2",
           content: "Content",
           tags: "elixir, web",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -387,7 +354,6 @@ defmodule Blog.ContentTest do
           title: "Post 3",
           content: "Content",
           tags: "elixir, functional",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -397,7 +363,6 @@ defmodule Blog.ContentTest do
           title: "Post 4",
           content: "Content",
           tags: "phoenix, web",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -407,7 +372,6 @@ defmodule Blog.ContentTest do
           title: "Post 5",
           content: "Content",
           tags: "css",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -421,7 +385,6 @@ defmodule Blog.ContentTest do
     end
 
     test "list_top_tags/1 respects limit parameter" do
-      user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
 
       {:ok, _post1} =
@@ -429,7 +392,6 @@ defmodule Blog.ContentTest do
           title: "Post 1",
           content: "Content",
           tags: "tag1, tag2, tag3, tag4, tag5, tag6",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -446,7 +408,6 @@ defmodule Blog.ContentTest do
     end
 
     test "list_published_posts/1 with combined text search and tag filtering" do
-      user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
 
       {:ok, post1} =
@@ -454,7 +415,6 @@ defmodule Blog.ContentTest do
           title: "Phoenix LiveView Guide",
           content: "Advanced Phoenix tutorial",
           tags: "phoenix, tutorial",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -464,7 +424,6 @@ defmodule Blog.ContentTest do
           title: "Elixir Basics",
           content: "Phoenix introduction",
           tags: "elixir, basics",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -474,7 +433,6 @@ defmodule Blog.ContentTest do
           title: "Advanced Phoenix",
           content: "Deep dive tutorial",
           tags: "phoenix, advanced",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -486,14 +444,12 @@ defmodule Blog.ContentTest do
     end
 
     test "list_published_posts/1 with empty search and no tags returns all posts" do
-      user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
 
       {:ok, post1} =
         Content.create_post(%{
           title: "Post 1",
           content: "Content",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -502,7 +458,6 @@ defmodule Blog.ContentTest do
         Content.create_post(%{
           title: "Post 2",
           content: "Content",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -513,14 +468,12 @@ defmodule Blog.ContentTest do
     end
 
     test "list_published_posts/1 with whitespace-only search is treated as empty" do
-      user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
 
       {:ok, _post1} =
         Content.create_post(%{
           title: "Post 1",
           content: "Content",
-          user_id: user.id,
           published: true,
           published_at: now
         })

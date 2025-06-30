@@ -13,9 +13,6 @@ defmodule Blog.ContentFixtures do
   Generate a post.
   """
   def post_fixture(attrs \\ %{}) do
-    # Create a user if one isn't provided
-    user = Map.get(attrs, :user) || Blog.AccountsFixtures.user_fixture()
-
     {:ok, post} =
       attrs
       |> Enum.into(%{
@@ -24,8 +21,7 @@ defmodule Blog.ContentFixtures do
         published: true,
         slug: unique_post_slug(),
         tags: "some tags",
-        title: "some title",
-        user_id: user.id
+        title: "some title"
       })
       |> Blog.Content.create_post()
 
