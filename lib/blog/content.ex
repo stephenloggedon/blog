@@ -55,13 +55,13 @@ defmodule Blog.Content do
           case tags do
             [single_tag] ->
               # Single tag case
-              from(p in query, where: ilike(p.tags, ^"%#{single_tag}%"))
+              from(p in query, where: like(p.tags, ^"%#{single_tag}%"))
 
             multiple_tags ->
               # Multiple tags case - combine with OR
               tag_conditions =
                 Enum.map(multiple_tags, fn tag ->
-                  dynamic([p], ilike(p.tags, ^"%#{tag}%"))
+                  dynamic([p], like(p.tags, ^"%#{tag}%"))
                 end)
 
               combined_condition =
@@ -82,9 +82,9 @@ defmodule Blog.Content do
 
           from(p in query,
             where:
-              ilike(p.title, ^search_term) or
-                ilike(p.content, ^search_term) or
-                (not is_nil(p.subtitle) and ilike(p.subtitle, ^search_term))
+              like(p.title, ^search_term) or
+                like(p.content, ^search_term) or
+                (not is_nil(p.subtitle) and like(p.subtitle, ^search_term))
           )
         else
           query
@@ -102,7 +102,6 @@ defmodule Blog.Content do
         %{post | rendered_content: Post.render_content(post)}
       end)
     rescue
-      Postgrex.Error -> []
       _ -> []
     end
   end
@@ -240,7 +239,6 @@ defmodule Blog.Content do
       |> Enum.uniq()
       |> Enum.sort()
     rescue
-      Postgrex.Error -> []
       _ -> []
     end
   end
@@ -272,7 +270,6 @@ defmodule Blog.Content do
       |> Enum.take(limit)
       |> Enum.map(fn {tag, _count} -> tag end)
     rescue
-      Postgrex.Error -> []
       _ -> []
     end
   end

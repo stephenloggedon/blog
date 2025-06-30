@@ -5,7 +5,7 @@ defmodule Blog.MixProject do
     [
       app: :blog,
       version: "0.1.0",
-      elixir: "~> 1.14",
+      elixir: "~> 1.17",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
@@ -33,15 +33,15 @@ defmodule Blog.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.7.12"},
-      {:phoenix_ecto, "~> 4.4"},
-      {:ecto_sql, "~> 3.10"},
-      {:postgrex, ">= 0.0.0"},
-      {:phoenix_html, "~> 4.0"},
-      {:phoenix_live_reload, "~> 1.2", only: :dev},
+      {:phoenix, "~> 1.7.18"},
+      {:phoenix_ecto, "~> 4.6"},
+      {:ecto_sql, "~> 3.12"},
+      {:ecto_sqlite3, "~> 0.18"},
+      {:phoenix_html, "~> 4.1"},
+      {:phoenix_live_reload, "~> 1.5", only: :dev},
       {:phoenix_live_view, "~> 1.0"},
-      {:floki, ">= 0.30.0", only: :test},
-      {:phoenix_live_dashboard, "~> 0.8.3"},
+      {:floki, ">= 0.36.0", only: :test},
+      {:phoenix_live_dashboard, "~> 0.8.6"},
       {:esbuild, "~> 0.8", runtime: Mix.env() != :test},
       {:tailwind, "~> 0.2", runtime: Mix.env() != :test},
       {:heroicons,
@@ -51,20 +51,21 @@ defmodule Blog.MixProject do
        app: false,
        compile: false,
        depth: 1},
-      {:swoosh, "~> 1.5"},
-      {:finch, "~> 0.13"},
+      {:swoosh, "~> 1.17"},
+      {:finch, "~> 0.19"},
       {:telemetry_metrics, "~> 1.0"},
-      {:telemetry_poller, "~> 1.0"},
-      {:gettext, "~> 0.20"},
-      {:jason, "~> 1.2"},
-      {:dns_cluster, "~> 0.1.1"},
-      {:bandit, "~> 1.2"},
+      {:telemetry_poller, "~> 1.1"},
+      {:gettext, "~> 0.26"},
+      {:jason, "~> 1.4"},
+      {:dns_cluster, "~> 0.1.3"},
+      {:bandit, "~> 1.6"},
       # Blog-specific dependencies
       {:nimble_totp, "~> 1.0"},
       {:earmark, "~> 1.4"},
-      {:bcrypt_elixir, "~> 3.0"},
+      {:bcrypt_elixir, "~> 3.2"},
       {:qr_code, "~> 3.1"},
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.7", runtime: false},
+      {:live_svelte, "~> 0.13.3"}
     ]
   end
 

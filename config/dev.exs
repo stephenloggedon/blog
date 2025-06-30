@@ -2,10 +2,8 @@ import Config
 
 # Configure your database
 config :blog, Blog.Repo,
-  username: "stephen",
-  password: "",
-  hostname: "localhost",
-  database: "blog_dev",
+  adapter: Ecto.Adapters.SQLite3,
+  database: "priv/repo/blog_dev.db",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
