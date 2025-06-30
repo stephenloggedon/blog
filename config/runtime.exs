@@ -24,7 +24,7 @@ if config_env() == :prod do
   # SQLite database configuration for production
   config :blog, Blog.Repo,
     adapter: Ecto.Adapters.SQLite3,
-    database: "/app/priv/repo/blog_prod.db",
+    database: System.get_env("DATABASE_URL") || "priv/repo/blog_prod.db",
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "5")
 
   # The secret key base is used to sign/encrypt cookies and other secrets.
