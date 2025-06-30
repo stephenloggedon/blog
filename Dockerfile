@@ -11,12 +11,8 @@
 #   - https://pkgs.org/ - resource for finding needed packages
 #   - Ex: hexpm/elixir:1.18.4-erlang-28.0.1-debian-bullseye-20250610-slim
 #
-ARG ELIXIR_VERSION=1.18.4
-ARG OTP_VERSION=28.0.1
-ARG DEBIAN_VERSION=bullseye-20250610-slim
-
-ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
-ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
+ARG BUILDER_IMAGE="elixir:1.17"
+ARG RUNNER_IMAGE="debian:bullseye-slim"
 
 FROM ${BUILDER_IMAGE} as builder
 
@@ -50,6 +46,10 @@ COPY priv priv
 COPY lib lib
 
 COPY assets assets
+
+# install Node.js for assets
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y nodejs
 
 # compile assets
 RUN mix assets.deploy
@@ -94,4 +94,4 @@ USER nobody
 # above and adding an entrypoint. See https://github.com/krallin/tini for details
 # ENTRYPOINT ["/tini", "--"]
 
-CMD ["/app/bin/server"]
+CMD ["/app/bin/blog", "start"]
