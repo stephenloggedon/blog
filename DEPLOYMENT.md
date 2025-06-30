@@ -1,78 +1,88 @@
 # Blog Deployment Guide
 
-This guide covers deploying the Phoenix LiveView blog to Gigalixir with automated CI/CD.
+This guide covers deploying the Phoenix LiveView blog to Fly.io with SQLite database.
 
 ## Prerequisites
 
-1. **Gigalixir Account**: Sign up at [gigalixir.com](https://gigalixir.com)
+1. **Fly.io Account**: Sign up at [fly.io](https://fly.io)
 2. **GitHub Account**: Repository hosted on GitHub
 3. **Local Development**: Blog working locally
 
-## Gigalixir Setup
+## Fly.io Setup
 
-### 1. Install Gigalixir CLI
+### 1. Install Fly.io CLI
 
 ```bash
 # macOS
-brew install gigalixir/brew/gigalixir
+brew install flyctl
 
 # Linux
-curl -fsSL https://github.com/gigalixir/gigalixir-cli/releases/download/v1.4.0/gigalixir_linux -o gigalixir
-chmod +x gigalixir
-sudo mv gigalixir /usr/local/bin/
+curl -L https://fly.io/install.sh | sh
+
+# Windows
+curl -fsSL https://fly.io/install.ps1 | iex
 ```
 
 ### 2. Login and Create App
 
 ```bash
 # Login
-gigalixir login
+fly auth login
 
-# Create app (replace 'my-blog' with your app name)
-gigalixir create my-blog
+# Launch app (generates fly.toml)
+fly launch
 
-# Get app info
-gigalixir apps
+# Follow prompts:
+# - Choose app name
+# - Select region
+# - Decline PostgreSQL (we use SQLite)
+# - Decline Redis
 ```
 
-### 3. Configure Database
-
-```bash
-# Create database (Free tier includes 1 database)
-gigalixir pg:create --free
-
-# Get database URL
-gigalixir config
-```
-
-### 4. Set Environment Variables
+### 3. Configure Environment Variables
 
 ```bash
 # Generate secret key base
 mix phx.gen.secret
 
 # Set required environment variables
-gigalixir config:set SECRET_KEY_BASE=your_secret_key_here
-gigalixir config:set PHX_HOST=your-app-name.gigalixirapp.com
-gigalixir config:set DATABASE_URL=your_database_url_here
-gigalixir config:set POOL_SIZE=2
+fly secrets set SECRET_KEY_BASE=your_secret_key_here
+fly secrets set PHX_HOST=your-app-name.fly.dev
 ```
+
+### 4. Deploy
+
+```bash
+# Deploy the application
+fly deploy
+```
+
+## Database Configuration
+
+This blog uses **SQLite** for simplicity and cost-effectiveness:
+
+- **No external database required**: SQLite file is stored with the app
+- **Zero cost**: No database service fees
+- **Perfect for blogs**: Handles typical blog workloads efficiently
+- **Automatic backups**: Include SQLite file in volume snapshots
+
+### SQLite File Location
+
+The SQLite database is stored at `/app/priv/repo/blog_prod.db` in production.
 
 ## GitHub Actions Setup
 
-### 1. Repository Secrets
+### Repository Secrets
 
 Add these secrets in GitHub repository settings (Settings → Secrets and variables → Actions):
 
-- `GIGALIXIR_EMAIL`: Your Gigalixir account email
-- `GIGALIXIR_PASSWORD`: Your Gigalixir account password  
-- `GIGALIXIR_APP_NAME`: Your Gigalixir app name
+- `FLY_API_TOKEN`: Generate at https://fly.io/user/personal_access_tokens
 
-### 2. CI/CD Pipeline
+### CI/CD Pipeline
 
 The pipeline automatically:
 - Runs tests on every push/PR
-- Deploys to Gigalixir on main branch pushes
+- Deploys to Fly.io on main branch pushes
 - Runs code quality checks (Credo, formatting)
 
 ## Manual Deployment
@@ -80,17 +90,17 @@ The pipeline automatically:
 If you need to deploy manually:
 
 ```bash
-# Add Gigalixir remote
-gigalixir git:remote your-app-name
+# Deploy current branch
+fly deploy
 
-# Deploy
-git push gigalixir main
+# Deploy specific image
+fly deploy --image your-image
 
-# Check logs
-gigalixir logs
+# Check deployment status
+fly status
 
-# Check app status
-gigalixir ps
+# View logs
+fly logs
 ```
 
 ## Environment Configuration
@@ -99,41 +109,61 @@ gigalixir ps
 
 Required:
 - `SECRET_KEY_BASE`: Generated with `mix phx.gen.secret`
-- `DATABASE_URL`: PostgreSQL connection string (auto-set by Gigalixir)
-- `PHX_HOST`: Your app's domain (your-app.gigalixirapp.com)
-- `PHX_SERVER`: Set to `true` (auto-set by Gigalixir)
+- `PHX_HOST`: Your app's domain (your-app.fly.dev)
+- `PHX_SERVER`: Set to `true` (auto-set by Fly.io)
 
 Optional:
-- `POOL_SIZE`: Database connection pool size (default: 10, recommend 2 for free tier)
-- `PORT`: HTTP port (auto-set by Gigalixir)
+- `DATABASE_URL`: Override default SQLite path
+- `POOL_SIZE`: Database connection pool size (default: 5)
+- `PORT`: HTTP port (auto-set by Fly.io to 8080)
 
-### Build Configuration
+### Fly.io Configuration
 
-The app uses these buildpacks (defined in `.buildpacks`):
-1. Clean cache buildpack
-2. Elixir buildpack  
-3. Phoenix static buildpack
-4. Mix buildpack
+The app uses Elixir releases without Docker:
+- **Elixir**: 1.17.3
+- **Erlang**: 27.2
+- **Node.js**: 22.x
 
-Build settings:
-- **Elixir**: 1.17.2
-- **Erlang**: 27.0
-- **Node.js**: 20.11.0
-- **NPM**: 10.2.4
+Key `fly.toml` settings:
+```toml
+[build]
+# No dockerfile - uses Elixir buildpack
 
-## Database Migrations
+[deploy]
+release_command = '/app/bin/migrate'
 
-Migrations run automatically on deployment. To run manually:
+[env]
+PHX_HOST = 'your-app.fly.dev'
+PORT = '8080'
+PHX_SERVER = 'true'
+```
 
+## Database Operations
+
+### Migrations
+
+Migrations run automatically on deployment via the release command.
+
+To run manually:
 ```bash
 # Run migrations
-gigalixir run mix ecto.migrate
+fly ssh console -C "/app/bin/blog eval 'Blog.Release.migrate'"
 
-# Seed database (if needed)
-gigalixir run mix run priv/repo/seeds.exs
+# Seed database
+fly ssh console -C "/app/bin/blog eval 'Blog.Release.seed'"
+```
 
-# Access remote console
-gigalixir run iex -S mix
+### Console Access
+
+```bash
+# SSH into running instance
+fly ssh console
+
+# Run Elixir console
+fly ssh console -C "/app/bin/blog remote"
+
+# Run one-off commands
+fly ssh console -C "/app/bin/blog eval 'Blog.Content.list_posts() |> length()'"
 ```
 
 ## Monitoring
@@ -141,48 +171,66 @@ gigalixir run iex -S mix
 ### Logs
 ```bash
 # View live logs
-gigalixir logs
+fly logs
 
-# View logs with filters
-gigalixir logs --num=100
-gigalixir logs --app=your-app-name
+# View historical logs
+fly logs --app your-app-name
 ```
 
 ### App Status
 ```bash
 # Check app health
-gigalixir ps
+fly status
 
-# Check config
-gigalixir config
+# Check resource usage
+fly vm status
 
-# Check database status
-gigalixir pg:info
+# Check machine info
+fly machine list
 ```
 
 ### Performance
-- **Free Tier**: 0.5 CPU, 512MB RAM
-- **Paid Tiers**: Scalable resources available
-- **Database**: 10,000 rows max on free tier
+- **Free Tier**: Limited monthly usage
+- **Paid Tiers**: $1.94/month minimum for always-on apps
+- **Resources**: 256MB RAM, shared CPU (configurable)
+
+## Volumes (Optional)
+
+For persistent SQLite storage across deployments:
+
+```bash
+# Create volume
+fly volume create blog_data --region lax --size 1
+
+# Update fly.toml
+[mounts]
+source = "blog_data"
+destination = "/data"
+```
+
+Then update `config/runtime.exs`:
+```elixir
+database: "/data/blog_prod.db"
+```
 
 ## Custom Domain (Optional)
 
 ```bash
 # Add custom domain
-gigalixir domains:add yourdomain.com
+fly certs add yourdomain.com
 
 # Configure DNS
-# Add CNAME record: yourdomain.com → your-app.gigalixirapp.com
+# Add CNAME record: yourdomain.com → your-app.fly.dev
 
-# Set PHX_HOST to your domain
-gigalixir config:set PHX_HOST=yourdomain.com
+# Update PHX_HOST
+fly secrets set PHX_HOST=yourdomain.com
 ```
 
 ## SSL/TLS
 
-Gigalixir provides automatic SSL certificates for:
-- `*.gigalixirapp.com` domains (included)
-- Custom domains (free Let's Encrypt certificates)
+Fly.io provides automatic SSL certificates for:
+- `*.fly.dev` domains (included)
+- Custom domains (free certificates)
 
 ## Troubleshooting
 
@@ -191,66 +239,78 @@ Gigalixir provides automatic SSL certificates for:
 1. **Build Failures**
    ```bash
    # Check build logs
-   gigalixir logs --num=200
+   fly logs
    
-   # Verify buildpack configuration
-   cat .buildpacks
+   # Test build locally
+   mix release --overwrite
    ```
 
-2. **Database Connection Issues**
+2. **SQLite Permission Issues**
    ```bash
-   # Check database status
-   gigalixir pg:info
-   
-   # Verify DATABASE_URL
-   gigalixir config | grep DATABASE_URL
+   # Ensure proper file permissions
+   fly ssh console -C "ls -la /app/priv/repo/"
    ```
 
 3. **Asset Compilation Issues**
    ```bash
    # Test assets locally
    mix assets.deploy
-   
-   # Check Node.js/NPM versions in phoenix_static_buildpack.config
    ```
 
 ### Debug Commands
 
 ```bash
 # Remote shell access
-gigalixir run iex -S mix
+fly ssh console -C "/app/bin/blog remote"
 
-# Run specific commands
-gigalixir run mix ecto.migrate
-gigalixir run mix test
+# Check file system
+fly ssh console -C "df -h"
+fly ssh console -C "ls -la /app/priv/repo/"
 
-# Scale app (paid tiers)
-gigalixir scale --replicas=2
+# Scale app
+fly scale count 2
+fly scale memory 512
 ```
 
 ## Security Considerations
 
 1. **Environment Variables**: Never commit secrets to version control
-2. **Database**: Use connection pooling (POOL_SIZE=2 for free tier)
-3. **SSL**: Enforced automatically on Gigalixir
-4. **Dependencies**: Keep dependencies updated
+2. **SSL**: Enforced automatically on Fly.io
+3. **Dependencies**: Keep dependencies updated
+4. **SQLite**: File permissions handled by Fly.io
 
 ## Cost Management
 
-- **Free Tier**: $0/month, includes:
-  - 1 app instance
-  - PostgreSQL database (10k rows)
-  - SSL certificate
-  - Custom domains
+- **Free Tier**: Limited monthly allowance
+- **Paid Plans**: ~$2-5/month for small blogs
+- **No Database Costs**: SQLite eliminates database service fees
 
-- **Paid Tiers**: Start at $10/month for production workloads
+## Backup Strategy
+
+### SQLite Backup
+```bash
+# Download SQLite database
+fly ssh console -C "cat /app/priv/repo/blog_prod.db" > backup.db
+
+# Upload SQLite database
+cat backup.db | fly ssh console -C "cat > /app/priv/repo/blog_prod.db"
+```
+
+### Volume Snapshots (if using volumes)
+```bash
+# Create snapshot
+fly volume snapshot create blog_data
+
+# List snapshots
+fly volume snapshot list
+```
 
 ## Next Steps
 
 1. Deploy your blog following this guide
-2. Set up monitoring and alerting
-3. Configure backup strategies
-4. Consider CDN for static assets (if needed)
-5. Set up error tracking (Sentry, etc.)
+2. Set up custom domain (optional)
+3. Configure monitoring and logging
+4. Set up backup automation
+5. Consider error tracking (Sentry, etc.)
 
-For more information, visit the [Gigalixir documentation](https://gigalixir.readthedocs.io/).
+For more information, visit the [Fly.io documentation](https://fly.io/docs/).

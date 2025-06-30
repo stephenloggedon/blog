@@ -2,20 +2,40 @@
 
 A Phoenix LiveView blog with advanced search and filtering capabilities.
 
-## Live Demo
-🚀 **[stephenloggedon-blog.gigalixirapp.com](https://stephenloggedon-blog.gigalixirapp.com)**
-
 ## Features
 - Real-time search with tag autocomplete
 - Multi-tag filtering with OR logic  
 - Responsive design with Catppuccin color scheme
 - Markdown content rendering
-- Single-user authentication with 2FA TOTP
-- Infinite scroll homepage
+- Infinite scroll pagination
+- Single-user authentication with 2FA TOTP (optional)
 
 ## Tech Stack
-- Phoenix LiveView + PostgreSQL
+- Phoenix LiveView + SQLite
 - Tailwind CSS + Catppuccin theme
-- Deployed on Gigalixir with GitHub Actions CI/CD
+- Deployed on Fly.io with GitHub Actions CI/CD
+- No authentication required for reading blog posts
+
+## Development Setup
+
+1. **Clone and install dependencies:**
+   ```bash
+   git clone <repository>
+   cd blog
+   mix setup
+   ```
+
+2. **Start the development server:**
+   ```bash
+   mix phx.server
+   ```
+
+3. **Visit** http://localhost:4000
+
+The app includes seed data with sample blog posts for testing.
+
+## Deployment
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for Fly.io deployment instructions.
 
 Built with Phoenix LiveView for real-time interactivity.
