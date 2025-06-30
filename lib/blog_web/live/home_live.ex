@@ -232,7 +232,7 @@ defmodule BlogWeb.HomeLive do
           />
           
     <!-- Blog Posts Scroll Area -->
-          <main class="flex-1 overflow-y-auto scrollbar-hide px-6" id="posts-container">
+          <main class="flex-1 overflow-y-auto scrollbar-hide px-6" id="posts-container" phx-hook="InfiniteScroll">
             <!-- Filter Status -->
             <%= if @selected_tags != [] || @search_query != "" do %>
               <div class="mb-6 p-4 bg-surface0/50 rounded-lg border border-surface1">
@@ -310,15 +310,13 @@ defmodule BlogWeb.HomeLive do
               </article>
             <% end %>
             
-    <!-- Load More Button -->
+    <!-- Loading Indicator for Infinite Scroll -->
             <%= if @has_more do %>
-              <div class="mt-12 text-center">
-                <button
-                  phx-click="load_more"
-                  class="bg-blue hover:bg-opacity-80 text-base px-6 py-3 rounded-lg font-medium transition-all"
-                >
-                  Load More Posts
-                </button>
+              <div class="mt-12 text-center py-8" id="loading-indicator">
+                <div class="inline-flex items-center space-x-2 text-subtext1">
+                  <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue"></div>
+                  <span class="text-sm">Loading more posts...</span>
+                </div>
               </div>
             <% end %>
             

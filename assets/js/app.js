@@ -22,10 +22,51 @@ import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 
+// Infinite Scroll Hook
+let Hooks = {}
+Hooks.InfiniteScroll = {
+  mounted() {
+    this.pending = false
+    this.observer = new IntersectionObserver(entries => {
+      const target = entries[0]
+      if (target.isIntersecting && !this.pending) {
+        this.pending = true
+        this.pushEvent("load_more", {}, () => {
+          this.pending = false
+        })
+      }
+    }, {
+      root: this.el,
+      rootMargin: "100px"
+    })
+    
+    // Observe the loading indicator
+    const loadingIndicator = document.getElementById("loading-indicator")
+    if (loadingIndicator) {
+      this.observer.observe(loadingIndicator)
+    }
+  },
+  
+  updated() {
+    // Re-observe when content updates
+    const loadingIndicator = document.getElementById("loading-indicator")
+    if (loadingIndicator && !this.pending) {
+      this.observer.observe(loadingIndicator)
+    }
+  },
+  
+  destroyed() {
+    if (this.observer) {
+      this.observer.disconnect()
+    }
+  }
+}
+
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
-  params: {_csrf_token: csrfToken}
+  params: {_csrf_token: csrfToken},
+  hooks: Hooks
 })
 
 // Show progress bar on live navigation and form submits
