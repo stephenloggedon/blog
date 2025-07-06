@@ -51,7 +51,7 @@ defmodule Blog.MixProject do
        app: false,
        compile: false,
        depth: 1},
-      {:swoosh, "~> 1.17"},
+      
       {:finch, "~> 0.19"},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.1"},
@@ -60,12 +60,13 @@ defmodule Blog.MixProject do
       {:dns_cluster, "~> 0.1.3"},
       {:bandit, "~> 1.6"},
       # Blog-specific dependencies
-      {:nimble_totp, "~> 1.0"},
       {:earmark, "~> 1.4"},
-      {:bcrypt_elixir, "~> 3.2"},
-      {:qr_code, "~> 3.1"},
       {:credo, "~> 1.7", runtime: false},
-      {:live_svelte, "~> 0.13.3"}
+      {:live_svelte, "~> 0.13.3"},
+      {:ex_aws, "~> 2.5"},
+      {:ex_aws_s3, "~> 2.5"},
+      {:hackney, "~> 1.20"},
+      {:sweet_xml, "~> 0.7"}
     ]
   end
 
@@ -77,10 +78,9 @@ defmodule Blog.MixProject do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get", "ecto.setup", "cmd --cd assets npm install"],
-      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
-      "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
+      setup: ["deps.get", "cmd --cd assets npm install"],
+      "ecto.reset": ["ecto.drop", "ecto.create", "ecto.migrate"],
+      test: ["test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["tailwind blog", "esbuild blog"],
       "assets.deploy": [

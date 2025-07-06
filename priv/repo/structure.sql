@@ -1,0 +1,14 @@
+CREATE TABLE IF NOT EXISTS "schema_migrations" ("version" INTEGER PRIMARY KEY, "inserted_at" TEXT);
+CREATE TABLE IF NOT EXISTS "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT, "email" TEXT NOT NULL, "hashed_password" TEXT NOT NULL, "confirmed_at" TEXT, "inserted_at" TEXT NOT NULL, "updated_at" TEXT NOT NULL, "totp_secret" TEXT, "totp_enabled" INTEGER DEFAULT false, "backup_codes" TEXT DEFAULT ('[]'));
+CREATE TABLE sqlite_sequence(name,seq);
+CREATE UNIQUE INDEX "users_email_index" ON "users" ("email");
+CREATE TABLE IF NOT EXISTS "users_tokens" ("id" INTEGER PRIMARY KEY AUTOINCREMENT, "user_id" INTEGER NOT NULL CONSTRAINT "users_tokens_user_id_fkey" REFERENCES "users"("id") ON DELETE CASCADE, "token" BLOB NOT NULL, "context" TEXT NOT NULL, "sent_to" TEXT, "inserted_at" TEXT NOT NULL);
+CREATE INDEX "users_tokens_user_id_index" ON "users_tokens" ("user_id");
+CREATE UNIQUE INDEX "users_tokens_context_token_index" ON "users_tokens" ("context", "token");
+CREATE TABLE IF NOT EXISTS "posts" ("id" INTEGER PRIMARY KEY AUTOINCREMENT, "title" TEXT, "slug" TEXT, "content" TEXT, "excerpt" TEXT, "tags" TEXT, "published" INTEGER DEFAULT false NOT NULL, "published_at" TEXT, "user_id" INTEGER CONSTRAINT "posts_user_id_fkey" REFERENCES "users"("id"), "inserted_at" TEXT NOT NULL, "updated_at" TEXT NOT NULL, "subtitle" TEXT);
+CREATE UNIQUE INDEX "posts_slug_index" ON "posts" ("slug");
+CREATE INDEX "posts_user_id_index" ON "posts" ("user_id");
+INSERT INTO schema_migrations VALUES(20250628205042,'2025-06-30T01:35:42');
+INSERT INTO schema_migrations VALUES(20250628205137,'2025-06-30T01:35:42');
+INSERT INTO schema_migrations VALUES(20250628205923,'2025-06-30T01:35:42');
+INSERT INTO schema_migrations VALUES(20250628223427,'2025-06-30T01:35:42');

@@ -4,7 +4,8 @@ defmodule BlogWeb.ErrorHTML do
 
   See config/config.exs.
   """
-  use BlogWeb, :html
+  use Phoenix.Component
+  import Phoenix.Controller
 
   # If you want to customize your error pages,
   # uncomment the embed_templates/1 call below
@@ -19,6 +20,6 @@ defmodule BlogWeb.ErrorHTML do
   # the template name. For example, "404.html" becomes
   # "Not Found".
   def render(template, _assigns) do
-    Phoenix.Controller.status_message_from_template(template)
+    status_message_from_template(template)
   end
 end

@@ -2,8 +2,6 @@ defmodule BlogWeb.BlogPostLive do
   use BlogWeb, :live_view
   alias Blog.Content
 
-  on_mount {BlogWeb.UserAuth, :mount_current_user}
-
   def mount(%{"slug" => slug}, _session, socket) do
     case Content.get_published_post_by_slug(slug) do
       nil ->

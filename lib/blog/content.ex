@@ -150,6 +150,48 @@ defmodule Blog.Content do
   def get_post!(id), do: Repo.get!(Post, id)
 
   @doc """
+  Gets a single post by ID.
+
+  Returns nil if the Post does not exist.
+
+  ## Examples
+
+      iex> get_post(123)
+      %Post{}
+
+      iex> get_post(456)
+      nil
+
+  """
+  def get_post(id) do
+    from(p in Post,
+      where: p.id == ^id and not is_nil(p.published_at)
+    )
+    |> Repo.one()
+  end
+
+  @doc """
+  Returns posts with pagination for API usage.
+
+  ## Examples
+
+      iex> list_posts_paginated(1, 10)
+      [%Post{}, ...]
+
+  """
+  def list_posts_paginated(page \\ 1, per_page \\ 20) do
+    offset = (page - 1) * per_page
+    
+    from(p in Post,
+      where: not is_nil(p.published_at),
+      order_by: [desc: p.published_at],
+      limit: ^per_page,
+      offset: ^offset
+    )
+    |> Repo.all()
+  end
+
+  @doc """
   Creates a post.
 
   ## Examples
@@ -161,11 +203,7 @@ defmodule Blog.Content do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_post(attrs \\ %{}) do
-    %Post{}
-    |> Post.changeset(attrs)
-    |> Repo.insert()
-  end
+  def create_post(attrs \\ %{}) do    %Post{}    |> Post.changeset(attrs)    |> Repo.insert()  end
 
   @doc """
   Updates a post.

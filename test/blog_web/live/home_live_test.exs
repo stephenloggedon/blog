@@ -6,7 +6,6 @@ defmodule BlogWeb.HomeLiveTest do
 
   describe "HomeLive search functionality" do
     setup do
-      user = Blog.AccountsFixtures.user_fixture()
       now = DateTime.utc_now() |> DateTime.truncate(:second)
 
       # Create test posts with various tags and content
@@ -15,7 +14,6 @@ defmodule BlogWeb.HomeLiveTest do
           title: "Phoenix LiveView Guide",
           content: "Complete guide to Phoenix LiveView with examples",
           tags: "phoenix, elixir, web",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -25,7 +23,6 @@ defmodule BlogWeb.HomeLiveTest do
           title: "Elixir Patterns",
           content: "Advanced Elixir programming patterns",
           tags: "elixir, functional, programming",
-          user_id: user.id,
           published: true,
           published_at: now
         })
@@ -35,12 +32,11 @@ defmodule BlogWeb.HomeLiveTest do
           title: "Web Development",
           content: "Modern web development techniques",
           tags: "web, css, javascript",
-          user_id: user.id,
           published: true,
           published_at: now
         })
 
-      %{posts: [post1, post2, post3], user: user}
+      %{posts: [post1, post2, post3]}
     end
 
     test "initial mount loads posts and tags", %{conn: conn} do

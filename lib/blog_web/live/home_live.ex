@@ -2,8 +2,6 @@ defmodule BlogWeb.HomeLive do
   use BlogWeb, :live_view
   alias Blog.Content
 
-  on_mount {BlogWeb.UserAuth, :mount_current_user}
-
   def mount(_params, _session, socket) do
     {:ok,
      socket

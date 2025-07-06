@@ -12,7 +12,7 @@
 #   - Ex: hexpm/elixir:1.18.4-erlang-28.0.1-debian-bullseye-20250610-slim
 #
 ARG BUILDER_IMAGE="elixir:1.17"
-ARG RUNNER_IMAGE="debian:bullseye-slim"
+ARG RUNNER_IMAGE="elixir:1.17"
 
 FROM ${BUILDER_IMAGE} as builder
 
@@ -68,7 +68,7 @@ RUN mix release
 FROM ${RUNNER_IMAGE}
 
 RUN apt-get update -y && \
-  apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates \
+  apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates curl \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # Set the locale

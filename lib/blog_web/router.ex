@@ -1,8 +1,6 @@
 defmodule BlogWeb.Router do
   use BlogWeb, :router
 
-  import BlogWeb.UserAuth
-
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -10,11 +8,15 @@ defmodule BlogWeb.Router do
     plug :put_root_layout, html: {BlogWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug :fetch_current_user
   end
 
   pipeline :api do
     plug :accepts, ["json"]
+  end
+
+  pipeline :api_authenticated do
+    plug :accepts, ["json"]
+    plug BlogWeb.Plugs.SimpleApiAuth
   end
 
   scope "/", BlogWeb do
@@ -24,10 +26,22 @@ defmodule BlogWeb.Router do
     live "/blog/:slug", BlogPostLive
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", BlogWeb do
-  #   pipe_through :api
-  # end
+  # Public API routes (no authentication required)
+  scope "/api", BlogWeb.Api do
+    pipe_through :api
+    
+    get "/posts", PostController, :index
+    get "/posts/:id", PostController, :show
+  end
+
+  # Protected API routes (client certificate authentication required)
+  scope "/api", BlogWeb.Api do
+    pipe_through :api_authenticated
+    
+    post "/posts", PostController, :create
+    put "/posts/:id", PostController, :update
+    delete "/posts/:id", PostController, :delete
+  end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:blog, :dev_routes) do
@@ -46,38 +60,5 @@ defmodule BlogWeb.Router do
     end
   end
 
-  ## Authentication routes
-
-  scope "/", BlogWeb do
-    pipe_through [:browser, :redirect_if_user_is_authenticated]
-
-    get "/users/register", UserRegistrationController, :new
-    post "/users/register", UserRegistrationController, :create
-    get "/users/log_in", UserSessionController, :new
-    post "/users/log_in", UserSessionController, :create
-    post "/users/totp_verify", UserSessionController, :totp
-    get "/users/reset_password", UserResetPasswordController, :new
-    post "/users/reset_password", UserResetPasswordController, :create
-    get "/users/reset_password/:token", UserResetPasswordController, :edit
-    put "/users/reset_password/:token", UserResetPasswordController, :update
-  end
-
-  scope "/", BlogWeb do
-    pipe_through [:browser, :require_authenticated_user]
-
-    get "/users/settings", UserSettingsController, :edit
-    put "/users/settings", UserSettingsController, :update
-    get "/users/settings/confirm_email/:token", UserSettingsController, :confirm_email
-    live "/users/totp", UserTotpLive
-  end
-
-  scope "/", BlogWeb do
-    pipe_through [:browser]
-
-    delete "/users/log_out", UserSessionController, :delete
-    get "/users/confirm", UserConfirmationController, :new
-    post "/users/confirm", UserConfirmationController, :create
-    get "/users/confirm/:token", UserConfirmationController, :edit
-    post "/users/confirm/:token", UserConfirmationController, :update
-  end
+  
 end

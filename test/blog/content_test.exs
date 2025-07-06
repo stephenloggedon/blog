@@ -63,8 +63,7 @@ defmodule Blog.ContentTest do
         content: "some updated content",
         excerpt: "some updated excerpt",
         tags: "some updated tags",
-        published: false,
-        published_at: ~U[2025-06-28 20:59:00Z]
+        published: false
       }
 
       assert {:ok, %Post{} = post} = Content.update_post(post, update_attrs)
@@ -74,7 +73,8 @@ defmodule Blog.ContentTest do
       assert post.excerpt == "some updated excerpt"
       assert post.tags == "some updated tags"
       assert post.published == false
-      assert post.published_at == ~U[2025-06-28 20:59:00Z]
+      assert post.published_at != nil
+      assert DateTime.diff(DateTime.utc_now(), post.published_at, :second) < 5
     end
 
     test "update_post/2 with invalid data returns error changeset" do

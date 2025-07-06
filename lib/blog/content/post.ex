@@ -2,8 +2,6 @@ defmodule Blog.Content.Post do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Blog.Accounts.User
-
   schema "posts" do
     field :title, :string
     field :slug, :string
@@ -14,8 +12,6 @@ defmodule Blog.Content.Post do
     field :published, :boolean, default: false
     field :published_at, :utc_datetime
     field :rendered_content, :string, virtual: true
-
-    belongs_to :user, User
 
     timestamps(type: :utc_datetime)
   end
@@ -31,8 +27,7 @@ defmodule Blog.Content.Post do
       :subtitle,
       :tags,
       :published,
-      :published_at,
-      :user_id
+      :published_at
     ])
     |> validate_required([:title, :content])
     |> validate_length(:title, min: 1, max: 200)

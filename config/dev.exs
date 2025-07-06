@@ -18,6 +18,20 @@ config :blog, BlogWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
   http: [ip: {127, 0, 0, 1}, port: 4000],
+# HTTPS/mTLS configuration disabled for now - using API key authentication
+  # https: [
+  #   ip: {127, 0, 0, 1},
+  #   port: 4001,
+  #   cipher_suite: :strong,
+  #   keyfile: "priv/cert/server/server-key.pem",
+  #   certfile: "priv/cert/server/server-cert.pem",
+  #   transport_options: [
+  #     cacertfile: "priv/cert/ca/ca.pem",
+  #     verify: :verify_peer,
+  #     fail_if_no_peer_cert: true,
+  #     verify_fun: {&:ssl_verify_hostname.verify_fun/3, [check_hostname: false]}
+  #   ]
+  # ],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
@@ -79,5 +93,18 @@ config :phoenix_live_view,
   # Enable helpful, but potentially expensive runtime checks
   enable_expensive_runtime_checks: true
 
+# ExAws development configuration (optional for local testing)
+config :ex_aws,
+  access_key_id: "dev_access_key",
+  secret_access_key: "dev_secret_key",
+  region: "us-east-1"
+
+# S3 bucket configuration for development
+config :blog,
+  s3_bucket: "blog-images-dev"
+
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+# Guardian development configuration
+
