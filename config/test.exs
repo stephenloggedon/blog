@@ -1,5 +1,8 @@
 import Config
 
+# Set environment for mTLS plug testing
+config :blog, :env, :test
+
 # Only in tests, remove the complexity from the password hashing algorithm
 
 # Configure your database

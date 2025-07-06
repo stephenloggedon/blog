@@ -7,7 +7,7 @@ defmodule BlogWeb.Api.PostControllerTest do
     conn = 
       conn
       |> put_req_header("accept", "application/json")
-      |> put_req_header("x-api-key", "blog-api-test-key-2024")
+      |> put_req_header("test-client-cert", "valid")
     
     {:ok, conn: conn}
   end

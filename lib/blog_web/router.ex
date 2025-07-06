@@ -16,7 +16,7 @@ defmodule BlogWeb.Router do
 
   pipeline :api_authenticated do
     plug :accepts, ["json"]
-    plug BlogWeb.Plugs.SimpleApiAuth
+    plug BlogWeb.Plugs.ClientCertAuth
   end
 
   scope "/", BlogWeb do

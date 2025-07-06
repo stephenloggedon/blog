@@ -15,23 +15,20 @@ config :blog, Blog.Repo,
 # watchers to your application. For example, we can use it
 # to bundle .js and .css sources.
 config :blog, BlogWeb.Endpoint,
-  # Binding to loopback ipv4 address prevents access from other machines.
-  # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
+  # HTTP configuration for public access
   http: [ip: {127, 0, 0, 1}, port: 4000],
-# HTTPS/mTLS configuration disabled for now - using API key authentication
-  # https: [
-  #   ip: {127, 0, 0, 1},
-  #   port: 4001,
-  #   cipher_suite: :strong,
-  #   keyfile: "priv/cert/server/server-key.pem",
-  #   certfile: "priv/cert/server/server-cert.pem",
-  #   transport_options: [
-  #     cacertfile: "priv/cert/ca/ca.pem",
-  #     verify: :verify_peer,
-  #     fail_if_no_peer_cert: true,
-  #     verify_fun: {&:ssl_verify_hostname.verify_fun/3, [check_hostname: false]}
-  #   ]
-  # ],
+  # HTTPS with optional client certificate verification  
+  https: [
+    ip: {127, 0, 0, 1},
+    port: 4001,
+    cipher_suite: :strong,
+    keyfile: "priv/cert/server/server-key.pem",
+    certfile: "priv/cert/server/server-cert.pem",
+    cacertfile: "priv/cert/ca/ca.pem",
+    verify: :verify_peer,
+    fail_if_no_peer_cert: false,  # Allow connections without client certificates
+    verify_fun: {&:ssl_verify_hostname.verify_fun/3, [check_hostname: false]}
+  ],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,

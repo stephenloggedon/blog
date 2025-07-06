@@ -2,25 +2,23 @@
 
 ## Overview
 
-The Blog API provides RESTful endpoints for managing blog posts with API key authentication for write operations. Read operations are public, while create, update, and delete operations require authentication.
+The Blog API provides RESTful endpoints for managing blog posts with mTLS (mutual TLS) client certificate authentication for write operations. Read operations are public, while create, update, and delete operations require valid client certificates.
 
 ## Authentication
 
-### API Key Authentication
+### mTLS Client Certificate Authentication
 
-Write operations (POST, PUT, DELETE) require an API key to be included in the `X-API-Key` header.
+Write operations (POST, PUT, DELETE) require a valid client certificate signed by the Blog API Certificate Authority (CA).
 
-**Header Format:**
-```
-X-API-Key: your-api-key-here
-```
+**Requirements:**
+- Client certificate signed by the Blog API CA
+- Private key corresponding to the client certificate
+- HTTPS connection to port 4001
 
-**Current Test API Key:**
-```
-blog-api-test-key-2024
-```
+**Certificate Generation:**
+Client certificates must be issued by the Blog API Certificate Authority. Contact your administrator for certificate issuance.
 
-> **Note:** In production, API keys should be securely generated and distributed to authorized clients.
+> **Note:** Read operations (GET) do not require client certificates and can be accessed via HTTP or HTTPS.
 
 ## Blog Post Endpoints
 
@@ -205,64 +203,83 @@ Post metadata must be provided as a JSON string in the `metadata` field:
 
 ## Example Usage
 
-### Using cURL
+### Using cURL with mTLS
 
-#### List Posts (Public)
+#### List Posts (Public - No Certificate Required)
 ```bash
+# Via HTTP
 curl -X GET http://localhost:4000/api/posts
+
+# Via HTTPS without client certificate
+curl -X GET --cacert priv/cert/ca/ca.pem https://localhost:4001/api/posts
 ```
 
-#### Create Post (Authenticated)
+#### Create Post (mTLS Authentication Required)
 ```bash
-curl -X POST http://localhost:4000/api/posts \
-  -H "X-API-Key: blog-api-test-key-2024" \
+curl -X POST https://localhost:4001/api/posts \
+  --cacert priv/cert/ca/ca.pem \
+  --cert client-cert.pem \
+  --key client-key.pem \
   -H "Content-Type: application/json" \
-  -d '{"metadata": "{\"title\":\"Hello World\",\"content\":\"My first post via API\"}"}'
+  -d '{"metadata": "{\"title\":\"Hello World\",\"content\":\"My first post via mTLS API\"}"}'
 ```
 
-#### Update Post (Authenticated)
+#### Update Post (mTLS Authentication Required)
 ```bash
-curl -X PUT http://localhost:4000/api/posts/123 \
-  -H "X-API-Key: blog-api-test-key-2024" \
+curl -X PUT https://localhost:4001/api/posts/123 \
+  --cacert priv/cert/ca/ca.pem \
+  --cert client-cert.pem \
+  --key client-key.pem \
   -H "Content-Type: application/json" \
   -d '{"metadata": "{\"title\":\"Updated Title\"}"}'
 ```
 
-#### Delete Post (Authenticated)
+#### Delete Post (mTLS Authentication Required)
 ```bash
-curl -X DELETE http://localhost:4000/api/posts/123 \
-  -H "X-API-Key: blog-api-test-key-2024"
+curl -X DELETE https://localhost:4001/api/posts/123 \
+  --cacert priv/cert/ca/ca.pem \
+  --cert client-cert.pem \
+  --key client-key.pem
 ```
 
 ### With Images
 ```bash
-curl -X POST http://localhost:4000/api/posts \
-  -H "X-API-Key: blog-api-test-key-2024" \
+curl -X POST https://localhost:4001/api/posts \
+  --cacert priv/cert/ca/ca.pem \
+  --cert client-cert.pem \
+  --key client-key.pem \
   -F 'metadata={"title":"Post with Image","content":"Check out this image: {{image_0}}"}' \
   -F 'images=@/path/to/image.jpg'
 ```
 
 ## Security Features
 
-- **API Key Authentication**: Write operations require valid API key
+- **mTLS Client Certificate Authentication**: Enterprise-grade mutual TLS authentication
+- **Certificate Authority Validation**: All client certificates verified against trusted CA
 - **Public Read Access**: Read operations remain publicly accessible
+- **Encrypted Communication**: All authenticated requests use HTTPS with strong cipher suites
 - **Input Validation**: All inputs validated and sanitized
 - **Image Upload Security**: File type and size validation
-- **SSL Support**: HTTPS configuration available for production
+- **Certificate-based Identity**: No shared secrets, each client has unique certificate identity
 
-## Future Authentication Enhancements
+## Certificate Management
 
-The current implementation uses simple API key authentication. Future versions may include:
+### Certificate Authority (CA)
+- Self-signed root CA certificate: `priv/cert/ca/ca.pem`
+- CA private key: `priv/cert/ca/ca-key.pem` (secure storage required)
 
-- **mTLS Client Certificates**: Mutual TLS authentication using client certificates
-- **JWT Tokens**: Stateless token-based authentication
-- **HMAC Signatures**: Request signing with replay protection
-- **OAuth 2.0**: Third-party authentication integration
+### Server Certificates
+- Server certificate: `priv/cert/server/server-cert.pem`
+- Server private key: `priv/cert/server/server-key.pem`
 
-The certificate infrastructure has been prepared for mTLS implementation:
-- Certificate Authority (CA) setup in `priv/cert/ca/`
-- Server certificates in `priv/cert/server/`
-- Client certificate templates in `priv/cert/clients/`
+### Client Certificates
+- Template client certificate: `priv/cert/clients/client-cert.pem`
+- Template client private key: `priv/cert/clients/client-key.pem`
+
+### Certificate Issuance Process
+1. Generate client private key: `openssl genrsa -out client-key.pem 4096`
+2. Create certificate signing request: `openssl req -new -key client-key.pem -out client.csr`
+3. Sign with CA: `openssl x509 -req -in client.csr -CA ca.pem -CAkey ca-key.pem -out client-cert.pem`
 
 ## Environment Variables
 

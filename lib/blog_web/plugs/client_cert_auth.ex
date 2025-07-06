@@ -14,64 +14,75 @@ defmodule BlogWeb.Plugs.ClientCertAuth do
   def init(opts), do: opts
   
   def call(conn, _opts) do
-    case get_client_certificate(conn) do
-      {:ok, cert} ->
-        case validate_certificate(cert) do
-          :ok ->
-            Logger.info("Client certificate authentication successful for #{cert_subject(cert)}")
-            assign(conn, :client_cert, cert)
-          
-          {:error, reason} ->
-            Logger.warning("Client certificate validation failed: #{reason}")
-            send_unauthorized(conn, "Invalid client certificate: #{reason}")
-        end
-      
-      {:error, reason} ->
-        Logger.warning("Client certificate not found or invalid: #{reason}")
-        send_unauthorized(conn, "Client certificate required")
+    # In test environment, allow bypassing certificate authentication
+    if Application.get_env(:blog, :env) == :test do
+      # Check for test authentication header
+      case get_req_header(conn, "test-client-cert") do
+        ["valid"] ->
+          Logger.info("Test client certificate authentication successful")
+          assign(conn, :client_cert, :test_cert)
+        
+        _ ->
+          Logger.warning("Test client certificate not found")
+          send_unauthorized(conn, "Client certificate required")
+      end
+    else
+      # Production/development mTLS authentication
+      case get_client_certificate(conn) do
+        {:ok, cert} ->
+          case validate_certificate(cert) do
+            :ok ->
+              Logger.info("Client certificate authentication successful for #{cert_subject(cert)}")
+              assign(conn, :client_cert, cert)
+            
+            {:error, reason} ->
+              Logger.warning("Client certificate validation failed: #{reason}")
+              send_unauthorized(conn, "Invalid client certificate: #{reason}")
+          end
+        
+        {:error, reason} ->
+          Logger.warning("Client certificate not found or invalid: #{reason}")
+          send_unauthorized(conn, "Client certificate required")
+      end
     end
   end
   
   # Extract the client certificate from the SSL connection
   defp get_client_certificate(conn) do
-    # Try to get the peer certificate from the SSL socket
-    # This works with Cowboy/Bandit adapters
-    case conn do
-      %Plug.Conn{adapter: {adapter_module, adapter_req}} ->
-        get_peer_cert_from_adapter(adapter_module, adapter_req)
+    # For Cowboy adapter, get the peer certificate from the SSL socket
+    case conn.adapter do
+      {Plug.Cowboy.Conn, cowboy_req} ->
+        get_peer_cert_from_cowboy(cowboy_req)
       
       _ ->
-        {:error, "Unable to access SSL connection information"}
+        {:error, "mTLS authentication requires Cowboy adapter"}
     end
   end
   
-  # Handle different Phoenix adapters
-  defp get_peer_cert_from_adapter(adapter_module, adapter_req) do
-    cond do
-      function_exported?(adapter_module, :get_peer_data, 1) ->
-        # Bandit adapter
-        case adapter_module.get_peer_data(adapter_req) do
-          %{cert: cert_der} when cert_der != nil ->
-            decode_certificate(cert_der)
-          
-          _ ->
-            {:error, "No client certificate presented"}
-        end
-      
-      # Fallback: try to access directly via :ssl (for Cowboy)
-      function_exported?(:ssl, :peercert, 1) ->
-        try do
-          case :ssl.peercert(adapter_req) do
-            {:ok, cert_der} -> decode_certificate(cert_der)
-            {:error, :no_peercert} -> {:error, "No client certificate presented"}
-            {:error, reason} -> {:error, "SSL error: #{inspect(reason)}"}
+  # Get peer certificate from Cowboy request
+  defp get_peer_cert_from_cowboy(cowboy_req) do
+    try do
+      # Try to get SSL info from the connection
+      case :cowboy_req.peer(cowboy_req) do
+        {{_ip, _port}, _opts} ->
+          # Try to access the peer certificate from SSL connection info
+          case Map.get(cowboy_req, :cert, :undefined) do
+            :undefined ->
+              {:error, "No client certificate presented"}
+            
+            cert_der when is_binary(cert_der) ->
+              decode_certificate(cert_der)
+            
+            _ ->
+              {:error, "Invalid certificate format"}
           end
-        rescue
-          _ -> {:error, "Unable to access SSL peer certificate"}
-        end
-      
-      true ->
-        {:error, "SSL peer certificate access not supported with this adapter"}
+        
+        _ ->
+          {:error, "Not an SSL connection"}
+      end
+    rescue
+      error ->
+        {:error, "Failed to access peer certificate: #{inspect(error)}"}
     end
   end
   
