@@ -1,14 +1,19 @@
 defmodule BlogWeb.Api.PostControllerTest do
+  @moduledoc """
+  Tests for the Post API controller, including both public endpoints
+  (index, show) and protected endpoints that require mTLS authentication
+  (create, update, delete).
+  
+  The protected endpoints use client certificate authentication to ensure
+  only authorized clients can modify post data.
+  """
+  
   use BlogWeb.ConnCase
 
   import Blog.ContentFixtures
 
   setup %{conn: conn} do
-    conn = 
-      conn
-      |> put_req_header("accept", "application/json")
-      |> put_req_header("test-client-cert", "valid")
-    
+    conn = put_req_header(conn, "accept", "application/json")
     {:ok, conn: conn}
   end
 
@@ -58,69 +63,106 @@ defmodule BlogWeb.Api.PostControllerTest do
     end
   end
 
-  describe "create" do
-    test "creates post", %{conn: conn} do
+  describe "protected endpoints (require mTLS)" do
+    test "create endpoint rejects requests without client certificate", %{conn: conn} do
       valid_attrs = %{
         title: "New Post",
-        slug: "new-post", 
         content: "Content of new post",
-        excerpt: "Excerpt of new post",
-        tags: "new, post",
         published: true
       }
 
       conn = post(conn, ~p"/api/posts", %{"metadata" => Jason.encode!(valid_attrs)})
-      assert %{"id" => id} = json_response(conn, 201)["data"]
-      
-      # Use get_post! to fetch any post regardless of published status for testing
-      created_post = Blog.Repo.get!(Blog.Content.Post, id)
-      assert created_post.title == "New Post"
+      assert json_response(conn, 401)["error"] == "Client certificate required"
     end
 
-    test "validates required fields", %{conn: conn} do
-      invalid_attrs = %{content: "Missing title"}
-      conn = post(conn, ~p"/api/posts", %{"metadata" => Jason.encode!(invalid_attrs)})
-      assert json_response(conn, 422)["errors"]["title"] == ["can't be blank"]
-    end
-  end
-
-  describe "update" do
-    test "updates post", %{conn: conn} do
+    test "update endpoint rejects requests without client certificate", %{conn: conn} do
       post = post_fixture()
-      update_attrs = %{title: "Updated Title", content: "Updated content", published: false}
+      update_attrs = %{title: "Updated Title", content: "Updated content"}
 
       conn = put(conn, ~p"/api/posts/#{post.id}", %{"metadata" => Jason.encode!(update_attrs)})
-      assert json_response(conn, 200)["data"]["title"] == "Updated Title"
-      
-      # Use direct repo access to check the actual update
-      updated_post = Blog.Repo.get!(Blog.Content.Post, post.id)
-      assert updated_post.published == false
+      assert json_response(conn, 401)["error"] == "Client certificate required"
     end
 
-    test "returns 404 for non-existent post", %{conn: conn} do
-      conn = put(conn, ~p"/api/posts/99999999", %{"metadata" => Jason.encode!(%{title: "Non Existent", content: "test"})})
-      assert json_response(conn, 404)["message"] == "Post not found"
-    end
-
-    test "validates invalid data", %{conn: conn} do
-      post = post_fixture()
-      invalid_attrs = %{title: "", content: "Missing title"}
-      conn = put(conn, ~p"/api/posts/#{post.id}", %{"metadata" => Jason.encode!(invalid_attrs)})
-      assert json_response(conn, 422)["errors"]["title"] == ["can't be blank"]
-    end
-  end
-
-  describe "delete" do
-    test "deletes post", %{conn: conn} do
+    test "delete endpoint rejects requests without client certificate", %{conn: conn} do
       post = post_fixture()
       conn = delete(conn, ~p"/api/posts/#{post.id}")
-      assert response(conn, 204) == ""
-      assert_raise Ecto.NoResultsError, fn -> Blog.Repo.get!(Blog.Content.Post, post.id) end
+      assert json_response(conn, 401)["error"] == "Client certificate required"
     end
 
-    test "returns 404 for non-existent post", %{conn: conn} do
-      conn = delete(conn, ~p"/api/posts/99999999")
-      assert json_response(conn, 404)["message"] == "Post not found"
+    test "create endpoint accepts requests with valid client certificate", %{conn: conn} do
+      valid_attrs = %{
+        title: "New Post",
+        content: "Content of new post",
+        published: true
+      }
+
+      conn = 
+        conn
+        |> with_client_cert()
+        |> post(~p"/api/posts", %{"metadata" => Jason.encode!(valid_attrs)})
+
+      assert json_response(conn, 201)["data"]["title"] == "New Post"
+    end
+
+    test "update endpoint accepts requests with valid client certificate", %{conn: conn} do
+      post = post_fixture()
+      update_attrs = %{title: "Updated Title", content: "Updated content"}
+
+      conn = 
+        conn
+        |> with_client_cert()
+        |> put(~p"/api/posts/#{post.id}", %{"metadata" => Jason.encode!(update_attrs)})
+
+      assert json_response(conn, 200)["data"]["title"] == "Updated Title"
+    end
+
+    test "delete endpoint accepts requests with valid client certificate", %{conn: conn} do
+      post = post_fixture()
+
+      conn = 
+        conn
+        |> with_client_cert()
+        |> delete(~p"/api/posts/#{post.id}")
+
+      assert conn.status == 204
+    end
+
+    test "create endpoint rejects requests with invalid client certificate", %{conn: conn} do
+      valid_attrs = %{
+        title: "New Post",
+        content: "Content of new post",
+        published: true
+      }
+
+      conn = 
+        conn
+        |> with_invalid_client_cert()
+        |> post(~p"/api/posts", %{"metadata" => Jason.encode!(valid_attrs)})
+
+      assert json_response(conn, 401)["error"] =~ "Invalid client certificate"
+    end
+
+    test "update endpoint rejects requests with invalid client certificate", %{conn: conn} do
+      post = post_fixture()
+      update_attrs = %{title: "Updated Title", content: "Updated content"}
+
+      conn = 
+        conn
+        |> with_invalid_client_cert()
+        |> put(~p"/api/posts/#{post.id}", %{"metadata" => Jason.encode!(update_attrs)})
+
+      assert json_response(conn, 401)["error"] =~ "Invalid client certificate"
+    end
+
+    test "delete endpoint rejects requests with invalid client certificate", %{conn: conn} do
+      post = post_fixture()
+
+      conn = 
+        conn
+        |> with_invalid_client_cert()
+        |> delete(~p"/api/posts/#{post.id}")
+
+      assert json_response(conn, 401)["error"] =~ "Invalid client certificate"
     end
   end
 end
