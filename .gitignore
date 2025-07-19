@@ -46,3 +46,4 @@ npm-debug.log
 *.db
 *.db-shm
 *.db-wal
+server.log
