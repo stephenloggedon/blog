@@ -60,6 +60,12 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# Force Cowboy usage for mTLS compatibility  
+config :phoenix, :serve_endpoints, true
+config :phoenix, :adapter, :cowboy
+config :blog, BlogWeb.Endpoint, 
+  server: true
+
 # Guardian configuration for JWT authentication
 
 

@@ -8,6 +8,7 @@ primary_region = 'sea'
 kill_signal = 'SIGTERM'
 
 [build]
+  dockerfile = "Dockerfile"
 
 [deploy]
   release_command = '/app/bin/blog eval "Blog.Release.migrate"'
@@ -15,6 +16,7 @@ kill_signal = 'SIGTERM'
 [env]
   PHX_HOST = 'blog-nameless-grass-3626.fly.dev'
   PORT = '8080'
+  MTLS_PORT = '8443'
   PHX_SERVER = 'true'
 
 [http_service]
@@ -26,6 +28,23 @@ kill_signal = 'SIGTERM'
   processes = ['app']
 
   [http_service.concurrency]
+    type = 'connections'
+    hard_limit = 1000
+    soft_limit = 1000
+
+# TCP service for mTLS API endpoints
+[[services]]
+  internal_port = 8443
+  protocol = 'tcp'
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[services.ports]]
+    port = 8443
+    handlers = []  # No handlers = direct TCP passthrough
+
+  [services.concurrency]
     type = 'connections'
     hard_limit = 1000
     soft_limit = 1000
