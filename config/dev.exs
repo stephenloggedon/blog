@@ -71,7 +71,7 @@ config :blog, BlogWeb.Endpoint,
     ]
   ]
 
-# Enable dev routes for dashboard and mailbox
+# Enable dev routes for dashboard
 config :blog, dev_routes: true
 
 # Do not include metadata nor timestamps in development logs
@@ -100,8 +100,7 @@ config :ex_aws,
 config :blog,
   s3_bucket: "blog-images-dev"
 
-# Disable swoosh api client as it is only required for production adapters.
-config :swoosh, :api_client, false
+# Email configuration removed - not needed for this blog application
 
 # Guardian development configuration
 
