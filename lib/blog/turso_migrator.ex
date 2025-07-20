@@ -28,6 +28,8 @@ defmodule Blog.TursoMigrator do
   def current_version do
     case TursoHttpClient.query_one("SELECT version FROM schema_migrations ORDER BY version DESC LIMIT 1", []) do
       {:ok, nil} -> 0
+      {:ok, {row, _columns}} when is_list(row) -> 
+        List.first(row) |> String.to_integer()
       {:ok, row} when is_list(row) -> 
         List.first(row) |> String.to_integer()
       {:error, _} -> 0
