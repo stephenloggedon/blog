@@ -13,6 +13,13 @@ config :blog, Blog.Repo,
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: 1
 
+# Turso configuration for testing (disabled by default)
+config :blog, Blog.TursoRepo,
+  uri: nil,
+  auth_token: nil,
+  database: "blog_test.db",
+  sync: false
+
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
 config :blog, BlogWeb.Endpoint,

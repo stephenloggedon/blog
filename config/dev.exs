@@ -8,6 +8,13 @@ config :blog, Blog.Repo,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
+# Turso distributed SQLite configuration for development
+config :blog, Blog.TursoRepo,
+  uri: System.get_env("LIBSQL_URI"),
+  auth_token: System.get_env("LIBSQL_TOKEN"),
+  database: "blog_dev.db",
+  sync: false  # Disable auto-sync in development
+
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #

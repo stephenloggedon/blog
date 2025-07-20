@@ -26,6 +26,13 @@ if config_env() == :prod do
     adapter: Ecto.Adapters.SQLite3,
     database: System.get_env("DATABASE_URL") || "priv/repo/blog_prod.db",
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "5")
+  
+  # Turso distributed SQLite configuration
+  config :blog, Blog.TursoRepo,
+    uri: System.get_env("LIBSQL_URI"),
+    auth_token: System.get_env("LIBSQL_TOKEN"),
+    database: "blog.db",
+    sync: true
 
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
@@ -75,16 +82,6 @@ if config_env() == :prod do
       transport_options: [socket_opts: [:inet6]]
     ],
     secret_key_base: secret_key_base
-
-  # ExAws configuration for cloud storage
-  config :ex_aws,
-    access_key_id: System.get_env("AWS_ACCESS_KEY_ID"),
-    secret_access_key: System.get_env("AWS_SECRET_ACCESS_KEY"),
-    region: System.get_env("AWS_REGION") || "us-east-1"
-
-  # S3 bucket configuration for production
-  config :blog,
-    s3_bucket: System.get_env("S3_BUCKET") || "blog-images-prod"
 
   
 
