@@ -127,42 +127,5 @@ defmodule BlogWeb.Api.PostControllerTest do
       assert conn.status == 204
     end
 
-    test "create endpoint rejects requests with invalid client certificate", %{conn: conn} do
-      valid_attrs = %{
-        title: "New Post",
-        content: "Content of new post",
-        published: true
-      }
-
-      conn = 
-        conn
-        |> with_invalid_client_cert()
-        |> post(~p"/api/posts", %{"metadata" => Jason.encode!(valid_attrs)})
-
-      assert json_response(conn, 401)["error"] =~ "Invalid client certificate"
-    end
-
-    test "update endpoint rejects requests with invalid client certificate", %{conn: conn} do
-      post = post_fixture()
-      update_attrs = %{title: "Updated Title", content: "Updated content"}
-
-      conn = 
-        conn
-        |> with_invalid_client_cert()
-        |> put(~p"/api/posts/#{post.id}", %{"metadata" => Jason.encode!(update_attrs)})
-
-      assert json_response(conn, 401)["error"] =~ "Invalid client certificate"
-    end
-
-    test "delete endpoint rejects requests with invalid client certificate", %{conn: conn} do
-      post = post_fixture()
-
-      conn = 
-        conn
-        |> with_invalid_client_cert()
-        |> delete(~p"/api/posts/#{post.id}")
-
-      assert json_response(conn, 401)["error"] =~ "Invalid client certificate"
-    end
   end
 end

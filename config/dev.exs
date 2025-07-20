@@ -17,7 +17,7 @@ config :blog, Blog.Repo,
 config :blog, BlogWeb.Endpoint,
   # HTTP configuration for public access
   http: [ip: {127, 0, 0, 1}, port: 4000],
-  # HTTPS with optional client certificate verification  
+  # HTTPS with mTLS for API endpoints (development)
   https: [
     ip: {127, 0, 0, 1},
     port: 4001,
@@ -26,8 +26,9 @@ config :blog, BlogWeb.Endpoint,
     certfile: "priv/cert/server/server-cert.pem",
     cacertfile: "priv/cert/ca/ca.pem",
     verify: :verify_peer,
-    fail_if_no_peer_cert: false,  # Allow connections without client certificates
-    verify_fun: {&:ssl_verify_hostname.verify_fun/3, [check_hostname: false]}
+    fail_if_no_peer_cert: false,  # Allow browser connections without client certs
+    reuse_sessions: false,
+    depth: 2
   ],
   check_origin: false,
   code_reloader: true,
@@ -89,16 +90,6 @@ config :phoenix_live_view,
   debug_heex_annotations: true,
   # Enable helpful, but potentially expensive runtime checks
   enable_expensive_runtime_checks: true
-
-# ExAws development configuration (optional for local testing)
-config :ex_aws,
-  access_key_id: "dev_access_key",
-  secret_access_key: "dev_secret_key",
-  region: "us-east-1"
-
-# S3 bucket configuration for development
-config :blog,
-  s3_bucket: "blog-images-dev"
 
 # Email configuration removed - not needed for this blog application
 
