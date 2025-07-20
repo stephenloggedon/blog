@@ -46,4 +46,7 @@ npm-debug.log
 *.db
 *.db-shm
 *.db-wal
+
+# Ignore log files
+*.log
 server.log
