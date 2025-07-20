@@ -63,10 +63,8 @@ defmodule Blog.MixProject do
       {:earmark, "~> 1.4"},
       {:credo, "~> 1.7", runtime: false},
       {:live_svelte, "~> 0.13.3"},
-      {:ex_aws, "~> 2.5"},
-      {:ex_aws_s3, "~> 2.5"},
-      {:hackney, "~> 1.20"},
-      {:sweet_xml, "~> 0.7"}
+      # Image processing
+      {:vix, "~> 0.26"}
     ]
   end
 

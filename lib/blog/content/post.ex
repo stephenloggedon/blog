@@ -13,6 +13,8 @@ defmodule Blog.Content.Post do
     field :published_at, :utc_datetime
     field :rendered_content, :string, virtual: true
 
+    has_many :images, Blog.Image, foreign_key: :post_id
+
     timestamps(type: :utc_datetime)
   end
 

@@ -25,6 +25,10 @@ defmodule BlogWeb.Router do
 
     live "/", HomeLive
     live "/blog/:slug", BlogPostLive
+    
+    # Image serving routes (public)
+    get "/images/:id", ImageController, :show
+    get "/images/:id/thumb", ImageController, :thumbnail
   end
 
   # Public API routes (no authentication required)
@@ -42,7 +46,11 @@ defmodule BlogWeb.Router do
     post "/posts", PostController, :create
     put "/posts/:id", PostController, :update
     delete "/posts/:id", PostController, :delete
+    
+    # Image upload endpoint
+    post "/posts/:post_id/images", ImageController, :upload
   end
+  
 
   # Enable LiveDashboard in development
   if Application.compile_env(:blog, :dev_routes) do
