@@ -66,8 +66,8 @@ config :phoenix, :adapter, :cowboy
 config :blog, BlogWeb.Endpoint, 
   server: true
 
-# Guardian configuration for JWT authentication
-
+# Repository adapter configuration
+config :blog, :repo_adapter, Blog.EctoRepoAdapter
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

@@ -9,7 +9,6 @@ defmodule Blog.Application do
   def start(_type, _args) do
     children = [
       BlogWeb.Telemetry,
-      Blog.Repo,
       # Start the Finch HTTP client before TursoRepo
       {Finch, name: Blog.Finch},
       Blog.TursoRepo,
@@ -20,6 +19,13 @@ defmodule Blog.Application do
       # Start to serve requests, typically the last entry
       BlogWeb.Endpoint
     ]
+    
+    # Only start local SQLite repo in development and test environments
+    children = if Application.get_env(:blog, :repo_adapter) == Blog.EctoRepoAdapter do
+      [BlogWeb.Telemetry, Blog.Repo | Enum.drop(children, 1)]
+    else
+      children
+    end
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options

@@ -54,7 +54,7 @@ defmodule BlogWeb.BlogPostLive do
           
     <!-- Article Content -->
           <div class="prose-catppuccin">
-            {raw(@post.rendered_content)}
+            {raw(Blog.Content.Post.render_content(@post))}
           </div>
         </article>
       </main>

@@ -4,7 +4,7 @@ defmodule Blog.Images do
   """
   
   import Ecto.Query
-  alias Blog.Repo
+  alias Blog.RepoService
   alias Blog.Image
   alias Blog.Content.Post
   
@@ -30,7 +30,7 @@ defmodule Blog.Images do
         thumbnail_data: thumbnail_binary,
         file_size: byte_size(image_binary)
       })
-      |> Repo.insert()
+      |> RepoService.insert()
     end
   end
   
@@ -38,9 +38,10 @@ defmodule Blog.Images do
   Gets an image by ID.
   """
   def get_image(id) do
-    case Repo.get(Image, id) do
-      nil -> {:error, :not_found}
-      image -> {:ok, image}
+    case RepoService.get(Image, id) do
+      {:ok, image} -> {:ok, image}
+      {:error, :not_found} -> {:error, :not_found}
+      error -> error
     end
   end
   
@@ -51,7 +52,11 @@ defmodule Blog.Images do
     Image
     |> where([i], i.post_id == ^post_id)
     |> order_by([i], i.inserted_at)
-    |> Repo.all()
+    |> RepoService.all()
+    |> case do
+      {:ok, images} -> images
+      {:error, _} -> []
+    end
   end
   
   @doc """
@@ -59,7 +64,7 @@ defmodule Blog.Images do
   """
   def delete_image(id) do
     case get_image(id) do
-      {:ok, image} -> Repo.delete(image)
+      {:ok, image} -> RepoService.delete(image)
       error -> error
     end
   end
@@ -68,23 +73,25 @@ defmodule Blog.Images do
   Gets the thumbnail data for an image.
   """
   def get_thumbnail(id) do
-    query = from i in Image,
-            where: i.id == ^id,
-            select: %{thumbnail_data: i.thumbnail_data, content_type: i.content_type}
+    _query = from i in Image,
+             where: i.id == ^id,
+             select: %{thumbnail_data: i.thumbnail_data, content_type: i.content_type}
     
-    case Repo.one(query) do
-      nil -> {:error, :not_found}
-      %{thumbnail_data: nil} -> {:error, :no_thumbnail}
-      result -> {:ok, result}
+    case RepoService.query("SELECT thumbnail_data, content_type FROM images WHERE id = ?", [id]) do
+      {:ok, %{rows: [[nil, _]]}} -> {:error, :no_thumbnail}
+      {:ok, %{rows: [[thumbnail_data, content_type]]}} -> {:ok, %{thumbnail_data: thumbnail_data, content_type: content_type}}
+      {:ok, %{rows: []}} -> {:error, :not_found}
+      error -> error
     end
   end
   
   # Private functions
   
   defp get_post(post_id) do
-    case Repo.get(Post, post_id) do
-      nil -> {:error, :post_not_found}
-      post -> {:ok, post}
+    case RepoService.get(Post, post_id) do
+      {:ok, post} -> {:ok, post}
+      {:error, :not_found} -> {:error, :post_not_found}
+      error -> error
     end
   end
   

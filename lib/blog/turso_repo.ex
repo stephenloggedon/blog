@@ -27,17 +27,10 @@ defmodule Blog.TursoRepo do
   This is mainly for supervisor compatibility - the HTTP client is stateless.
   """
   def start_link(_opts \\ []) do
-    # Test connection and validate configuration
-    case test_connection() do
-      :ok ->
-        Logger.info("Turso HTTP client initialized successfully")
-        # Start a simple GenServer to satisfy supervisor requirements
-        GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
-        
-      {:error, reason} ->
-        Logger.warning("Turso not properly configured: #{reason}")
-        :ignore
-    end
+    Logger.info("Starting Turso HTTP client (stateless)")
+    # Start a simple GenServer to satisfy supervisor requirements
+    # Don't test connection during startup to avoid Finch dependency issues
+    GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
   end
   
   @doc """

@@ -21,13 +21,11 @@ if System.get_env("PHX_SERVER") do
 end
 
 if config_env() == :prod do
-  # SQLite database configuration for production
-  config :blog, Blog.Repo,
-    adapter: Ecto.Adapters.SQLite3,
-    database: System.get_env("DATABASE_URL") || "priv/repo/blog_prod.db",
-    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "5")
+  # Use Turso for production database operations
+  config :blog, :repo_adapter, Blog.TursoRepoAdapter
   
-  # Turso distributed SQLite configuration
+  # Turso distributed SQLite configuration for production
+  # Local SQLite is only used for development and testing
   config :blog, Blog.TursoRepo,
     uri: System.get_env("LIBSQL_URI"),
     auth_token: System.get_env("LIBSQL_TOKEN"),

@@ -8,8 +8,37 @@ defmodule Blog.Release do
   def migrate do
     load_app()
 
-    for repo <- repos() do
-      {:ok, _, _} = Ecto.Migrator.with_repo(repo, &Ecto.Migrator.run(&1, :up, all: true))
+    # Check if we're using Turso in production
+    case Application.get_env(:blog, :repo_adapter) do
+      Blog.TursoRepoAdapter ->
+        IO.puts("Running Turso migrations...")
+        
+        # Start required dependencies for Turso HTTP client
+        Application.ensure_all_started(:finch)
+        
+        # Start Finch with proper supervision and registry
+        case Finch.start_link(name: Blog.Finch) do
+          {:ok, _pid} -> 
+            IO.puts("Finch started successfully")
+          {:error, {:already_started, _pid}} -> 
+            IO.puts("Finch already started")
+          {:error, reason} -> 
+            IO.puts("Failed to start Finch: #{inspect(reason)}")
+            System.halt(1)
+        end
+        
+        case Blog.TursoMigrator.migrate() do
+          {:ok, message} -> IO.puts(message)
+          {:error, error} -> 
+            IO.puts("Migration failed: #{inspect(error)}")
+            System.halt(1)
+        end
+
+      _ ->
+        # Use standard Ecto migrations for other environments
+        for repo <- repos() do
+          {:ok, _, _} = Ecto.Migrator.with_repo(repo, &Ecto.Migrator.run(&1, :up, all: true))
+        end
     end
   end
 

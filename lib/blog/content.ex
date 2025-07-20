@@ -4,7 +4,7 @@ defmodule Blog.Content do
   """
 
   import Ecto.Query, warn: false
-  alias Blog.Repo
+  alias Blog.RepoService
 
   alias Blog.Content.Post
 
@@ -18,7 +18,10 @@ defmodule Blog.Content do
 
   """
   def list_posts do
-    Repo.all(Post)
+    case RepoService.all(Post) do
+      {:ok, posts} -> posts
+      {:error, _} -> []
+    end
   end
 
   @doc """
@@ -47,7 +50,7 @@ defmodule Blog.Content do
       tags = Keyword.get(opts, :tags, [])
       search = Keyword.get(opts, :search)
 
-      query = from(p in Post, where: not is_nil(p.published_at))
+      query = from(p in Post, where: p.published == true and not is_nil(p.published_at))
 
       # Apply tag filter with OR logic for multiple tags
       query =
@@ -95,7 +98,11 @@ defmodule Blog.Content do
         |> order_by([p], desc: p.published_at)
         |> limit(^per_page)
         |> offset(^offset)
-        |> Repo.all()
+        |> RepoService.all()
+        |> case do
+          {:ok, posts} -> posts
+          {:error, _} -> []
+        end
 
       # Render content for each post
       Enum.map(posts, fn post ->
@@ -121,11 +128,10 @@ defmodule Blog.Content do
 
   """
   def get_published_post_by_slug(slug) do
-    post =
-      from(p in Post,
-        where: p.slug == ^slug and not is_nil(p.published_at)
-      )
-      |> Repo.one()
+    post = case RepoService.get_by(Post, slug: slug) do
+      {:ok, post} when post.published == true and not is_nil(post.published_at) -> post
+      _ -> nil
+    end
 
     case post do
       nil -> nil
@@ -147,7 +153,13 @@ defmodule Blog.Content do
       ** (Ecto.NoResultsError)
 
   """
-  def get_post!(id), do: Repo.get!(Post, id)
+  def get_post!(id) do
+    case RepoService.get(Post, id) do
+      {:ok, post} -> post
+      {:error, :not_found} -> raise Ecto.NoResultsError, queryable: Post
+      {:error, _} -> raise "Database error"
+    end
+  end
 
   @doc """
   Gets a single post by ID.
@@ -164,10 +176,10 @@ defmodule Blog.Content do
 
   """
   def get_post(id) do
-    from(p in Post,
-      where: p.id == ^id and not is_nil(p.published_at)
-    )
-    |> Repo.one()
+    case RepoService.get(Post, id) do
+      {:ok, post} when post.published == true and not is_nil(post.published_at) -> post
+      _ -> nil
+    end
   end
 
   @doc """
@@ -183,12 +195,16 @@ defmodule Blog.Content do
     offset = (page - 1) * per_page
     
     from(p in Post,
-      where: not is_nil(p.published_at),
+      where: p.published == true and not is_nil(p.published_at),
       order_by: [desc: p.published_at],
       limit: ^per_page,
       offset: ^offset
     )
-    |> Repo.all()
+    |> RepoService.all()
+    |> case do
+      {:ok, posts} -> posts
+      {:error, _} -> []
+    end
   end
 
   @doc """
@@ -203,7 +219,11 @@ defmodule Blog.Content do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_post(attrs \\ %{}) do    %Post{}    |> Post.changeset(attrs)    |> Repo.insert()  end
+  def create_post(attrs \\ %{}) do
+    %Post{}
+    |> Post.changeset(attrs)
+    |> RepoService.insert()
+  end
 
   @doc """
   Updates a post.
@@ -220,7 +240,7 @@ defmodule Blog.Content do
   def update_post(%Post{} = post, attrs) do
     post
     |> Post.changeset(attrs)
-    |> Repo.update()
+    |> RepoService.update()
   end
 
   @doc """
@@ -236,7 +256,7 @@ defmodule Blog.Content do
 
   """
   def delete_post(%Post{} = post) do
-    Repo.delete(post)
+    RepoService.delete(post)
   end
 
   @doc """
@@ -264,10 +284,14 @@ defmodule Blog.Content do
   def list_available_tags do
     try do
       from(p in Post,
-        where: not is_nil(p.published_at) and not is_nil(p.tags) and p.tags != "",
+        where: p.published == true and not is_nil(p.published_at) and not is_nil(p.tags) and p.tags != "",
         select: p.tags
       )
-      |> Repo.all()
+      |> RepoService.all()
+      |> case do
+        {:ok, tags_list} -> tags_list
+        {:error, _} -> []
+      end
       |> Enum.flat_map(fn tags_string ->
         tags_string
         |> String.split(",")
@@ -293,10 +317,14 @@ defmodule Blog.Content do
   def list_top_tags(limit \\ 5) do
     try do
       from(p in Post,
-        where: not is_nil(p.published_at) and not is_nil(p.tags) and p.tags != "",
+        where: p.published == true and not is_nil(p.published_at) and not is_nil(p.tags) and p.tags != "",
         select: p.tags
       )
-      |> Repo.all()
+      |> RepoService.all()
+      |> case do
+        {:ok, tags_list} -> tags_list
+        {:error, _} -> []
+      end
       |> Enum.flat_map(fn tags_string ->
         tags_string
         |> String.split(",")

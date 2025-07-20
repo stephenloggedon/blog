@@ -9,9 +9,9 @@ import Config
 # Run `mix help test` for more information.
 config :blog, Blog.Repo,
   adapter: Ecto.Adapters.SQLite3,
-  database: "blog_test.db",
+  database: "file::memory:?cache=shared",
   pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: 1
+  pool_size: 10
 
 # Turso configuration for testing (disabled by default)
 config :blog, Blog.TursoRepo,

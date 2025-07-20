@@ -25,11 +25,11 @@ defmodule Blog.TursoHttpClient do
   end
   
   @doc """
-  Executes a query and returns only the first row.
+  Executes a query and returns only the first row with column information.
   """
   def query_one(sql, params \\ []) do
     case execute(sql, params) do
-      {:ok, %{rows: [row]}} -> {:ok, row}
+      {:ok, %{rows: [row], columns: columns}} -> {:ok, {row, columns}}
       {:ok, %{rows: []}} -> {:ok, nil}
       {:ok, %{rows: rows}} when length(rows) > 1 -> 
         {:error, "Expected single row, got #{length(rows)}"}
@@ -120,6 +120,11 @@ defmodule Blog.TursoHttpClient do
     %{type: "integer", value: if(value, do: "1", else: "0")}
   end
   
+  defp encode_parameter(%DateTime{} = value) do
+    # Convert DateTime to ISO8601 string for SQLite storage
+    %{type: "text", value: DateTime.to_iso8601(value)}
+  end
+
   defp encode_parameter(nil) do
     %{type: "null"}
   end
@@ -133,17 +138,25 @@ defmodule Blog.TursoHttpClient do
     url = "#{uri}/v2/pipeline"
     headers = @base_headers ++ [{"Authorization", "Bearer #{token}"}]
     
-    case Finch.build(:post, url, headers, body) |> Finch.request(Blog.Finch) do
-      {:ok, %{status: 200, body: response_body}} ->
-        {:ok, Jason.decode!(response_body)}
+    # Check if Finch is available before attempting request
+    case Process.whereis(Blog.Finch) do
+      nil ->
+        Logger.error("Blog.Finch process not found - HTTP client not started")
+        {:error, "Finch HTTP client not available"}
       
-      {:ok, %{status: status, body: error_body}} ->
-        Logger.error("Turso HTTP request failed: #{status} - #{error_body}")
-        {:error, "HTTP #{status}: #{error_body}"}
-      
-      {:error, error} ->
-        Logger.error("Turso HTTP request error: #{inspect(error)}")
-        {:error, "Network error: #{inspect(error)}"}
+      _pid ->
+        case Finch.build(:post, url, headers, body) |> Finch.request(Blog.Finch) do
+          {:ok, %{status: 200, body: response_body}} ->
+            {:ok, Jason.decode!(response_body)}
+          
+          {:ok, %{status: status, body: error_body}} ->
+            Logger.error("Turso HTTP request failed: #{status} - #{error_body}")
+            {:error, "HTTP #{status}: #{error_body}"}
+          
+          {:error, error} ->
+            Logger.error("Turso HTTP request error: #{inspect(error)}")
+            {:error, "Network error: #{inspect(error)}"}
+        end
     end
   end
   
@@ -186,9 +199,7 @@ defmodule Blog.TursoHttpClient do
   defp decode_value(%{"type" => "blob", "base64" => base64}) do
     case Base.decode64(base64) do
       {:ok, binary} -> binary
-      :error -> 
-        IO.puts("Warning: Failed to decode base64 BLOB: #{inspect(base64)}")
-        base64  # Return the base64 string if decoding fails
+      :error -> base64  # Return the base64 string if decoding fails
     end
   end
   
