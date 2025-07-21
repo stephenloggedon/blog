@@ -29,7 +29,6 @@ config :blog, BlogWeb.Endpoint,
 # For production it's recommended to configure a different adapter
 # at the `config/runtime.exs`.
 
-
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.17.11",
@@ -63,8 +62,7 @@ config :phoenix, :json_library, Jason
 # Force Cowboy usage for mTLS compatibility  
 config :phoenix, :serve_endpoints, true
 config :phoenix, :adapter, :cowboy
-config :blog, BlogWeb.Endpoint, 
-  server: true
+config :blog, BlogWeb.Endpoint, server: true
 
 # Repository adapter configuration
 config :blog, :repo_adapter, Blog.EctoRepoAdapter

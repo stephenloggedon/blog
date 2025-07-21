@@ -11,7 +11,7 @@ posts_to_create = [
     tags: "elixir, phoenix"
   },
   %{
-    title: "Test Post 2", 
+    title: "Test Post 2",
     content: "This is the second test post content.",
     published: true,
     published_at: DateTime.utc_now() |> DateTime.add(-2, :day),
@@ -28,9 +28,10 @@ posts_to_create = [
 
 Enum.each(posts_to_create, fn post_attrs ->
   case Blog.Content.create_post(post_attrs) do
-    {:ok, post} -> 
+    {:ok, post} ->
       IO.puts("Created post: #{post.title}")
-    {:error, changeset} -> 
+
+    {:error, changeset} ->
       IO.puts("Failed to create post: #{inspect(changeset.errors)}")
   end
 end)

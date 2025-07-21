@@ -230,7 +230,11 @@ defmodule BlogWeb.HomeLive do
           />
           
     <!-- Blog Posts Scroll Area -->
-          <main class="flex-1 overflow-y-auto scrollbar-hide px-6" id="posts-container" phx-hook="InfiniteScroll">
+          <main
+            class="flex-1 overflow-y-auto scrollbar-hide px-6"
+            id="posts-container"
+            phx-hook="InfiniteScroll"
+          >
             <!-- Filter Status -->
             <%= if @selected_tags != [] || @search_query != "" do %>
               <div class="mb-6 p-4 bg-surface0/50 rounded-lg border border-surface1">

@@ -51,7 +51,6 @@ defmodule Blog.MixProject do
        app: false,
        compile: false,
        depth: 1},
-      
       {:finch, "~> 0.19"},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.1"},

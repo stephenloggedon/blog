@@ -21,13 +21,14 @@ defmodule Blog.Application do
       # Separate mTLS API endpoint for authenticated routes
       BlogWeb.ApiEndpoint
     ]
-    
+
     # Only start local SQLite repo in development and test environments
-    children = if Application.get_env(:blog, :repo_adapter) == Blog.EctoRepoAdapter do
-      [BlogWeb.Telemetry, Blog.Repo | Enum.drop(children, 1)]
-    else
-      children
-    end
+    children =
+      if Application.get_env(:blog, :repo_adapter) == Blog.EctoRepoAdapter do
+        [BlogWeb.Telemetry, Blog.Repo | Enum.drop(children, 1)]
+      else
+        children
+      end
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options

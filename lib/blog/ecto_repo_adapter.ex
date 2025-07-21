@@ -1,17 +1,17 @@
 defmodule Blog.EctoRepoAdapter do
   @moduledoc """
   Repository adapter for Ecto/SQLite operations.
-  
+
   This adapter wraps the standard Ecto.Repo to provide a consistent
   interface that can be swapped with other implementations.
   """
-  
+
   @behaviour Blog.RepoAdapter
-  
+
   import Ecto.Query
   alias Blog.Repo
   alias Blog.Content.Post
-  
+
   @impl true
   def all(queryable, _opts \\ []) do
     try do
@@ -21,15 +21,15 @@ defmodule Blog.EctoRepoAdapter do
       error -> {:error, error}
     end
   end
-  
-  @impl true 
+
+  @impl true
   def get(schema, id) do
     case Repo.get(schema, id) do
       nil -> {:error, :not_found}
       record -> {:ok, record}
     end
   end
-  
+
   @impl true
   def get_by(schema, clauses) do
     case Repo.get_by(schema, clauses) do
@@ -37,7 +37,7 @@ defmodule Blog.EctoRepoAdapter do
       record -> {:ok, record}
     end
   end
-  
+
   @impl true
   def insert(changeset) do
     case Repo.insert(changeset) do
@@ -45,7 +45,7 @@ defmodule Blog.EctoRepoAdapter do
       {:error, changeset} -> {:error, changeset}
     end
   end
-  
+
   @impl true
   def update(changeset) do
     case Repo.update(changeset) do
@@ -53,7 +53,7 @@ defmodule Blog.EctoRepoAdapter do
       {:error, changeset} -> {:error, changeset}
     end
   end
-  
+
   @impl true
   def delete(record) do
     case Repo.delete(record) do
@@ -61,7 +61,7 @@ defmodule Blog.EctoRepoAdapter do
       {:error, changeset} -> {:error, changeset}
     end
   end
-  
+
   @impl true
   def query(sql, params) do
     case Repo.query(sql, params) do
@@ -69,7 +69,7 @@ defmodule Blog.EctoRepoAdapter do
       {:error, error} -> {:error, error}
     end
   end
-  
+
   @impl true
   def transaction(fun) do
     case Repo.transaction(fun) do
@@ -77,23 +77,24 @@ defmodule Blog.EctoRepoAdapter do
       {:error, error} -> {:error, error}
     end
   end
-  
+
   # Helper functions for common queries
   def list_published_posts(opts \\ []) do
     page = Keyword.get(opts, :page, 1)
     per_page = Keyword.get(opts, :per_page, 10)
     offset = (page - 1) * per_page
-    
-    query = from(p in Post, 
-      where: not is_nil(p.published_at),
-      order_by: [desc: p.published_at],
-      limit: ^per_page,
-      offset: ^offset
-    )
-    
+
+    query =
+      from(p in Post,
+        where: not is_nil(p.published_at),
+        order_by: [desc: p.published_at],
+        limit: ^per_page,
+        offset: ^offset
+      )
+
     all(query)
   end
-  
+
   def get_post_by_slug(slug) do
     get_by(Post, slug: slug)
   end

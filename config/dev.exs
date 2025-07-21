@@ -11,7 +11,6 @@ config :blog, Blog.Repo,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
-
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #
@@ -40,7 +39,8 @@ config :blog, BlogWeb.ApiEndpoint,
     certfile: "priv/cert/server/server-cert.pem",
     cacertfile: "priv/cert/ca/ca.pem",
     verify: :verify_peer,
-    fail_if_no_peer_cert: false,  # Allow graceful failure for non-API requests
+    # Allow graceful failure for non-API requests
+    fail_if_no_peer_cert: false,
     reuse_sessions: false,
     depth: 2
   ],
@@ -101,4 +101,3 @@ config :phoenix_live_view,
 # Email configuration removed - not needed for this blog application
 
 # Guardian development configuration
-

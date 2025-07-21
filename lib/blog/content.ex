@@ -128,10 +128,11 @@ defmodule Blog.Content do
 
   """
   def get_published_post_by_slug(slug) do
-    post = case RepoService.get_by(Post, slug: slug) do
-      {:ok, post} when post.published == true and not is_nil(post.published_at) -> post
-      _ -> nil
-    end
+    post =
+      case RepoService.get_by(Post, slug: slug) do
+        {:ok, post} when post.published == true and not is_nil(post.published_at) -> post
+        _ -> nil
+      end
 
     case post do
       nil -> nil
@@ -193,7 +194,7 @@ defmodule Blog.Content do
   """
   def list_posts_paginated(page \\ 1, per_page \\ 20) do
     offset = (page - 1) * per_page
-    
+
     from(p in Post,
       where: p.published == true and not is_nil(p.published_at),
       order_by: [desc: p.published_at],
@@ -284,7 +285,9 @@ defmodule Blog.Content do
   def list_available_tags do
     try do
       from(p in Post,
-        where: p.published == true and not is_nil(p.published_at) and not is_nil(p.tags) and p.tags != ""
+        where:
+          p.published == true and not is_nil(p.published_at) and not is_nil(p.tags) and
+            p.tags != ""
       )
       |> RepoService.all()
       |> case do
@@ -319,7 +322,9 @@ defmodule Blog.Content do
   def list_top_tags(limit \\ 5) do
     try do
       from(p in Post,
-        where: p.published == true and not is_nil(p.published_at) and not is_nil(p.tags) and p.tags != ""
+        where:
+          p.published == true and not is_nil(p.published_at) and not is_nil(p.tags) and
+            p.tags != ""
       )
       |> RepoService.all()
       |> case do

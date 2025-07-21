@@ -10,10 +10,10 @@ defmodule Blog.Repo.Migrations.CreateImagesTable do
       add :image_data, :binary, null: false
       add :thumbnail_data, :binary
       add :file_size, :integer
-      
+
       timestamps()
     end
-    
+
     create index(:images, [:post_id])
   end
 end

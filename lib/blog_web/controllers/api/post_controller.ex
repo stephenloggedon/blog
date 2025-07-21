@@ -108,7 +108,7 @@ defmodule BlogWeb.Api.PostController do
   defp parse_metadata(params) do
     # Handle nested post parameters or direct parameters
     post_params = params["post"] || params
-    
+
     metadata = %{
       "title" => post_params["title"],
       "content" => post_params["content"],
@@ -120,7 +120,6 @@ defmodule BlogWeb.Api.PostController do
 
     {:ok, metadata}
   end
-
 
   defp parse_integer(value, default) when is_binary(value) do
     case Integer.parse(value) do

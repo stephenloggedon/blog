@@ -2,16 +2,17 @@ defmodule Blog.Images do
   @moduledoc """
   Context for managing image storage and retrieval.
   """
-  
+
   import Ecto.Query
   alias Blog.RepoService
   alias Blog.Image
   alias Blog.Content.Post
-  
-  @max_image_size 5 * 1024 * 1024  # 5MB
+
+  # 5MB
+  @max_image_size 5 * 1024 * 1024
   @allowed_types ["image/jpeg", "image/png", "image/gif", "image/webp"]
   @thumbnail_size 400
-  
+
   @doc """
   Stores an image for a given post.
   """
@@ -19,7 +20,6 @@ defmodule Blog.Images do
     with {:ok, _post} <- get_post(post_id),
          :ok <- validate_image(image_binary, content_type),
          {:ok, thumbnail_binary} <- create_thumbnail(image_binary, content_type) do
-      
       %Image{}
       |> Image.changeset(%{
         post_id: post_id,
@@ -33,7 +33,7 @@ defmodule Blog.Images do
       |> RepoService.insert()
     end
   end
-  
+
   @doc """
   Gets an image by ID.
   """
@@ -44,7 +44,7 @@ defmodule Blog.Images do
       error -> error
     end
   end
-  
+
   @doc """
   Gets all images for a post.
   """
@@ -58,7 +58,7 @@ defmodule Blog.Images do
       {:error, _} -> []
     end
   end
-  
+
   @doc """
   Deletes an image.
   """
@@ -68,25 +68,33 @@ defmodule Blog.Images do
       error -> error
     end
   end
-  
+
   @doc """
   Gets the thumbnail data for an image.
   """
   def get_thumbnail(id) do
-    _query = from i in Image,
-             where: i.id == ^id,
-             select: %{thumbnail_data: i.thumbnail_data, content_type: i.content_type}
-    
+    _query =
+      from i in Image,
+        where: i.id == ^id,
+        select: %{thumbnail_data: i.thumbnail_data, content_type: i.content_type}
+
     case RepoService.query("SELECT thumbnail_data, content_type FROM images WHERE id = ?", [id]) do
-      {:ok, %{rows: [[nil, _]]}} -> {:error, :no_thumbnail}
-      {:ok, %{rows: [[thumbnail_data, content_type]]}} -> {:ok, %{thumbnail_data: thumbnail_data, content_type: content_type}}
-      {:ok, %{rows: []}} -> {:error, :not_found}
-      error -> error
+      {:ok, %{rows: [[nil, _]]}} ->
+        {:error, :no_thumbnail}
+
+      {:ok, %{rows: [[thumbnail_data, content_type]]}} ->
+        {:ok, %{thumbnail_data: thumbnail_data, content_type: content_type}}
+
+      {:ok, %{rows: []}} ->
+        {:error, :not_found}
+
+      error ->
+        error
     end
   end
-  
+
   # Private functions
-  
+
   defp get_post(post_id) do
     case RepoService.get(Post, post_id) do
       {:ok, post} -> {:ok, post}
@@ -94,23 +102,23 @@ defmodule Blog.Images do
       error -> error
     end
   end
-  
+
   defp validate_image(image_binary, content_type) do
     cond do
       byte_size(image_binary) > @max_image_size ->
         {:error, :file_too_large}
-      
+
       content_type not in @allowed_types ->
         {:error, :invalid_file_type}
-      
+
       not valid_image_binary?(image_binary) ->
         {:error, :corrupted_image}
-      
+
       true ->
         :ok
     end
   end
-  
+
   defp valid_image_binary?(image_binary) do
     try do
       case Vix.Vips.Image.new_from_buffer(image_binary) do
@@ -118,27 +126,34 @@ defmodule Blog.Images do
         {:error, _} -> false
       end
     rescue
-      _ -> 
+      _ ->
         # If Vix is not available, do basic header checks
         basic_image_validation(image_binary)
     end
   end
-  
-  defp basic_image_validation(<<0x89, 0x50, 0x4E, 0x47, _rest::binary>>), do: true  # PNG
-  defp basic_image_validation(<<0xFF, 0xD8, 0xFF, _rest::binary>>), do: true       # JPEG
-  defp basic_image_validation(<<0x47, 0x49, 0x46, _rest::binary>>), do: true       # GIF
-  defp basic_image_validation(<<"RIFF", _size::32-little, "WEBP", _rest::binary>>), do: true  # WebP
+
+  # PNG
+  defp basic_image_validation(<<0x89, 0x50, 0x4E, 0x47, _rest::binary>>), do: true
+  # JPEG
+  defp basic_image_validation(<<0xFF, 0xD8, 0xFF, _rest::binary>>), do: true
+  # GIF
+  defp basic_image_validation(<<0x47, 0x49, 0x46, _rest::binary>>), do: true
+  # WebP
+  defp basic_image_validation(<<"RIFF", _size::32-little, "WEBP", _rest::binary>>), do: true
   defp basic_image_validation(_), do: false
-  
+
   defp create_thumbnail(image_binary, _content_type) do
     try do
       # Create a thumbnail using Vix
       with {:ok, _image} <- Vix.Vips.Image.new_from_buffer(image_binary),
-           {:ok, resized} <- Vix.Vips.Operation.thumbnail_buffer(image_binary, @thumbnail_size, height: @thumbnail_size),
+           {:ok, resized} <-
+             Vix.Vips.Operation.thumbnail_buffer(image_binary, @thumbnail_size,
+               height: @thumbnail_size
+             ),
            {:ok, thumbnail_binary} <- Vix.Vips.Image.write_to_buffer(resized, ".png") do
         {:ok, thumbnail_binary}
       else
-        _error -> 
+        _error ->
           # Fallback to original image if thumbnail creation fails
           {:ok, image_binary}
       end

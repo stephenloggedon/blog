@@ -3,11 +3,11 @@ defmodule BlogWeb.Api.PostControllerTest do
   Tests for the Post API controller, including both public endpoints
   (index, show) and protected endpoints that require mTLS authentication
   (create, update, delete).
-  
+
   The protected endpoints use client certificate authentication to ensure
   only authorized clients can modify post data.
   """
-  
+
   use BlogWeb.ConnCase
 
   import Blog.ContentFixtures
@@ -21,13 +21,17 @@ defmodule BlogWeb.Api.PostControllerTest do
     test "lists all published posts", %{conn: conn} do
       post = post_fixture()
       conn = get(conn, ~p"/api/posts")
-      assert json_response(conn, 200)["data"] |> Enum.any?(fn %{"id" => p_id} -> p_id == post.id end)
+
+      assert json_response(conn, 200)["data"]
+             |> Enum.any?(fn %{"id" => p_id} -> p_id == post.id end)
     end
 
     test "does not include unpublished posts", %{conn: conn} do
       post_fixture(%{published: false})
       conn = get(conn, ~p"/api/posts")
-      refute json_response(conn, 200)["data"] |> Enum.any?(fn %{"published" => published} -> published == false end)
+
+      refute json_response(conn, 200)["data"]
+             |> Enum.any?(fn %{"published" => published} -> published == false end)
     end
 
     test "supports pagination", %{conn: conn} do
@@ -96,7 +100,7 @@ defmodule BlogWeb.Api.PostControllerTest do
         published: true
       }
 
-      conn = 
+      conn =
         conn
         |> with_client_cert()
         |> post(~p"/api/posts", %{"metadata" => Jason.encode!(valid_attrs)})
@@ -108,7 +112,7 @@ defmodule BlogWeb.Api.PostControllerTest do
       post = post_fixture()
       update_attrs = %{title: "Updated Title", content: "Updated content"}
 
-      conn = 
+      conn =
         conn
         |> with_client_cert()
         |> put(~p"/api/posts/#{post.id}", %{"metadata" => Jason.encode!(update_attrs)})
@@ -119,13 +123,12 @@ defmodule BlogWeb.Api.PostControllerTest do
     test "delete endpoint accepts requests with valid client certificate", %{conn: conn} do
       post = post_fixture()
 
-      conn = 
+      conn =
         conn
         |> with_client_cert()
         |> delete(~p"/api/posts/#{post.id}")
 
       assert conn.status == 204
     end
-
   end
 end

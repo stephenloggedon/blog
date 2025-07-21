@@ -1,11 +1,11 @@
 defmodule BlogWeb.ApiEndpoint do
   @moduledoc """
   Separate endpoint for mTLS-authenticated API requests.
-  
+
   This endpoint runs on port 8443 with client certificate authentication
   and only serves API routes that require authentication.
   """
-  
+
   use Phoenix.Endpoint, otp_app: :blog
 
   # Only serve API routes - no static files or LiveView
@@ -19,7 +19,7 @@ defmodule BlogWeb.ApiEndpoint do
 
   plug Plug.MethodOverride
   plug Plug.Head
-  
+
   # Use API router with only authenticated routes
   plug BlogWeb.ApiRouter
 end

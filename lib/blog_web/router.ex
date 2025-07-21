@@ -21,7 +21,7 @@ defmodule BlogWeb.Router do
 
     live "/", HomeLive
     live "/blog/:slug", BlogPostLive
-    
+
     # Image serving routes (public)
     get "/images/:id", ImageController, :show
     get "/images/:id/thumb", ImageController, :thumbnail
@@ -30,13 +30,12 @@ defmodule BlogWeb.Router do
   # Public API routes (no authentication required)
   scope "/api", BlogWeb.Api do
     pipe_through :api
-    
+
     get "/posts", PostController, :index
     get "/posts/:id", PostController, :show
   end
 
   # Protected API routes moved to separate ApiEndpoint (port 8443 with mTLS)
-  
 
   # Enable LiveDashboard in development
   if Application.compile_env(:blog, :dev_routes) do
@@ -53,6 +52,4 @@ defmodule BlogWeb.Router do
       live_dashboard "/dashboard", metrics: BlogWeb.Telemetry
     end
   end
-
-  
 end
