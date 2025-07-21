@@ -284,14 +284,16 @@ defmodule Blog.Content do
   def list_available_tags do
     try do
       from(p in Post,
-        where: p.published == true and not is_nil(p.published_at) and not is_nil(p.tags) and p.tags != "",
-        select: p.tags
+        where: p.published == true and not is_nil(p.published_at) and not is_nil(p.tags) and p.tags != ""
       )
       |> RepoService.all()
       |> case do
-        {:ok, tags_list} -> tags_list
+        {:ok, posts} -> posts
         {:error, _} -> []
       end
+      |> Enum.map(& &1.tags)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.reject(&(&1 == ""))
       |> Enum.flat_map(fn tags_string ->
         tags_string
         |> String.split(",")
@@ -317,14 +319,16 @@ defmodule Blog.Content do
   def list_top_tags(limit \\ 5) do
     try do
       from(p in Post,
-        where: p.published == true and not is_nil(p.published_at) and not is_nil(p.tags) and p.tags != "",
-        select: p.tags
+        where: p.published == true and not is_nil(p.published_at) and not is_nil(p.tags) and p.tags != ""
       )
       |> RepoService.all()
       |> case do
-        {:ok, tags_list} -> tags_list
+        {:ok, posts} -> posts
         {:error, _} -> []
       end
+      |> Enum.map(& &1.tags)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.reject(&(&1 == ""))
       |> Enum.flat_map(fn tags_string ->
         tags_string
         |> String.split(",")
