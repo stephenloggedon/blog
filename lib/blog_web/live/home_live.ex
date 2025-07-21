@@ -14,7 +14,8 @@ defmodule BlogWeb.HomeLive do
      |> assign(:search_query, "")
      |> assign(:search_suggestions, [])
      |> assign(:top_tags, Content.list_top_tags(5))
-     |> assign(:available_tags, Content.list_available_tags())}
+     |> assign(:available_tags, Content.list_available_tags())
+     |> assign(:drawer_open, false)}
   end
 
   def handle_params(params, _url, socket) do
@@ -160,6 +161,14 @@ defmodule BlogWeb.HomeLive do
      |> push_patch(to: "/")}
   end
 
+  def handle_event("open_drawer", _params, socket) do
+    {:noreply, assign(socket, :drawer_open, true)}
+  end
+
+  def handle_event("close_drawer", _params, socket) do
+    {:noreply, assign(socket, :drawer_open, false)}
+  end
+
   defp load_posts(socket) do
     %{
       page: page,
@@ -216,15 +225,15 @@ defmodule BlogWeb.HomeLive do
   def render(assigns) do
     ~H"""
     <div class="h-screen bg-mantle overflow-hidden">
-      <!-- Theme Toggle - Top Right -->
-      <div class="fixed top-6 right-6 z-50">
+      <!-- Theme Toggle - Top Right (Desktop only) -->
+      <div class="fixed top-6 right-6 z-50 hidden lg:block">
         <.theme_toggle />
       </div>
       
-      <!-- Main Content with Adjacent Navigation -->
-      <div class="w-full h-full px-8">
+      <!-- Desktop Layout -->
+      <div class="w-full h-full px-8 hidden lg:block">
         <div class="max-w-6xl mx-auto flex h-full overflow-hidden">
-          <!-- Navigation Adjacent to Blog Posts -->
+          <!-- Navigation Adjacent to Blog Posts (Desktop) -->
           <.content_nav
             current_user={assigns[:current_user]}
             top_tags={@top_tags}
@@ -234,121 +243,58 @@ defmodule BlogWeb.HomeLive do
             search_suggestions={@search_suggestions}
           />
           
-    <!-- Blog Posts Scroll Area -->
+          <!-- Blog Posts Scroll Area (Desktop) -->
           <main
             class="flex-1 overflow-y-auto scrollbar-hide px-6"
             id="posts-container"
             phx-hook="InfiniteScroll"
           >
-            <!-- Filter Status -->
-            <%= if @selected_tags != [] || @search_query != "" do %>
-              <div class="mb-6 p-4 bg-surface0/50 rounded-lg border border-surface1">
-                <div class="flex items-center justify-between">
-                  <div class="text-sm text-subtext1">
-                    <%= cond do %>
-                      <% @selected_tags != [] && @search_query != "" -> %>
-                        Showing posts tagged with
-                        <span class="text-blue">{Enum.join(@selected_tags, ", ")}</span>
-                        matching "<span class="text-blue"><%= @search_query %></span>"
-                      <% @selected_tags != [] -> %>
-                        Showing posts tagged with
-                        <span class="text-blue">{Enum.join(@selected_tags, ", ")}</span>
-                      <% @search_query != "" -> %>
-                        Showing posts matching "<span class="text-blue"><%= @search_query %></span>"
-                    <% end %>
-                  </div>
-                  <button
-                    phx-click="clear_filters"
-                    class="text-xs text-subtext0 hover:text-text transition-colors"
-                  >
-                    Clear
-                  </button>
-                </div>
-              </div>
-            <% end %>
-            
-    <!-- Posts List -->
-            <%= for post <- @posts do %>
-              <article>
-                <.link
-                  navigate={"/blog/#{post.slug}"}
-                  class="block py-6 mx-2 hover:bg-surface1/20 transition-all duration-300 cursor-pointer rounded-2xl hover:shadow-[0_0_50px_10px_rgba(49,50,68,0.3)] relative"
-                >
-                  <div class="space-y-4">
-                    <header class="px-4">
-                      <h2 class="text-xl font-semibold text-text mb-2">
-                        {post.title}
-                      </h2>
-                      <div class="flex items-center text-sm text-subtext1 space-x-4">
-                        <time datetime={post.published_at}>
-                          {Calendar.strftime(post.published_at, "%B %d, %Y")}
-                        </time>
-                        <%= if Blog.Content.Post.tag_list(post) != [] do %>
-                          <div class="flex items-center space-x-2">
-                            <span>•</span>
-                            <div class="flex flex-wrap gap-2">
-                              <%= for tag <- Blog.Content.Post.tag_list(post) do %>
-                                <span class="bg-surface1 text-subtext0 px-2 py-1 rounded text-xs">
-                                  {tag}
-                                </span>
-                              <% end %>
-                            </div>
-                          </div>
-                        <% end %>
-                      </div>
-                    </header>
-
-                    <%= if post.subtitle do %>
-                      <div class="text-subtext1 text-sm px-4">
-                        {post.subtitle}
-                      </div>
-                    <% end %>
-
-                    <div class="relative">
-                      <div class="text-subtext1 overflow-hidden h-36 px-4">
-                        {Blog.Content.Post.preview_content(post.content, 6)}
-                      </div>
-                    </div>
-                  </div>
-                  <!-- Fade effect covering the entire link area -->
-                  <div class="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-mantle via-mantle/90 via-mantle/60 via-mantle/40 to-transparent pointer-events-none">
-                  </div>
-                </.link>
-              </article>
-            <% end %>
-            
-    <!-- Loading Indicator for Infinite Scroll -->
-            <%= if @has_more do %>
-              <div class="mt-12 text-center py-8" id="loading-indicator">
-                <div class="inline-flex items-center space-x-2 text-subtext1">
-                  <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue"></div>
-                  <span class="text-sm">Loading more posts...</span>
-                </div>
-              </div>
-            <% end %>
-            
-    <!-- Empty State -->
-            <%= if @posts == [] do %>
-              <div class="text-center py-12">
-                <%= if @selected_tags != [] || @search_query != "" do %>
-                  <div class="text-6xl mb-4">🔍</div>
-                  <h2 class="text-xl font-semibold text-text mb-2">No posts found</h2>
-                  <p class="text-subtext1 mb-4">No posts match your current filters.</p>
-                  <button
-                    phx-click="clear_filters"
-                    class="px-4 py-2 bg-blue hover:bg-blue/80 text-base rounded-lg font-medium transition-colors"
-                  >
-                    Clear Filters
-                  </button>
-                <% else %>
-                  <div class="text-6xl mb-4">📝</div>
-                  <h2 class="text-xl font-semibold text-text mb-2">No posts yet</h2>
-                  <p class="text-subtext1">Check back later for new content.</p>
-                <% end %>
-              </div>
-            <% end %>
+            <.posts_content 
+              posts={@posts}
+              selected_tags={@selected_tags}
+              search_query={@search_query}
+              has_more={@has_more}
+            />
           </main>
         </div>
+      </div>
+      
+      <!-- Mobile Layout -->
+      <div class="w-full h-full lg:hidden">
+        <!-- Mobile Posts Scroll Area -->
+        <main
+          class="h-full overflow-y-auto scrollbar-hide px-4 pb-24"
+          id="mobile-posts-container"
+          phx-hook="InfiniteScroll"
+        >
+          <.posts_content 
+            posts={@posts}
+            selected_tags={@selected_tags}
+            search_query={@search_query}
+            has_more={@has_more}
+          />
+        </main>
+        
+        <!-- Mobile Drawer -->
+        <.mobile_drawer id="mobile-nav" open={@drawer_open}>
+          <div class="space-y-6">
+            <!-- Theme Toggle in Mobile Drawer -->
+            <div class="flex items-center justify-between">
+              <h2 class="text-lg font-semibold text-text">Settings</h2>
+              <.theme_toggle id="mobile-theme-toggle" />
+            </div>
+            
+            <!-- Mobile Navigation Content -->
+            <.mobile_content_nav
+              current_user={assigns[:current_user]}
+              top_tags={@top_tags}
+              available_tags={@available_tags}
+              selected_tags={@selected_tags}
+              search_query={@search_query}
+              search_suggestions={@search_suggestions}
+            />
+          </div>
+        </.mobile_drawer>
       </div>
     </div>
     """

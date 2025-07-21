@@ -875,10 +875,12 @@ defmodule BlogWeb.CoreComponents do
       <.theme_toggle />
       
   """
+  attr :id, :string, default: "theme-toggle"
+
   def theme_toggle(assigns) do
     ~H"""
     <button
-      id="theme-toggle"
+      id={@id}
       type="button"
       class="p-2 rounded-lg border border-surface2 bg-surface0 hover:bg-surface1 transition-all duration-200 group"
       phx-hook="ThemeToggle"
@@ -909,6 +911,361 @@ defmodule BlogWeb.CoreComponents do
         <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
       </svg>
     </button>
+    """
+  end
+
+  @doc """
+  Renders a mobile drawer navigation that slides up from the bottom.
+
+  ## Examples
+
+      <.mobile_drawer id="mobile-nav" open={@drawer_open}>
+        Navigation content here
+      </.mobile_drawer>
+      
+  """
+  attr :id, :string, required: true
+  attr :open, :boolean, default: false
+  slot :inner_block, required: true
+
+  def mobile_drawer(assigns) do
+    ~H"""
+    <!-- Mobile Drawer Backdrop -->
+    <div
+      id={"#{@id}-backdrop"}
+      class={[
+        "fixed inset-0 bg-base/80 backdrop-blur-sm z-40 transition-opacity duration-300 lg:hidden",
+        if(@open, do: "opacity-100", else: "opacity-0 pointer-events-none")
+      ]}
+      phx-click="close_drawer"
+      aria-hidden={if @open, do: "false", else: "true"}
+    >
+    </div>
+
+    <!-- Mobile Drawer -->
+    <div
+      id={@id}
+      class={[
+        "fixed bottom-0 left-0 right-0 z-50 bg-mantle border-t border-surface1 rounded-t-xl shadow-2xl transform transition-transform duration-300 ease-out lg:hidden",
+        if(@open, do: "translate-y-0", else: "translate-y-full")
+      ]}
+      phx-hook="MobileDrawer"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Navigation drawer"
+      tabindex="-1"
+    >
+      <!-- Drawer Handle -->
+      <div class="flex justify-center p-2">
+        <div class="w-12 h-1.5 bg-surface2 rounded-full"></div>
+      </div>
+
+      <!-- Drawer Content -->
+      <div class="px-6 pb-6 max-h-[70vh] overflow-y-auto">
+        <%= render_slot(@inner_block) %>
+      </div>
+    </div>
+
+    <!-- Mobile Drawer Trigger (floating button) -->
+    <div class={[
+      "fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40 lg:hidden",
+      if(@open, do: "hidden", else: "block")
+    ]}>
+      <button
+        phx-click="open_drawer"
+        class="flex items-center gap-2 px-4 py-3 bg-blue hover:bg-blue/80 text-base rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+        aria-label="Open navigation"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+        <span class="text-sm font-medium">Settings & Filters</span>
+      </button>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders the posts content section (shared between desktop and mobile).
+  """
+  attr :posts, :list, required: true
+  attr :selected_tags, :list, default: []
+  attr :search_query, :string, default: ""
+  attr :has_more, :boolean, default: false
+
+  def posts_content(assigns) do
+    ~H"""
+    <!-- Filter Status -->
+    <%= if @selected_tags != [] || @search_query != "" do %>
+      <div class="mb-6 p-4 bg-surface0/50 rounded-lg border border-surface1">
+        <div class="flex items-center justify-between">
+          <div class="text-sm text-subtext1">
+            <%= cond do %>
+              <% @selected_tags != [] && @search_query != "" -> %>
+                Showing posts tagged with
+                <span class="text-blue">{Enum.join(@selected_tags, ", ")}</span>
+                matching "<span class="text-blue"><%= @search_query %></span>"
+              <% @selected_tags != [] -> %>
+                Showing posts tagged with
+                <span class="text-blue">{Enum.join(@selected_tags, ", ")}</span>
+              <% @search_query != "" -> %>
+                Showing posts matching "<span class="text-blue"><%= @search_query %></span>"
+            <% end %>
+          </div>
+          <button
+            phx-click="clear_filters"
+            class="text-xs text-subtext0 hover:text-text transition-colors"
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+    <% end %>
+    
+    <!-- Posts List -->
+    <%= for post <- @posts do %>
+      <article>
+        <.link
+          navigate={"/blog/#{post.slug}"}
+          class="block py-6 mx-2 hover:bg-surface1/20 transition-all duration-300 cursor-pointer rounded-2xl hover:shadow-[0_0_50px_10px_rgba(49,50,68,0.3)] relative"
+        >
+          <div class="space-y-4">
+            <header class="px-4">
+              <h2 class="text-xl font-semibold text-text mb-2">
+                {post.title}
+              </h2>
+              <div class="flex items-center text-sm text-subtext1 space-x-4">
+                <time datetime={post.published_at}>
+                  {Calendar.strftime(post.published_at, "%B %d, %Y")}
+                </time>
+                <%= if Blog.Content.Post.tag_list(post) != [] do %>
+                  <div class="flex items-center space-x-2">
+                    <span>•</span>
+                    <div class="flex flex-wrap gap-2">
+                      <%= for tag <- Blog.Content.Post.tag_list(post) do %>
+                        <span class="bg-surface1 text-subtext0 px-2 py-1 rounded text-xs">
+                          {tag}
+                        </span>
+                      <% end %>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            </header>
+
+            <%= if post.subtitle do %>
+              <div class="text-subtext1 text-sm px-4">
+                {post.subtitle}
+              </div>
+            <% end %>
+
+            <div class="relative">
+              <div class="text-subtext1 overflow-hidden h-36 px-4">
+                {Blog.Content.Post.preview_content(post.content, 6)}
+              </div>
+            </div>
+          </div>
+          <!-- Fade effect covering the entire link area -->
+          <div class="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-mantle via-mantle/90 via-mantle/60 via-mantle/40 to-transparent pointer-events-none">
+          </div>
+        </.link>
+      </article>
+    <% end %>
+    
+    <!-- Loading Indicator for Infinite Scroll -->
+    <%= if @has_more do %>
+      <div class="mt-12 text-center py-8" id="loading-indicator">
+        <div class="inline-flex items-center space-x-2 text-subtext1">
+          <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue"></div>
+          <span class="text-sm">Loading more posts...</span>
+        </div>
+      </div>
+    <% end %>
+    
+    <!-- Empty State -->
+    <%= if @posts == [] do %>
+      <div class="text-center py-12">
+        <%= if @selected_tags != [] || @search_query != "" do %>
+          <div class="text-6xl mb-4">🔍</div>
+          <h2 class="text-xl font-semibold text-text mb-2">No posts found</h2>
+          <p class="text-subtext1 mb-4">No posts match your current filters.</p>
+          <button
+            phx-click="clear_filters"
+            class="px-4 py-2 bg-blue hover:bg-blue/80 text-base rounded-lg font-medium transition-colors"
+          >
+            Clear Filters
+          </button>
+        <% else %>
+          <div class="text-6xl mb-4">📝</div>
+          <h2 class="text-xl font-semibold text-text mb-2">No posts yet</h2>
+          <p class="text-subtext1">Check back later for new content.</p>
+        <% end %>
+      </div>
+    <% end %>
+    """
+  end
+
+  @doc """
+  Renders mobile-optimized navigation content for the drawer.
+  """
+  attr :current_user, :any, default: nil
+  attr :top_tags, :list, default: []
+  attr :available_tags, :list, default: []
+  attr :selected_tags, :list, default: []
+  attr :search_query, :string, default: ""
+  attr :search_suggestions, :list, default: []
+
+  def mobile_content_nav(assigns) do
+    ~H"""
+    <!-- Enhanced Search Box with Tag Bubbles -->
+    <div class="relative mb-6">
+      <div class="rounded-lg focus-within:border-blue transition-colors p-3">
+        <!-- Selected Tag Bubbles -->
+        <div class="flex flex-wrap gap-1 mb-3" phx-update="ignore" id="mobile-tag-bubbles">
+          <%= for tag <- @selected_tags do %>
+            <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue text-white text-xs rounded-full">
+              {tag}
+              <button
+                type="button"
+                phx-click="remove_tag"
+                phx-value-tag={tag}
+                class="hover:bg-blue/80 rounded-full p-0.5 transition-colors"
+              >
+                ×
+              </button>
+            </span>
+          <% end %>
+        </div>
+        
+        <!-- Search Input -->
+        <form phx-submit="search" class="relative">
+          <input
+            type="text"
+            name="query"
+            value={@search_query}
+            placeholder="Search posts and/or filter by tags..."
+            class="w-full bg-transparent text-text placeholder-subtext0 focus:outline-none text-sm"
+            phx-keyup="search_input"
+            phx-debounce="300"
+            autocomplete="off"
+          />
+        </form>
+        
+        <!-- Tag Suggestions -->
+        <%= if @search_query != "" && @search_suggestions != [] do %>
+          <div class="mt-2 space-y-1">
+            <%= for suggestion <- @search_suggestions do %>
+              <button
+                type="button"
+                phx-click="add_tag_from_search"
+                phx-value-tag={suggestion}
+                class="w-full text-left px-3 py-2 text-sm text-text hover:bg-surface1 rounded transition-colors flex items-center gap-2"
+              >
+                <span class="w-4 h-4 bg-blue/20 rounded-full flex items-center justify-center">
+                  <span class="w-2 h-2 bg-blue rounded-full"></span>
+                </span>
+                {suggestion}
+              </button>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    
+    <!-- Tag Filters -->
+    <div>
+      <!-- Tag Count -->
+      <div class="mb-4 text-center">
+        <div class="text-2xl font-bold text-text">
+          {length(@available_tags)} tags
+        </div>
+        <div class="text-xs text-subtext1">Available</div>
+      </div>
+      
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-medium text-text">Popular Tags</h3>
+        <%= if @selected_tags != [] do %>
+          <button
+            phx-click="clear_filters"
+            class="text-xs text-subtext0 hover:text-text transition-colors px-2 py-1 hover:bg-surface0 rounded"
+          >
+            Clear
+          </button>
+        <% end %>
+      </div>
+      
+      <!-- Tag Grid Layout -->
+      <div class="flex flex-wrap gap-2 mb-4">
+        <%= for tag <- @top_tags do %>
+          <button
+            phx-click="toggle_tag"
+            phx-value-tag={tag}
+            class={[
+              "px-3 py-2 text-sm rounded-full border transition-all duration-200 hover:scale-105",
+              if(tag in @selected_tags,
+                do: "border-blue text-white bg-blue",
+                else: "border-surface2 text-subtext1 hover:border-blue/50 hover:text-blue"
+              )
+            ]}
+          >
+            {tag}
+          </button>
+        <% end %>
+      </div>
+      
+      <!-- Show more tags if any are selected that aren't in top tags -->
+      <%= if Enum.any?(@selected_tags, fn tag -> tag not in @top_tags end) do %>
+        <div class="mb-4">
+          <h4 class="text-xs font-medium text-subtext1 mb-2">Additional Tags</h4>
+          <div class="flex flex-wrap gap-2">
+            <%= for tag <- @selected_tags, tag not in @top_tags do %>
+              <button
+                phx-click="toggle_tag"
+                phx-value-tag={tag}
+                class="px-3 py-2 text-sm rounded-full border border-blue text-white bg-blue transition-all duration-200 hover:scale-105"
+              >
+                {tag}
+              </button>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+    
+    <!-- Admin Navigation Links -->
+    <%= if @current_user do %>
+      <div class="pt-6 border-t border-surface1">
+        <h3 class="text-sm font-medium text-text mb-3">Admin</h3>
+        <ul class="space-y-2">
+          <li>
+            <.link
+              navigate="/posts"
+              class="block text-subtext1 hover:text-text transition-colors py-2 px-3 rounded-lg hover:bg-surface0"
+            >
+              Manage Posts
+            </.link>
+          </li>
+          <li>
+            <.link
+              href="/users/settings"
+              class="block text-subtext1 hover:text-text transition-colors py-2 px-3 rounded-lg hover:bg-surface0"
+            >
+              Settings
+            </.link>
+          </li>
+          <li class="pt-2 border-t border-surface1/50">
+            <div class="text-subtext1 text-sm mb-2">{@current_user.email}</div>
+            <.link
+              href="/users/log_out"
+              method="delete"
+              class="text-subtext1 hover:text-text transition-colors text-sm"
+            >
+              Log out
+            </.link>
+          </li>
+        </ul>
+      </div>
+    <% end %>
     """
   end
 end

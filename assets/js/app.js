@@ -62,6 +62,72 @@ Hooks.ThemeToggle = {
   }
 }
 
+// Mobile Drawer Hook with swipe gestures
+Hooks.MobileDrawer = {
+  mounted() {
+    this.startY = 0
+    this.currentY = 0
+    this.isDragging = false
+    this.threshold = 50 // minimum swipe distance
+    
+    // Touch event listeners for swipe gestures
+    this.el.addEventListener('touchstart', (e) => {
+      this.startY = e.touches[0].clientY
+      this.isDragging = true
+    }, { passive: true })
+    
+    this.el.addEventListener('touchmove', (e) => {
+      if (!this.isDragging) return
+      
+      this.currentY = e.touches[0].clientY
+      const deltaY = this.currentY - this.startY
+      
+      // Only allow downward swipes (positive deltaY)
+      if (deltaY > 0) {
+        // Provide visual feedback during drag
+        const progress = Math.min(deltaY / 200, 1)
+        this.el.style.transform = `translateY(${deltaY * 0.5}px)`
+        this.el.style.opacity = `${1 - progress * 0.3}`
+      }
+    }, { passive: true })
+    
+    this.el.addEventListener('touchend', (e) => {
+      if (!this.isDragging) return
+      
+      const deltaY = this.currentY - this.startY
+      
+      // Reset transform
+      this.el.style.transform = ''
+      this.el.style.opacity = ''
+      
+      // Close drawer if swiped down enough
+      if (deltaY > this.threshold) {
+        this.pushEvent('close_drawer')
+      }
+      
+      this.isDragging = false
+    }, { passive: true })
+    
+    // Handle swipe up to open drawer (when closed)
+    document.addEventListener('touchstart', (e) => {
+      if (!this.el.classList.contains('translate-y-0')) {
+        // Only listen when drawer is closed
+        this.startY = e.touches[0].clientY
+      }
+    }, { passive: true })
+    
+    document.addEventListener('touchend', (e) => {
+      if (!this.el.classList.contains('translate-y-0') && e.touches.length === 0) {
+        // Only trigger when drawer is closed and no active touches
+        const deltaY = this.startY - e.changedTouches[0].clientY
+        if (deltaY > this.threshold && e.changedTouches[0].clientY > window.innerHeight * 0.5) {
+          this.pushEventTo('#mobile-nav', 'open_drawer', {})
+        }
+      }
+    }, { passive: true })
+  }
+}
+
 // Infinite Scroll Hook
 Hooks.InfiniteScroll = {
   mounted() {

@@ -21,13 +21,13 @@ defmodule BlogWeb.BlogPostLive do
   def render(assigns) do
     ~H"""
     <div class="min-h-screen bg-base">
-      <!-- Theme Toggle - Top Right -->
-      <div class="fixed top-6 right-6 z-50">
+      <!-- Theme Toggle - Desktop only -->
+      <div class="fixed top-6 right-6 z-50 hidden lg:block">
         <.theme_toggle />
       </div>
       
       <!-- Main Article Content -->
-      <main class="max-w-4xl mx-auto px-6 py-12">
+      <main class="max-w-4xl mx-auto px-4 lg:px-6 py-8 lg:py-12">
         <article class="prose prose-invert prose-xl max-w-none">
           <!-- Article Header -->
           <header class="mb-12 text-center">
@@ -64,13 +64,13 @@ defmodule BlogWeb.BlogPostLive do
       </main>
       
     <!-- Floating Back Button -->
-      <div class="fixed bottom-6 left-6 z-50">
+      <div class="fixed bottom-4 left-4 lg:bottom-6 lg:left-6 z-50">
         <.link
           navigate="/"
-          class="flex items-center justify-center w-14 h-14 bg-blue hover:bg-blue/80 text-base rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+          class="flex items-center justify-center w-12 h-12 lg:w-14 lg:h-14 bg-blue hover:bg-blue/80 text-base rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
           title="Back to Blog"
         >
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
