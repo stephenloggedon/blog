@@ -71,6 +71,12 @@
   * {
     transition: background-color 300ms ease, color 300ms ease, border-color 300ms ease;
   }
+
+  /* Prevent pull-to-refresh when drawer is open */
+  body.drawer-open {
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: auto;
+  }
   
   /* Smooth scrolling for anchor links */
   html {

@@ -954,6 +954,7 @@ defmodule BlogWeb.CoreComponents do
       aria-modal="true"
       aria-label="Navigation drawer"
       tabindex="-1"
+      style="overscroll-behavior: contain; -webkit-overflow-scrolling: touch;"
     >
       <!-- Drawer Handle -->
       <div class="flex justify-center p-2">
