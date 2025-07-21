@@ -224,15 +224,15 @@ defmodule BlogWeb.HomeLive do
 
   def render(assigns) do
     ~H"""
-    <div class="bg-mantle overflow-hidden mobile-viewport-container">
+    <div class="bg-mantle min-h-screen">
       <!-- Theme Toggle - Top Right (Desktop only) -->
       <div class="fixed top-6 right-6 z-50 hidden lg:block">
         <.theme_toggle />
       </div>
       
       <!-- Desktop Layout -->
-      <div class="w-full px-8 hidden lg:block mobile-viewport-container">
-        <div class="max-w-6xl mx-auto flex overflow-hidden mobile-viewport-container">
+      <div class="w-full px-8 hidden lg:block" style="height: 100dvh; height: 100vh;">
+        <div class="max-w-6xl mx-auto flex overflow-hidden" style="height: 100dvh; height: 100vh;">
           <!-- Navigation Adjacent to Blog Posts (Desktop) -->
           <.content_nav
             current_user={assigns[:current_user]}
@@ -259,11 +259,11 @@ defmodule BlogWeb.HomeLive do
         </div>
       </div>
       
-      <!-- Mobile Layout -->
-      <div id="mobile-layout" class="w-full lg:hidden mobile-viewport-container" phx-hook="MobileScrollFix">
-        <!-- Mobile Posts Scroll Area -->
-        <main
-          class="overflow-y-auto scrollbar-hide px-4 pb-24 mobile-scroll-container mobile-viewport-container"
+      <!-- Mobile Layout - Flattened to document body -->
+      <div id="mobile-layout" class="w-full lg:hidden safari-scroll-fix">
+        <!-- Mobile Posts Flow Directly in Document -->
+        <div
+          class="px-4 safari-scroll-content"
           id="mobile-posts-container"
           phx-hook="InfiniteScroll"
         >
@@ -273,7 +273,7 @@ defmodule BlogWeb.HomeLive do
             search_query={@search_query}
             has_more={@has_more}
           />
-        </main>
+        </div>
         
         <!-- Mobile Drawer -->
         <.mobile_drawer id="mobile-nav" open={@drawer_open}>

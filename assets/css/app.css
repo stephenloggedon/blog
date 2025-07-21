@@ -79,14 +79,20 @@
   
   /* Mobile viewport improvements for modern browsers */
   .mobile-viewport-container {
-    height: 100dvh;
-    height: 100vh; /* fallback */
+    min-height: 100dvh;
+    min-height: 100vh; /* fallback */
   }
   
-  /* Ensure proper touch scrolling on iOS */
-  .mobile-scroll-container {
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
+  /* Flattened mobile layout for Safari browser controls */
+  @media (max-width: 1024px) {
+    .safari-scroll-fix {
+      /* Allow natural document flow - no height constraints */
+    }
+    
+    .safari-scroll-content {
+      padding-bottom: 8rem; /* Extra space for mobile drawer trigger and Safari controls */
+      -webkit-overflow-scrolling: touch;
+    }
   }
   
   /* Custom scrollbar styling */

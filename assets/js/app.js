@@ -116,44 +116,15 @@ Hooks.MobileDrawer = {
   }
 }
 
-// Mobile Scroll Context Fix Hook - prevents scroll context breaking on Safari
+// Mobile Safari Browser Controls Fix - ensures proper document scrolling
 Hooks.MobileScrollFix = {
   mounted() {
     // Only apply on mobile devices
     if (window.innerWidth >= 1024) return
     
-    // Prevent touch events outside the main scroll container from scrolling viewport
-    this.preventOutsideScroll = (e) => {
-      // If touch is inside the main scroll container, allow normal scrolling
-      const mainContainer = document.getElementById('mobile-posts-container')
-      if (!mainContainer) return
-      
-      // Check if touch is inside the scroll container
-      const rect = mainContainer.getBoundingClientRect()
-      const touch = e.touches[0]
-      const isInsideContainer = (
-        touch.clientX >= rect.left &&
-        touch.clientX <= rect.right &&
-        touch.clientY >= rect.top &&
-        touch.clientY <= rect.bottom
-      )
-      
-      // If touch is outside container, prevent default to avoid viewport scroll
-      if (!isInsideContainer) {
-        e.preventDefault()
-      }
-    }
-    
-    // Add touch event listeners to document
-    document.addEventListener('touchstart', this.preventOutsideScroll, { passive: false })
-    document.addEventListener('touchmove', this.preventOutsideScroll, { passive: false })
-  },
-  
-  destroyed() {
-    if (this.preventOutsideScroll) {
-      document.removeEventListener('touchstart', this.preventOutsideScroll)
-      document.removeEventListener('touchmove', this.preventOutsideScroll)
-    }
+    // Ensure the mobile layout allows natural document scrolling for Safari browser controls
+    // No scroll containers - posts flow directly in document body
+    console.log('Mobile layout initialized for Safari browser controls')
   }
 }
 
