@@ -17,7 +17,9 @@ defmodule Blog.Application do
       # Start a worker by calling: Blog.Worker.start_link(arg)
       # {Blog.Worker, arg},
       # Start to serve requests, typically the last entry
-      BlogWeb.Endpoint
+      BlogWeb.Endpoint,
+      # Separate mTLS API endpoint for authenticated routes
+      BlogWeb.ApiEndpoint
     ]
     
     # Only start local SQLite repo in development and test environments

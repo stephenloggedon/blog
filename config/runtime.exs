@@ -50,13 +50,50 @@ if config_env() == :prod do
 
   config :blog, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
-  # SSL certificate paths
-  ssl_keyfile = System.get_env("SSL_KEYFILE") || Path.join([Application.app_dir(:blog), "priv", "cert", "server", "server-key.pem"])
-  ssl_certfile = System.get_env("SSL_CERTFILE") || Path.join([Application.app_dir(:blog), "priv", "cert", "server", "server-cert.pem"])
-  ssl_cacertfile = System.get_env("SSL_CACERTFILE") || Path.join([Application.app_dir(:blog), "priv", "cert", "ca", "ca.pem"])
+  # SSL certificate handling - load from environment variables (for production) or local files (for development)
+  ssl_keyfile = case System.get_env("SSL_KEYFILE_CONTENT") do
+    nil -> 
+      # Development: use local certificate files
+      System.get_env("SSL_KEYFILE") || Path.join([Application.app_dir(:blog), "priv", "cert", "server", "server-key.pem"])
+    content ->
+      # Production: write environment variable content to app directory
+      cert_dir = Path.join([Application.app_dir(:blog), "priv", "runtime"])
+      File.mkdir_p!(cert_dir)
+      path = Path.join(cert_dir, "server-key.pem")
+      File.write!(path, content)
+      File.chmod!(path, 0o600)  # Secure permissions
+      path
+  end
+  
+  ssl_certfile = case System.get_env("SSL_CERTFILE_CONTENT") do
+    nil ->
+      # Development: use local certificate files
+      System.get_env("SSL_CERTFILE") || Path.join([Application.app_dir(:blog), "priv", "cert", "server", "server-cert.pem"])
+    content ->
+      # Production: write environment variable content to app directory
+      cert_dir = Path.join([Application.app_dir(:blog), "priv", "runtime"])
+      File.mkdir_p!(cert_dir)
+      path = Path.join(cert_dir, "server-cert.pem")
+      File.write!(path, content)
+      path
+  end
+  
+  ssl_cacertfile = case System.get_env("SSL_CACERTFILE_CONTENT") do
+    nil ->
+      # Development: use local certificate files
+      System.get_env("SSL_CACERTFILE") || Path.join([Application.app_dir(:blog), "priv", "cert", "ca", "ca.pem"])
+    content ->
+      # Production: write environment variable content to app directory
+      cert_dir = Path.join([Application.app_dir(:blog), "priv", "runtime"])
+      File.mkdir_p!(cert_dir)
+      path = Path.join(cert_dir, "ca.pem")
+      File.write!(path, content)
+      path
+  end
 
   config :blog, BlogWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
+    check_origin: ["https://#{host}", "//#{host}", "https://blog-nameless-grass-3626.fly.dev", "//blog-nameless-grass-3626.fly.dev"],
     server: true,
     http: [
       # Enable IPv6 and bind on all interfaces.
@@ -65,8 +102,16 @@ if config_env() == :prod do
       port: port,
       transport_options: [socket_opts: [:inet6]]
     ],
+    # HTTPS/mTLS removed from main endpoint - handled by separate TCP service on port 8443
+    # This eliminates WebSocket 403 errors while preserving mTLS for API endpoints
+    secret_key_base: secret_key_base
+
+  # Separate mTLS API endpoint configuration
+  config :blog, BlogWeb.ApiEndpoint,
+    url: [host: host, port: mtls_port, scheme: "https"],
+    server: true,
     https: [
-      # HTTPS with mTLS for API endpoints on separate port
+      # HTTPS with mTLS for API endpoints only
       ip: {0, 0, 0, 0, 0, 0, 0, 0},
       port: mtls_port,
       cipher_suite: :strong,
@@ -74,7 +119,7 @@ if config_env() == :prod do
       certfile: ssl_certfile,
       cacertfile: ssl_cacertfile,
       verify: :verify_peer,
-      fail_if_no_peer_cert: false,  # Allow non-API requests
+      fail_if_no_peer_cert: false,  # Allow non-API requests to fail gracefully
       reuse_sessions: false,
       depth: 2,
       transport_options: [socket_opts: [:inet6]]

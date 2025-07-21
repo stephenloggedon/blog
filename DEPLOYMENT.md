@@ -1,6 +1,6 @@
 # Blog Deployment Guide
 
-This guide covers deploying the Phoenix LiveView blog to Fly.io with SQLite database.
+This guide covers deploying the Phoenix LiveView blog to Fly.io with Turso (distributed SQLite) database.
 
 ## Prerequisites
 
@@ -48,6 +48,10 @@ mix phx.gen.secret
 # Set required environment variables
 fly secrets set SECRET_KEY_BASE=your_secret_key_here
 fly secrets set PHX_HOST=your-app-name.fly.dev
+
+# Turso database configuration (required for production)
+fly secrets set LIBSQL_URI=libsql://your-database-name-your-org.turso.io
+fly secrets set LIBSQL_TOKEN=your_turso_auth_token
 ```
 
 ### 4. Deploy
@@ -59,16 +63,20 @@ fly deploy
 
 ## Database Configuration
 
-This blog uses **SQLite** for simplicity and cost-effectiveness:
+This blog uses **Turso** (distributed SQLite) for scalability and reliability:
 
-- **No external database required**: SQLite file is stored with the app
-- **Zero cost**: No database service fees
-- **Perfect for blogs**: Handles typical blog workloads efficiently
-- **Automatic backups**: Include SQLite file in volume snapshots
+- **Distributed SQLite**: Global edge database with local replicas
+- **Cost-effective**: Pay-per-request pricing model
+- **High availability**: Built-in replication and failover
+- **Perfect for blogs**: Handles read-heavy workloads with low latency
+- **Automatic backups**: Turso provides built-in backup and point-in-time recovery
 
-### SQLite File Location
+### Turso Configuration
 
-The SQLite database is stored at `/app/priv/repo/blog_prod.db` in production.
+The production environment uses Turso with the following configuration:
+- **Database URI**: Set via `LIBSQL_URI` environment variable
+- **Auth Token**: Set via `LIBSQL_TOKEN` environment variable
+- **Sync Mode**: Enabled for consistency across edge locations
 
 ## GitHub Actions Setup
 
@@ -111,11 +119,15 @@ Required:
 - `SECRET_KEY_BASE`: Generated with `mix phx.gen.secret`
 - `PHX_HOST`: Your app's domain (your-app.fly.dev)
 - `PHX_SERVER`: Set to `true` (auto-set by Fly.io)
+- `LIBSQL_URI`: Turso database URI (libsql://your-db.turso.io)
+- `LIBSQL_TOKEN`: Turso authentication token
 
 Optional:
-- `DATABASE_URL`: Override default SQLite path
-- `POOL_SIZE`: Database connection pool size (default: 5)
 - `PORT`: HTTP port (auto-set by Fly.io to 8080)
+- `MTLS_PORT`: mTLS API port (default: 8443)
+- `SSL_KEYFILE`: Path to SSL private key
+- `SSL_CERTFILE`: Path to SSL certificate
+- `SSL_CACERTFILE`: Path to CA certificate
 
 ### Fly.io Configuration
 
@@ -135,22 +147,55 @@ release_command = '/app/bin/migrate'
 [env]
 PHX_HOST = 'your-app.fly.dev'
 PORT = '8080'
+MTLS_PORT = '8443'
 PHX_SERVER = 'true'
+
+# Multiple port configuration for HTTP and mTLS
+[[services]]
+internal_port = 8080
+protocol = "tcp"
+
+[[services.ports]]
+handlers = ["http"]
+port = 80
+
+[[services.ports]]
+handlers = ["tls", "http"]
+port = 443
+
+# Separate service for mTLS API
+[[services]]
+internal_port = 8443
+protocol = "tcp"
+
+[[services.ports]]
+handlers = ["tls"]
+port = 8443
 ```
 
 ## Database Operations
 
 ### Migrations
 
-Migrations run automatically on deployment via the release command.
+Migrations run automatically on deployment via the release command against Turso database.
 
 To run manually:
 ```bash
-# Run migrations
+# Run migrations on Turso
 fly ssh console -C "/app/bin/blog eval 'Blog.Release.migrate'"
 
-# Seed database
+# Seed Turso database
 fly ssh console -C "/app/bin/blog eval 'Blog.Release.seed'"
+```
+
+### Turso Database Management
+
+```bash
+# Check Turso connection
+fly ssh console -C "/app/bin/blog eval 'Blog.TursoRepo.query(\"SELECT 1\", [])'"
+
+# List posts via Turso
+fly ssh console -C "/app/bin/blog eval 'Blog.Content.list_posts() |> length()'"
 ```
 
 ### Console Access
@@ -194,23 +239,32 @@ fly machine list
 - **Paid Tiers**: $1.94/month minimum for always-on apps
 - **Resources**: 256MB RAM, shared CPU (configurable)
 
-## Volumes (Optional)
+## SSL Certificates (Required for mTLS)
 
-For persistent SQLite storage across deployments:
+For mTLS API authentication, SSL certificates must be deployed:
 
 ```bash
-# Create volume
-fly volume create blog_data --region lax --size 1
+# Copy certificates to deployment
+fly deploy --build-arg SSL_CERTS=true
 
-# Update fly.toml
-[mounts]
-source = "blog_data"
-destination = "/data"
+# Or mount certificates via secrets
+fly secrets set SSL_KEYFILE_CONTENT="$(cat priv/cert/server/server-key.pem)"
+fly secrets set SSL_CERTFILE_CONTENT="$(cat priv/cert/server/server-cert.pem)"
+fly secrets set SSL_CACERTFILE_CONTENT="$(cat priv/cert/ca/ca.pem)"
 ```
 
-Then update `config/runtime.exs`:
-```elixir
-database: "/data/blog_prod.db"
+**Certificate Structure Required:**
+```
+priv/cert/
+├── ca/
+│   ├── ca.pem              # Certificate Authority
+│   └── ca-key.pem          # CA Private Key (keep secure)
+├── server/
+│   ├── server-cert.pem     # Server Certificate
+│   └── server-key.pem      # Server Private Key
+└── clients/
+    ├── client-cert.pem     # Client Certificate Template
+    └── client-key.pem      # Client Private Key Template
 ```
 
 ## Custom Domain (Optional)
@@ -281,28 +335,39 @@ fly scale memory 512
 
 ## Cost Management
 
-- **Free Tier**: Limited monthly allowance
-- **Paid Plans**: ~$2-5/month for small blogs
-- **No Database Costs**: SQLite eliminates database service fees
+- **Fly.io**: ~$2-5/month for small blogs
+- **Turso**: Pay-per-request pricing
+  - Free tier: 1M requests/month
+  - Paid: $0.25 per million requests
+  - Storage: $1 per GB/month
+- **SSL Certificates**: Free (Let's Encrypt via Fly.io)
+- **Total**: ~$3-8/month for typical blog workloads
 
 ## Backup Strategy
 
-### SQLite Backup
-```bash
-# Download SQLite database
-fly ssh console -C "cat /app/priv/repo/blog_prod.db" > backup.db
+### Turso Database Backup
 
-# Upload SQLite database
-cat backup.db | fly ssh console -C "cat > /app/priv/repo/blog_prod.db"
+Turso provides automatic backups and point-in-time recovery:
+
+```bash
+# List database backups (via Turso CLI)
+turso db backup list your-database-name
+
+# Create manual backup
+turso db backup create your-database-name
+
+# Restore from backup
+turso db backup restore your-database-name backup-id
 ```
 
-### Volume Snapshots (if using volumes)
-```bash
-# Create snapshot
-fly volume snapshot create blog_data
+### Data Export/Import
 
-# List snapshots
-fly volume snapshot list
+```bash
+# Export data via API
+fly ssh console -C "/app/bin/blog eval 'Blog.Content.export_all_posts()'"
+
+# Import data (if needed)
+fly ssh console -C "/app/bin/blog eval 'Blog.Content.import_posts(data)'"
 ```
 
 ## Next Steps

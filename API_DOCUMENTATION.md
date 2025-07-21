@@ -13,7 +13,7 @@ Write operations (POST, PUT, DELETE) require a valid client certificate signed b
 **Requirements:**
 - Client certificate signed by the Blog API CA
 - Private key corresponding to the client certificate
-- HTTPS connection to port 4001
+- HTTPS connection to port 8443
 
 **Certificate Generation:**
 Client certificates must be issued by the Blog API Certificate Authority. Contact your administrator for certificate issuance.
@@ -211,12 +211,12 @@ Post metadata must be provided as a JSON string in the `metadata` field:
 curl -X GET http://localhost:4000/api/posts
 
 # Via HTTPS without client certificate
-curl -X GET --cacert priv/cert/ca/ca.pem https://localhost:4001/api/posts
+curl -X GET --cacert priv/cert/ca/ca.pem https://localhost:8443/api/posts
 ```
 
 #### Create Post (mTLS Authentication Required)
 ```bash
-curl -X POST https://localhost:4001/api/posts \
+curl -X POST https://localhost:8443/api/posts \
   --cacert priv/cert/ca/ca.pem \
   --cert client-cert.pem \
   --key client-key.pem \
@@ -226,7 +226,7 @@ curl -X POST https://localhost:4001/api/posts \
 
 #### Update Post (mTLS Authentication Required)
 ```bash
-curl -X PUT https://localhost:4001/api/posts/123 \
+curl -X PUT https://localhost:8443/api/posts/123 \
   --cacert priv/cert/ca/ca.pem \
   --cert client-cert.pem \
   --key client-key.pem \
@@ -236,7 +236,7 @@ curl -X PUT https://localhost:4001/api/posts/123 \
 
 #### Delete Post (mTLS Authentication Required)
 ```bash
-curl -X DELETE https://localhost:4001/api/posts/123 \
+curl -X DELETE https://localhost:8443/api/posts/123 \
   --cacert priv/cert/ca/ca.pem \
   --cert client-cert.pem \
   --key client-key.pem
@@ -244,7 +244,7 @@ curl -X DELETE https://localhost:4001/api/posts/123 \
 
 ### With Images
 ```bash
-curl -X POST https://localhost:4001/api/posts \
+curl -X POST https://localhost:8443/api/posts \
   --cacert priv/cert/ca/ca.pem \
   --cert client-cert.pem \
   --key client-key.pem \

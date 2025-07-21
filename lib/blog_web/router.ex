@@ -14,11 +14,7 @@ defmodule BlogWeb.Router do
     plug :accepts, ["json"]
   end
 
-  # Pipeline for API endpoints requiring mTLS client certificate authentication
-  pipeline :api_authenticated do
-    plug :accepts, ["json"]
-    plug BlogWeb.Plugs.ClientCertAuth
-  end
+  # mTLS authenticated routes moved to separate ApiEndpoint/ApiRouter
 
   scope "/", BlogWeb do
     pipe_through :browser
@@ -39,17 +35,7 @@ defmodule BlogWeb.Router do
     get "/posts/:id", PostController, :show
   end
 
-  # Protected API routes (client certificate authentication required)
-  scope "/api", BlogWeb.Api do
-    pipe_through :api_authenticated
-    
-    post "/posts", PostController, :create
-    put "/posts/:id", PostController, :update
-    delete "/posts/:id", PostController, :delete
-    
-    # Image upload endpoint
-    post "/posts/:post_id/images", ImageController, :upload
-  end
+  # Protected API routes moved to separate ApiEndpoint (port 8443 with mTLS)
   
 
   # Enable LiveDashboard in development

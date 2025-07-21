@@ -49,3 +49,17 @@ npm-debug.log
 
 # Ignore log files
 *.log
+
+# Ignore SSL certificates and private keys (security)
+/priv/cert/
+/priv/runtime/
+*.pem
+*.key
+*.crt
+*.cert
+*.csr
+*.srl
+
+# Environment files with secrets
+.env
+.env.*

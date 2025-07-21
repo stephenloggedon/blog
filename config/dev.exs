@@ -19,21 +19,8 @@ config :blog, Blog.Repo,
 # watchers to your application. For example, we can use it
 # to bundle .js and .css sources.
 config :blog, BlogWeb.Endpoint,
-  # HTTP configuration for public access
+  # HTTP configuration for public access only (no HTTPS, no client certs)
   http: [ip: {127, 0, 0, 1}, port: 4000],
-  # HTTPS with mTLS for API endpoints (development)
-  https: [
-    ip: {127, 0, 0, 1},
-    port: 4001,
-    cipher_suite: :strong,
-    keyfile: "priv/cert/server/server-key.pem",
-    certfile: "priv/cert/server/server-cert.pem",
-    cacertfile: "priv/cert/ca/ca.pem",
-    verify: :verify_peer,
-    fail_if_no_peer_cert: false,  # Allow browser connections without client certs
-    reuse_sessions: false,
-    depth: 2
-  ],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
@@ -42,6 +29,22 @@ config :blog, BlogWeb.Endpoint,
     esbuild: {Esbuild, :install_and_run, [:blog, ~w(--sourcemap=inline --watch)]},
     tailwind: {Tailwind, :install_and_run, [:blog, ~w(--watch)]}
   ]
+
+# Separate mTLS API endpoint for authenticated routes (development)
+config :blog, BlogWeb.ApiEndpoint,
+  https: [
+    ip: {127, 0, 0, 1},
+    port: 8443,
+    cipher_suite: :strong,
+    keyfile: "priv/cert/server/server-key.pem",
+    certfile: "priv/cert/server/server-cert.pem",
+    cacertfile: "priv/cert/ca/ca.pem",
+    verify: :verify_peer,
+    fail_if_no_peer_cert: false,  # Allow graceful failure for non-API requests
+    reuse_sessions: false,
+    depth: 2
+  ],
+  secret_key_base: "P/MFuBor2fxglD+cZfVAdcKv1GNztGeFYflzyBilN/SMtGFnaFfJZRWCIzSjVXup"
 
 # ## SSL Support
 #
