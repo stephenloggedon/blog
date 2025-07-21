@@ -3,6 +3,9 @@ defmodule BlogWeb.HomeLive do
   alias Blog.Content
 
   def mount(_params, _session, socket) do
+    # Determine viewport - in tests, default to desktop for consistent behavior
+    viewport = if Mix.env() == :test, do: "desktop", else: detect_viewport(socket)
+    
     {:ok,
      socket
      |> assign(:page_title, "Blog")
@@ -15,7 +18,8 @@ defmodule BlogWeb.HomeLive do
      |> assign(:search_suggestions, [])
      |> assign(:top_tags, Content.list_top_tags(5))
      |> assign(:available_tags, Content.list_available_tags())
-     |> assign(:drawer_open, false)}
+     |> assign(:drawer_open, false)
+     |> assign(:viewport, viewport)}
   end
 
   def handle_params(params, _url, socket) do
@@ -169,6 +173,10 @@ defmodule BlogWeb.HomeLive do
     {:noreply, assign(socket, :drawer_open, false)}
   end
 
+  def handle_event("set_viewport", %{"viewport" => viewport}, socket) do
+    {:noreply, assign(socket, :viewport, viewport)}
+  end
+
   defp load_posts(socket) do
     %{
       page: page,
@@ -199,6 +207,27 @@ defmodule BlogWeb.HomeLive do
     build_path_with_params(selected_tags, search_query)
   end
 
+  defp detect_viewport(socket) do
+    # Simple viewport detection based on user agent
+    # In a real app, you might want more sophisticated detection
+    case get_connect_info(socket, :user_agent) do
+      user_agent when is_binary(user_agent) ->
+        mobile_patterns = [
+          "Mobile", "Android", "iPhone", "iPad", "iPod", "BlackBerry", 
+          "Windows Phone", "Opera Mini", "IEMobile"
+        ]
+        
+        is_mobile = Enum.any?(mobile_patterns, fn pattern ->
+          String.contains?(user_agent, pattern)
+        end)
+        
+        if is_mobile, do: "mobile", else: "desktop"
+      
+      _ -> 
+        "desktop" # Default to desktop if user agent not available
+    end
+  end
+
   defp build_path_with_params(selected_tags, search_query) do
     # Ensure search_query is always a string
     clean_search_query =
@@ -224,43 +253,44 @@ defmodule BlogWeb.HomeLive do
 
   def render(assigns) do
     ~H"""
-    <div class="bg-mantle min-h-screen">
-      <!-- Theme Toggle - Top Right (Desktop only) -->
-      <div class="fixed top-6 right-6 z-50 hidden lg:block">
-        <.theme_toggle />
-      </div>
-      
-      <!-- Desktop Layout -->
-      <div class="w-full px-8 hidden lg:block" style="height: 100dvh; height: 100vh;">
-        <div class="max-w-6xl mx-auto flex overflow-hidden" style="height: 100dvh; height: 100vh;">
-          <!-- Navigation Adjacent to Blog Posts (Desktop) -->
-          <.content_nav
-            current_user={assigns[:current_user]}
-            top_tags={@top_tags}
-            available_tags={@available_tags}
-            selected_tags={@selected_tags}
-            search_query={@search_query}
-            search_suggestions={@search_suggestions}
-          />
-          
-          <!-- Blog Posts Scroll Area (Desktop) -->
-          <main
-            class="flex-1 overflow-y-auto scrollbar-hide px-6"
-            id="posts-container"
-            phx-hook="InfiniteScroll"
-          >
-            <.posts_content 
-              posts={@posts}
+    <div class="bg-mantle min-h-screen" phx-hook="ViewportDetector" id="viewport-container">
+      <%= if @viewport == "desktop" do %>
+        <!-- Desktop Layout -->
+        <!-- Theme Toggle - Top Right -->
+        <div class="fixed top-6 right-6 z-50">
+          <.theme_toggle />
+        </div>
+        
+        <div class="w-full px-8" style="height: 100dvh; height: 100vh;">
+          <div class="max-w-6xl mx-auto flex overflow-hidden" style="height: 100dvh; height: 100vh;">
+            <!-- Navigation Adjacent to Blog Posts -->
+            <.content_nav
+              current_user={assigns[:current_user]}
+              top_tags={@top_tags}
+              available_tags={@available_tags}
               selected_tags={@selected_tags}
               search_query={@search_query}
-              has_more={@has_more}
+              search_suggestions={@search_suggestions}
             />
-          </main>
+            
+            <!-- Blog Posts Scroll Area -->
+            <main
+              class="flex-1 overflow-y-auto scrollbar-hide px-6"
+              id="posts-container"
+              phx-hook="InfiniteScroll"
+            >
+              <.posts_content 
+                posts={@posts}
+                selected_tags={@selected_tags}
+                search_query={@search_query}
+                has_more={@has_more}
+              />
+            </main>
+          </div>
         </div>
-      </div>
-      
-      <!-- Mobile Layout - Flattened to document body -->
-      <div id="mobile-layout" class="w-full lg:hidden safari-scroll-fix">
+      <% else %>
+        <!-- Mobile Layout -->
+        <div id="mobile-layout" class="w-full safari-scroll-fix">
         <!-- Mobile Posts Flow Directly in Document -->
         <div
           class="px-4 safari-scroll-content"
@@ -284,18 +314,21 @@ defmodule BlogWeb.HomeLive do
               <.theme_toggle id="mobile-theme-toggle" />
             </div>
             
-            <!-- Mobile Navigation Content -->
-            <.mobile_content_nav
-              current_user={assigns[:current_user]}
-              top_tags={@top_tags}
-              available_tags={@available_tags}
-              selected_tags={@selected_tags}
-              search_query={@search_query}
-              search_suggestions={@search_suggestions}
-            />
+            <!-- Mobile Navigation Content (reuse desktop component) -->
+            <div class="[&>nav]:border-0 [&>nav]:h-auto [&>nav]:w-full [&>div]:p-0 [&>div]:border-0">
+              <.content_nav
+                current_user={assigns[:current_user]}
+                top_tags={@top_tags}
+                available_tags={@available_tags}
+                selected_tags={@selected_tags}
+                search_query={@search_query}
+                search_suggestions={@search_suggestions}
+              />
+            </div>
           </div>
         </.mobile_drawer>
-      </div>
+        </div>
+      <% end %>
     </div>
     """
   end

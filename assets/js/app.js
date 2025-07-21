@@ -116,6 +116,31 @@ Hooks.MobileDrawer = {
   }
 }
 
+// Viewport Detection Hook - handles responsive layout switching
+Hooks.ViewportDetector = {
+  mounted() {
+    this.updateViewport()
+    
+    // Add resize listener for responsive behavior
+    this.resizeHandler = () => {
+      this.updateViewport()
+    }
+    
+    window.addEventListener('resize', this.resizeHandler)
+  },
+  
+  destroyed() {
+    if (this.resizeHandler) {
+      window.removeEventListener('resize', this.resizeHandler)
+    }
+  },
+  
+  updateViewport() {
+    const viewport = window.innerWidth >= 1024 ? 'desktop' : 'mobile'
+    this.pushEvent('set_viewport', { viewport: viewport })
+  }
+}
+
 // Mobile Safari Browser Controls Fix - ensures proper document scrolling
 Hooks.MobileScrollFix = {
   mounted() {

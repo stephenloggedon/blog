@@ -694,6 +694,137 @@ defmodule BlogWeb.CoreComponents do
   end
 
   @doc """
+  Shared search and filter functionality - extracted to avoid duplication
+  """
+  attr :selected_tags, :list, default: []
+  attr :search_query, :string, default: ""
+  attr :search_suggestions, :list, default: []
+  attr :top_tags, :list, default: []
+  attr :mobile, :boolean, default: false
+
+  def shared_search_filters(assigns) do
+    ~H"""
+    <!-- Selected Tag Bubbles -->
+    <div class={[
+      "flex flex-wrap gap-1",
+      if(@mobile, do: "mb-3", else: "mb-2")
+    ]} phx-update="ignore" id={if @mobile, do: "mobile-tag-bubbles", else: "tag-bubbles"}>
+      <%= for tag <- @selected_tags do %>
+        <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue text-white text-xs rounded-full">
+          {tag}
+          <button
+            type="button"
+            phx-click="remove_tag"
+            phx-value-tag={tag}
+            class="hover:bg-blue/80 rounded-full p-0.5 transition-colors"
+          >
+            ×
+          </button>
+        </span>
+      <% end %>
+    </div>
+    
+    <!-- Search Input -->
+    <form phx-submit="search" class="relative">
+      <input
+        type="text"
+        name="query"
+        value={@search_query}
+        placeholder="Search posts and/or filter by tags..."
+        class="w-full bg-transparent text-text placeholder-subtext0 focus:outline-none text-sm"
+        phx-keyup="search_input"
+        phx-debounce="300"
+        autocomplete="off"
+      />
+    </form>
+    
+    <!-- Tag Suggestions -->
+    <%= if @search_query != "" && @search_suggestions != [] do %>
+      <div class={if @mobile, do: "mt-2 space-y-1", else: "absolute z-10 w-full mt-1 bg-surface0 border border-surface1 rounded-lg shadow-lg max-h-40 overflow-y-auto"}>
+        <%= for suggestion <- @search_suggestions do %>
+          <button
+            type="button"
+            phx-click="add_tag_from_search"
+            phx-value-tag={suggestion}
+            class={[
+              "w-full text-left text-sm text-text hover:bg-surface1 transition-colors flex items-center gap-2",
+              if(@mobile, do: "px-3 py-2 rounded", else: "px-3 py-2")
+            ]}
+          >
+            <span class="w-4 h-4 bg-blue/20 rounded-full flex items-center justify-center">
+              <span class="w-2 h-2 bg-blue rounded-full"></span>
+            </span>
+            {suggestion}
+          </button>
+        <% end %>
+      </div>
+    <% end %>
+    
+    <!-- Top Tags -->
+    <div class={if @mobile, do: "mt-6", else: "mt-4"}>
+      <h4 class={[
+        "font-medium text-subtext1 mb-3",
+        if(@mobile, do: "text-sm", else: "text-xs")
+      ]}>Popular Tags</h4>
+      <div class="flex flex-wrap gap-2">
+        <%= for tag <- @top_tags do %>
+          <button
+            phx-click="toggle_tag"
+            phx-value-tag={tag}
+            class={[
+              "rounded-full border transition-all duration-200 hover:scale-105",
+              if(tag in @selected_tags,
+                do: "border-blue text-white bg-blue",
+                else: "border-surface2 text-subtext1 hover:border-blue/50 hover:text-blue"
+              ),
+              if(@mobile, do: "px-3 py-2 text-sm", else: "px-3 py-1 text-xs")
+            ]}
+          >
+            {tag}
+          </button>
+        <% end %>
+      </div>
+      
+      <!-- Show more tags if any are selected that aren't in top tags -->
+      <%= if Enum.any?(@selected_tags, fn tag -> tag not in @top_tags end) do %>
+        <div class={if @mobile, do: "mt-4", else: "mb-4"}>
+          <h4 class={[
+            "font-medium text-subtext1 mb-2",
+            if(@mobile, do: "text-sm", else: "text-xs")
+          ]}>Additional Tags</h4>
+          <div class="flex flex-wrap gap-2">
+            <%= for tag <- @selected_tags, tag not in @top_tags do %>
+              <button
+                phx-click="toggle_tag"
+                phx-value-tag={tag}
+                class={[
+                  "rounded-full border border-blue text-white bg-blue transition-all duration-200 hover:scale-105",
+                  if(@mobile, do: "px-3 py-2 text-sm", else: "px-3 py-1 text-xs")
+                ]}
+              >
+                {tag}
+              </button>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+    
+    <!-- Clear Filters Button -->
+    <%= if @selected_tags != [] or @search_query != "" do %>
+      <div class={if @mobile, do: "mt-4", else: "mt-4"}>
+        <button
+          phx-click="clear_filters"
+          class="text-xs text-subtext0 hover:text-text transition-colors"
+        >
+          Clear
+        </button>
+      </div>
+    <% end %>
+    """
+  end
+
+  @doc """
   Renders the navigation bar adjacent to content.
   """
   attr :current_user, :map, default: nil
