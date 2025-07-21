@@ -179,7 +179,7 @@ defmodule BlogWeb.HomeLiveTest do
       # Directly test the add_tag_from_search event
       view |> element("button", "elixir") |> render_click()
 
-      # Should add tag and navigate  
+      # Should add tag and navigate
       assert_patch(view, "/?tags=elixir")
 
       # Should show filtered posts

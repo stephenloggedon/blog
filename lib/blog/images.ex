@@ -4,9 +4,11 @@ defmodule Blog.Images do
   """
 
   import Ecto.Query
-  alias Blog.RepoService
-  alias Blog.Image
   alias Blog.Content.Post
+  alias Blog.Image
+  alias Blog.RepoService
+  alias Vix.Vips.Image, as: VipsImage
+  alias Vix.Vips.Operation, as: VipsOperation
 
   # 5MB
   @max_image_size 5 * 1024 * 1024
@@ -120,16 +122,14 @@ defmodule Blog.Images do
   end
 
   defp valid_image_binary?(image_binary) do
-    try do
-      case Vix.Vips.Image.new_from_buffer(image_binary) do
-        {:ok, _image} -> true
-        {:error, _} -> false
-      end
-    rescue
-      _ ->
-        # If Vix is not available, do basic header checks
-        basic_image_validation(image_binary)
+    case VipsImage.new_from_buffer(image_binary) do
+      {:ok, _image} -> true
+      {:error, _} -> false
     end
+  rescue
+    _ ->
+      # If Vix is not available, do basic header checks
+      basic_image_validation(image_binary)
   end
 
   # PNG
@@ -143,24 +143,20 @@ defmodule Blog.Images do
   defp basic_image_validation(_), do: false
 
   defp create_thumbnail(image_binary, _content_type) do
-    try do
-      # Create a thumbnail using Vix
-      with {:ok, _image} <- Vix.Vips.Image.new_from_buffer(image_binary),
-           {:ok, resized} <-
-             Vix.Vips.Operation.thumbnail_buffer(image_binary, @thumbnail_size,
-               height: @thumbnail_size
-             ),
-           {:ok, thumbnail_binary} <- Vix.Vips.Image.write_to_buffer(resized, ".png") do
-        {:ok, thumbnail_binary}
-      else
-        _error ->
-          # Fallback to original image if thumbnail creation fails
-          {:ok, image_binary}
-      end
-    rescue
-      _ ->
-        # Fallback to original image if Vix is not available or fails
+    # Create a thumbnail using Vix
+    with {:ok, _image} <- VipsImage.new_from_buffer(image_binary),
+         {:ok, resized} <-
+           VipsOperation.thumbnail_buffer(image_binary, @thumbnail_size, height: @thumbnail_size),
+         {:ok, thumbnail_binary} <- VipsImage.write_to_buffer(resized, ".png") do
+      {:ok, thumbnail_binary}
+    else
+      _error ->
+        # Fallback to original image if thumbnail creation fails
         {:ok, image_binary}
     end
+  rescue
+    _ ->
+      # Fallback to original image if Vix is not available or fails
+      {:ok, image_binary}
   end
 end

@@ -1,4 +1,7 @@
 defmodule Blog.Image do
+  @moduledoc """
+  The Image schema and changeset functions for image storage.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

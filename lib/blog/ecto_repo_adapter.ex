@@ -9,17 +9,15 @@ defmodule Blog.EctoRepoAdapter do
   @behaviour Blog.RepoAdapter
 
   import Ecto.Query
-  alias Blog.Repo
   alias Blog.Content.Post
+  alias Blog.Repo
 
   @impl true
   def all(queryable, _opts \\ []) do
-    try do
-      results = Repo.all(queryable)
-      {:ok, results}
-    catch
-      error -> {:error, error}
-    end
+    results = Repo.all(queryable)
+    {:ok, results}
+  catch
+    error -> {:error, error}
   end
 
   @impl true

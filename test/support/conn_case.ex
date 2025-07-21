@@ -113,7 +113,7 @@ defmodule BlogWeb.ConnCase do
           cert_der
         rescue
           error ->
-            raise "Failed to decode invalid test certificate: #{inspect(error)}"
+            reraise "Failed to decode invalid test certificate: #{inspect(error)}", __STACKTRACE__
         end
 
       {:error, reason} ->
@@ -132,7 +132,7 @@ defmodule BlogWeb.ConnCase do
           cert_der
         rescue
           error ->
-            raise "Failed to decode test certificate: #{inspect(error)}"
+            reraise "Failed to decode test certificate: #{inspect(error)}", __STACKTRACE__
         end
 
       {:error, reason} ->

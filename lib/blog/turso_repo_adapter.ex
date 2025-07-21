@@ -8,9 +8,9 @@ defmodule Blog.TursoRepoAdapter do
 
   @behaviour Blog.RepoAdapter
 
-  alias Blog.TursoHttpClient
   alias Blog.Content.Post
   alias Blog.Image
+  alias Blog.TursoHttpClient
 
   @impl true
   def all(queryable, _opts \\ []) do
@@ -22,11 +22,7 @@ defmodule Blog.TursoRepoAdapter do
 
         case TursoHttpClient.execute(sql, params) do
           {:ok, result} ->
-            structs =
-              Enum.map(result.rows, fn row ->
-                convert_row_to_struct(schema, row, result.columns)
-              end)
-
+            structs = convert_rows_to_structs(schema, result.rows, result.columns)
             {:ok, structs}
 
           error ->
@@ -39,11 +35,7 @@ defmodule Blog.TursoRepoAdapter do
 
         case TursoHttpClient.execute(sql, []) do
           {:ok, result} ->
-            structs =
-              Enum.map(result.rows, fn row ->
-                convert_row_to_struct(schema, row, result.columns)
-              end)
-
+            structs = convert_rows_to_structs(schema, result.rows, result.columns)
             {:ok, structs}
 
           error ->
@@ -91,7 +83,7 @@ defmodule Blog.TursoRepoAdapter do
     # Build insert SQL
     fields = Map.keys(changes)
     values = Map.values(changes)
-    placeholders = Enum.map(fields, fn _ -> "?" end) |> Enum.join(", ")
+    placeholders = Enum.map_join(fields, ", ", fn _ -> "?" end)
     fields_str = Enum.join(fields, ", ")
 
     sql = "INSERT INTO #{table_name} (#{fields_str}) VALUES (#{placeholders})"
@@ -117,7 +109,7 @@ defmodule Blog.TursoRepoAdapter do
     changes = Map.put(changes, :updated_at, DateTime.utc_now() |> DateTime.to_iso8601())
 
     # Build update SQL
-    set_clauses = Enum.map(changes, fn {field, _} -> "#{field} = ?" end) |> Enum.join(", ")
+    set_clauses = Enum.map_join(changes, ", ", fn {field, _} -> "#{field} = ?" end)
     values = Map.values(changes) ++ [id]
 
     sql = "UPDATE #{table_name} SET #{set_clauses} WHERE id = ?"
@@ -157,12 +149,10 @@ defmodule Blog.TursoRepoAdapter do
 
   def transaction(fun) when is_function(fun) do
     # Simplified transaction - collect operations and execute as batch
-    try do
-      result = fun.()
-      {:ok, result}
-    catch
-      error -> {:error, error}
-    end
+    result = fun.()
+    {:ok, result}
+  catch
+    error -> {:error, error}
   end
 
   # Helper functions for common queries
@@ -172,9 +162,9 @@ defmodule Blog.TursoRepoAdapter do
     offset = (page - 1) * per_page
 
     sql = """
-    SELECT * FROM posts 
-    WHERE published_at IS NOT NULL 
-    ORDER BY published_at DESC 
+    SELECT * FROM posts
+    WHERE published_at IS NOT NULL
+    ORDER BY published_at DESC
     LIMIT ? OFFSET ?
     """
 
@@ -208,6 +198,12 @@ defmodule Blog.TursoRepoAdapter do
 
     where_clause = Enum.join(conditions, " AND ")
     {where_clause, values}
+  end
+
+  defp convert_rows_to_structs(schema, rows, columns) do
+    Enum.map(rows, fn row ->
+      convert_row_to_struct(schema, row, columns)
+    end)
   end
 
   defp convert_row_to_struct(schema, row, columns) when is_list(row) do
@@ -320,7 +316,7 @@ defmodule Blog.TursoRepoAdapter do
   end
 
   defp parse_sqlite_datetime(datetime_str) do
-    # SQLite stores datetimes as "YYYY-MM-DD HH:MM:SS" 
+    # SQLite stores datetimes as "YYYY-MM-DD HH:MM:SS"
     # Convert to ISO 8601 format for DateTime parsing
     iso_str = String.replace(datetime_str, " ", "T") <> "Z"
 

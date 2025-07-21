@@ -57,13 +57,11 @@ defmodule Blog.TursoRepo do
   def transaction(fun) when is_function(fun) do
     # This is a simplified implementation - for complex transactions,
     # collect the statements and use the HTTP transaction API
-    try do
-      result = fun.()
-      {:ok, result}
-    catch
-      :throw, {:rollback, reason} -> {:error, reason}
-      error -> {:error, error}
-    end
+    result = fun.()
+    {:ok, result}
+  catch
+    :throw, {:rollback, reason} -> {:error, reason}
+    error -> {:error, error}
   end
 
   @doc """

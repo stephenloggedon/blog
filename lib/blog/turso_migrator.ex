@@ -103,23 +103,21 @@ defmodule Blog.TursoMigrator do
   end
 
   defp run_migration_file(file_path, existing_tables) do
-    try do
-      # Load and execute the migration
-      [{module, _}] = Code.compile_file(file_path)
+    # Load and execute the migration
+    [{module, _}] = Code.compile_file(file_path)
 
-      # Convert Ecto migration to SQL
-      sql_statements = convert_migration_to_sql(module, existing_tables)
+    # Convert Ecto migration to SQL
+    sql_statements = convert_migration_to_sql(module, existing_tables)
 
-      # Execute each SQL statement
-      Enum.reduce_while(sql_statements, {:ok, []}, fn sql, {:ok, results} ->
-        case TursoHttpClient.execute(sql, []) do
-          {:ok, result} -> {:cont, {:ok, [result | results]}}
-          error -> {:halt, error}
-        end
-      end)
-    rescue
-      error -> {:error, "Failed to run migration: #{inspect(error)}"}
-    end
+    # Execute each SQL statement
+    Enum.reduce_while(sql_statements, {:ok, []}, fn sql, {:ok, results} ->
+      case TursoHttpClient.execute(sql, []) do
+        {:ok, result} -> {:cont, {:ok, [result | results]}}
+        error -> {:halt, error}
+      end
+    end)
+  rescue
+    error -> {:error, "Failed to run migration: #{inspect(error)}"}
   end
 
   defp get_existing_tables do
@@ -171,7 +169,7 @@ defmodule Blog.TursoMigrator do
 
       Blog.Repo.Migrations.CreateImagesTable ->
         if "images" in existing_tables do
-          # Table already exists, update it to match our schema  
+          # Table already exists, update it to match our schema
           [
             "ALTER TABLE images ADD COLUMN post_id INTEGER",
             "ALTER TABLE images ADD COLUMN alt_text TEXT",

@@ -85,9 +85,10 @@ defmodule BlogWeb.Api.PostController do
         |> render(:error, %{message: "Post not found"})
 
       post ->
-        with {:ok, _deleted_post} <- Content.delete_post(post) do
-          conn |> send_resp(:no_content, "")
-        else
+        case Content.delete_post(post) do
+          {:ok, _deleted_post} ->
+            conn |> send_resp(:no_content, "")
+
           {:error, %Ecto.Changeset{} = changeset} ->
             conn
             |> put_status(:unprocessable_entity)
