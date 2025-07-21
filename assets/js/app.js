@@ -70,22 +70,6 @@ Hooks.MobileDrawer = {
     this.isDragging = false
     this.threshold = 50 // minimum swipe distance
     
-    // Monitor drawer open state and update body class
-    this.observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.attributeName === 'class') {
-          const isOpen = this.el.classList.contains('translate-y-0')
-          if (isOpen) {
-            document.body.classList.add('drawer-open')
-          } else {
-            document.body.classList.remove('drawer-open')
-          }
-        }
-      })
-    })
-    
-    this.observer.observe(this.el, { attributes: true, attributeFilter: ['class'] })
-    
     // Touch event listeners for swipe gestures
     this.el.addEventListener('touchstart', (e) => {
       this.startY = e.touches[0].clientY
@@ -126,32 +110,6 @@ Hooks.MobileDrawer = {
       
       this.isDragging = false
     }, { passive: false })
-    
-    // Handle swipe up to open drawer (when closed)
-    document.addEventListener('touchstart', (e) => {
-      if (!this.el.classList.contains('translate-y-0')) {
-        // Only listen when drawer is closed
-        this.startY = e.touches[0].clientY
-      }
-    }, { passive: true })
-    
-    document.addEventListener('touchend', (e) => {
-      if (!this.el.classList.contains('translate-y-0') && e.touches.length === 0) {
-        // Only trigger when drawer is closed and no active touches
-        const deltaY = this.startY - e.changedTouches[0].clientY
-        if (deltaY > this.threshold && e.changedTouches[0].clientY > window.innerHeight * 0.5) {
-          this.pushEventTo('#mobile-nav', 'open_drawer', {})
-        }
-      }
-    }, { passive: true })
-  },
-  
-  destroyed() {
-    if (this.observer) {
-      this.observer.disconnect()
-    }
-    // Clean up body class when component is destroyed
-    document.body.classList.remove('drawer-open')
   }
 }
 
