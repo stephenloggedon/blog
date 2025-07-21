@@ -297,7 +297,7 @@ defmodule BlogWeb.HomeLive do
 
                     <div class="relative">
                       <div class="text-subtext1 overflow-hidden h-36 px-4">
-                        {raw(Blog.Content.Post.render_content(post) |> String.slice(0, 400))}
+                        {Blog.Content.Post.preview_content(post.content, 6)}
                       </div>
                     </div>
                   </div>
