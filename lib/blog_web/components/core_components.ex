@@ -705,10 +705,14 @@ defmodule BlogWeb.CoreComponents do
   def shared_search_filters(assigns) do
     ~H"""
     <!-- Selected Tag Bubbles -->
-    <div class={[
-      "flex flex-wrap gap-1",
-      if(@mobile, do: "mb-3", else: "mb-2")
-    ]} phx-update="ignore" id={if @mobile, do: "mobile-tag-bubbles", else: "tag-bubbles"}>
+    <div
+      class={[
+        "flex flex-wrap gap-1",
+        if(@mobile, do: "mb-3", else: "mb-2")
+      ]}
+      phx-update="ignore"
+      id={if @mobile, do: "mobile-tag-bubbles", else: "tag-bubbles"}
+    >
       <%= for tag <- @selected_tags do %>
         <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue text-white text-xs rounded-full">
           {tag}
@@ -723,7 +727,7 @@ defmodule BlogWeb.CoreComponents do
         </span>
       <% end %>
     </div>
-    
+
     <!-- Search Input -->
     <form phx-submit="search" class="relative">
       <input
@@ -737,10 +741,15 @@ defmodule BlogWeb.CoreComponents do
         autocomplete="off"
       />
     </form>
-    
+
     <!-- Tag Suggestions -->
     <%= if @search_query != "" && @search_suggestions != [] do %>
-      <div class={if @mobile, do: "mt-2 space-y-1", else: "absolute z-10 w-full mt-1 bg-surface0 border border-surface1 rounded-lg shadow-lg max-h-40 overflow-y-auto"}>
+      <div class={
+        if @mobile,
+          do: "mt-2 space-y-1",
+          else:
+            "absolute z-10 w-full mt-1 bg-surface0 border border-surface1 rounded-lg shadow-lg max-h-40 overflow-y-auto"
+      }>
         <%= for suggestion <- @search_suggestions do %>
           <button
             type="button"
@@ -759,13 +768,15 @@ defmodule BlogWeb.CoreComponents do
         <% end %>
       </div>
     <% end %>
-    
+
     <!-- Top Tags -->
     <div class={if @mobile, do: "mt-6", else: "mt-4"}>
       <h4 class={[
         "font-medium text-subtext1 mb-3",
         if(@mobile, do: "text-sm", else: "text-xs")
-      ]}>Popular Tags</h4>
+      ]}>
+        Popular Tags
+      </h4>
       <div class="flex flex-wrap gap-2">
         <%= for tag <- @top_tags do %>
           <button
@@ -785,13 +796,15 @@ defmodule BlogWeb.CoreComponents do
         <% end %>
       </div>
       
-      <!-- Show more tags if any are selected that aren't in top tags -->
+    <!-- Show more tags if any are selected that aren't in top tags -->
       <%= if Enum.any?(@selected_tags, fn tag -> tag not in @top_tags end) do %>
         <div class={if @mobile, do: "mt-4", else: "mb-4"}>
           <h4 class={[
             "font-medium text-subtext1 mb-2",
             if(@mobile, do: "text-sm", else: "text-xs")
-          ]}>Additional Tags</h4>
+          ]}>
+            Additional Tags
+          </h4>
           <div class="flex flex-wrap gap-2">
             <%= for tag <- @selected_tags, tag not in @top_tags do %>
               <button
@@ -809,7 +822,7 @@ defmodule BlogWeb.CoreComponents do
         </div>
       <% end %>
     </div>
-    
+
     <!-- Clear Filters Button -->
     <%= if @selected_tags != [] or @search_query != "" do %>
       <div class={if @mobile, do: "mt-4", else: "mt-4"}>
@@ -1032,7 +1045,7 @@ defmodule BlogWeb.CoreComponents do
         />
       </svg>
       
-      <!-- Moon Icon (visible in light mode, hidden in dark) -->
+    <!-- Moon Icon (visible in light mode, hidden in dark) -->
       <svg
         class="moon-icon w-5 h-5 text-lavender transition-all duration-200 group-hover:scale-110 hidden"
         fill="currentColor"
@@ -1091,10 +1104,10 @@ defmodule BlogWeb.CoreComponents do
       <div class="flex justify-center p-2">
         <div class="w-12 h-1.5 bg-surface2 rounded-full"></div>
       </div>
-
-      <!-- Drawer Content -->
+      
+    <!-- Drawer Content -->
       <div class="px-6 pb-6 max-h-[70vh] overflow-y-auto">
-        <%= render_slot(@inner_block) %>
+        {render_slot(@inner_block)}
       </div>
     </div>
 
@@ -1109,7 +1122,12 @@ defmodule BlogWeb.CoreComponents do
         aria-label="Open navigation"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16"
+          />
         </svg>
         <span class="text-sm font-medium">Settings & Filters</span>
       </button>
@@ -1153,7 +1171,7 @@ defmodule BlogWeb.CoreComponents do
         </div>
       </div>
     <% end %>
-    
+
     <!-- Posts List -->
     <%= for post <- @posts do %>
       <article>
@@ -1203,7 +1221,7 @@ defmodule BlogWeb.CoreComponents do
         </.link>
       </article>
     <% end %>
-    
+
     <!-- Loading Indicator for Infinite Scroll -->
     <%= if @has_more do %>
       <div class="mt-12 text-center py-8" id="loading-indicator">
@@ -1213,7 +1231,7 @@ defmodule BlogWeb.CoreComponents do
         </div>
       </div>
     <% end %>
-    
+
     <!-- Empty State -->
     <%= if @posts == [] do %>
       <div class="text-center py-12">
@@ -1269,7 +1287,7 @@ defmodule BlogWeb.CoreComponents do
           <% end %>
         </div>
         
-        <!-- Search Input -->
+    <!-- Search Input -->
         <form phx-submit="search" class="relative">
           <input
             type="text"
@@ -1283,7 +1301,7 @@ defmodule BlogWeb.CoreComponents do
           />
         </form>
         
-        <!-- Tag Suggestions -->
+    <!-- Tag Suggestions -->
         <%= if @search_query != "" && @search_suggestions != [] do %>
           <div class="mt-2 space-y-1">
             <%= for suggestion <- @search_suggestions do %>
@@ -1303,7 +1321,7 @@ defmodule BlogWeb.CoreComponents do
         <% end %>
       </div>
     </div>
-    
+
     <!-- Tag Filters -->
     <div>
       <!-- Tag Count -->
@@ -1313,7 +1331,7 @@ defmodule BlogWeb.CoreComponents do
         </div>
         <div class="text-xs text-subtext1">Available</div>
       </div>
-      
+
       <div class="flex items-center justify-between mb-3">
         <h3 class="text-sm font-medium text-text">Popular Tags</h3>
         <%= if @selected_tags != [] do %>
@@ -1326,7 +1344,7 @@ defmodule BlogWeb.CoreComponents do
         <% end %>
       </div>
       
-      <!-- Tag Grid Layout -->
+    <!-- Tag Grid Layout -->
       <div class="flex flex-wrap gap-2 mb-4">
         <%= for tag <- @top_tags do %>
           <button
@@ -1345,7 +1363,7 @@ defmodule BlogWeb.CoreComponents do
         <% end %>
       </div>
       
-      <!-- Show more tags if any are selected that aren't in top tags -->
+    <!-- Show more tags if any are selected that aren't in top tags -->
       <%= if Enum.any?(@selected_tags, fn tag -> tag not in @top_tags end) do %>
         <div class="mb-4">
           <h4 class="text-xs font-medium text-subtext1 mb-2">Additional Tags</h4>
@@ -1363,7 +1381,7 @@ defmodule BlogWeb.CoreComponents do
         </div>
       <% end %>
     </div>
-    
+
     <!-- Admin Navigation Links -->
     <%= if @current_user do %>
       <div class="pt-6 border-t border-surface1">

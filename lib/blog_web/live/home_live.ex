@@ -5,7 +5,7 @@ defmodule BlogWeb.HomeLive do
   def mount(_params, _session, socket) do
     # Determine viewport - in tests, default to desktop for consistent behavior
     viewport = if Mix.env() == :test, do: "desktop", else: detect_viewport(socket)
-    
+
     {:ok,
      socket
      |> assign(:page_title, "Blog")
@@ -213,18 +213,27 @@ defmodule BlogWeb.HomeLive do
     case get_connect_info(socket, :user_agent) do
       user_agent when is_binary(user_agent) ->
         mobile_patterns = [
-          "Mobile", "Android", "iPhone", "iPad", "iPod", "BlackBerry", 
-          "Windows Phone", "Opera Mini", "IEMobile"
+          "Mobile",
+          "Android",
+          "iPhone",
+          "iPad",
+          "iPod",
+          "BlackBerry",
+          "Windows Phone",
+          "Opera Mini",
+          "IEMobile"
         ]
-        
-        is_mobile = Enum.any?(mobile_patterns, fn pattern ->
-          String.contains?(user_agent, pattern)
-        end)
-        
+
+        is_mobile =
+          Enum.any?(mobile_patterns, fn pattern ->
+            String.contains?(user_agent, pattern)
+          end)
+
         if is_mobile, do: "mobile", else: "desktop"
-      
-      _ -> 
-        "desktop" # Default to desktop if user agent not available
+
+      _ ->
+        # Default to desktop if user agent not available
+        "desktop"
     end
   end
 
@@ -260,7 +269,7 @@ defmodule BlogWeb.HomeLive do
         <div class="fixed top-6 right-6 z-50">
           <.theme_toggle />
         </div>
-        
+
         <div class="w-full px-8" style="height: 100dvh; height: 100vh;">
           <div class="max-w-6xl mx-auto flex overflow-hidden" style="height: 100dvh; height: 100vh;">
             <!-- Navigation Adjacent to Blog Posts -->
@@ -273,13 +282,13 @@ defmodule BlogWeb.HomeLive do
               search_suggestions={@search_suggestions}
             />
             
-            <!-- Blog Posts Scroll Area -->
+    <!-- Blog Posts Scroll Area -->
             <main
               class="flex-1 overflow-y-auto scrollbar-hide px-6"
               id="posts-container"
               phx-hook="InfiniteScroll"
             >
-              <.posts_content 
+              <.posts_content
                 posts={@posts}
                 selected_tags={@selected_tags}
                 search_query={@search_query}
@@ -291,42 +300,42 @@ defmodule BlogWeb.HomeLive do
       <% else %>
         <!-- Mobile Layout -->
         <div id="mobile-layout" class="w-full safari-scroll-fix">
-        <!-- Mobile Posts Flow Directly in Document -->
-        <div
-          class="px-4 safari-scroll-content"
-          id="mobile-posts-container"
-          phx-hook="InfiniteScroll"
-        >
-          <.posts_content 
-            posts={@posts}
-            selected_tags={@selected_tags}
-            search_query={@search_query}
-            has_more={@has_more}
-          />
-        </div>
-        
-        <!-- Mobile Drawer -->
-        <.mobile_drawer id="mobile-nav" open={@drawer_open}>
-          <div class="space-y-6">
-            <!-- Theme Toggle in Mobile Drawer -->
-            <div class="flex items-center justify-between">
-              <h2 class="text-lg font-semibold text-text">Settings</h2>
-              <.theme_toggle id="mobile-theme-toggle" />
-            </div>
-            
-            <!-- Mobile Navigation Content (reuse desktop component) -->
-            <div class="[&>nav]:border-0 [&>nav]:h-auto [&>nav]:w-full [&>div]:p-0 [&>div]:border-0">
-              <.content_nav
-                current_user={assigns[:current_user]}
-                top_tags={@top_tags}
-                available_tags={@available_tags}
-                selected_tags={@selected_tags}
-                search_query={@search_query}
-                search_suggestions={@search_suggestions}
-              />
-            </div>
+          <!-- Mobile Posts Flow Directly in Document -->
+          <div
+            class="px-4 safari-scroll-content"
+            id="mobile-posts-container"
+            phx-hook="InfiniteScroll"
+          >
+            <.posts_content
+              posts={@posts}
+              selected_tags={@selected_tags}
+              search_query={@search_query}
+              has_more={@has_more}
+            />
           </div>
-        </.mobile_drawer>
+          
+    <!-- Mobile Drawer -->
+          <.mobile_drawer id="mobile-nav" open={@drawer_open}>
+            <div class="space-y-6">
+              <!-- Theme Toggle in Mobile Drawer -->
+              <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-text">Settings</h2>
+                <.theme_toggle id="mobile-theme-toggle" />
+              </div>
+              
+    <!-- Mobile Navigation Content (reuse desktop component) -->
+              <div class="[&>nav]:border-0 [&>nav]:h-auto [&>nav]:w-full [&>div]:p-0 [&>div]:border-0">
+                <.content_nav
+                  current_user={assigns[:current_user]}
+                  top_tags={@top_tags}
+                  available_tags={@available_tags}
+                  selected_tags={@selected_tags}
+                  search_query={@search_query}
+                  search_suggestions={@search_suggestions}
+                />
+              </div>
+            </div>
+          </.mobile_drawer>
         </div>
       <% end %>
     </div>

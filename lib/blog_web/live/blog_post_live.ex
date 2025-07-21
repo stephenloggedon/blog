@@ -26,7 +26,7 @@ defmodule BlogWeb.BlogPostLive do
         <.theme_toggle />
       </div>
       
-      <!-- Main Article Content -->
+    <!-- Main Article Content -->
       <main class="max-w-4xl mx-auto px-4 lg:px-6 py-8 lg:py-12">
         <article class="prose prose-invert prose-xl max-w-none">
           <!-- Article Header -->
