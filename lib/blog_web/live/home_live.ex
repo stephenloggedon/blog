@@ -216,6 +216,11 @@ defmodule BlogWeb.HomeLive do
   def render(assigns) do
     ~H"""
     <div class="h-screen bg-mantle overflow-hidden">
+      <!-- Theme Toggle - Top Right -->
+      <div class="fixed top-6 right-6 z-50">
+        <.theme_toggle />
+      </div>
+      
       <!-- Main Content with Adjacent Navigation -->
       <div class="w-full h-full px-8">
         <div class="max-w-6xl mx-auto flex h-full overflow-hidden">

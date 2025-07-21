@@ -21,8 +21,12 @@ defmodule BlogWeb.BlogPostLive do
   def render(assigns) do
     ~H"""
     <div class="min-h-screen bg-base">
+      <!-- Theme Toggle - Top Right -->
+      <div class="fixed top-6 right-6 z-50">
+        <.theme_toggle />
+      </div>
       
-    <!-- Main Article Content -->
+      <!-- Main Article Content -->
       <main class="max-w-4xl mx-auto px-6 py-12">
         <article class="prose prose-invert prose-xl max-w-none">
           <!-- Article Header -->

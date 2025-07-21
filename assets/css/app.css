@@ -2,10 +2,74 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-/* Catppuccin Mocha theme base styles */
+/* Theme CSS Custom Properties */
 @layer base {
+  /* Default theme (Dark - Catppuccin Mocha) */
+  :root {
+    --color-rosewater: 245 224 220;
+    --color-flamingo: 242 205 205;
+    --color-pink: 245 194 231;
+    --color-mauve: 243 139 168;
+    --color-red: 235 160 172;
+    --color-maroon: 249 226 175;
+    --color-green: 166 227 161;
+    --color-teal: 148 226 213;
+    --color-sky: 116 199 236;
+    --color-sapphire: 137 180 250;
+    --color-blue: 180 190 254;
+    --color-lavender: 203 166 247;
+    --color-base: 17 17 27;
+    --color-mantle: 24 24 37;
+    --color-crust: 30 30 46;
+    --color-surface0: 49 50 68;
+    --color-surface1: 69 71 90;
+    --color-surface2: 88 91 112;
+    --color-overlay0: 108 112 134;
+    --color-overlay1: 127 132 156;
+    --color-overlay2: 147 153 178;
+    --color-subtext0: 166 173 200;
+    --color-subtext1: 186 194 222;
+    --color-text: 205 214 244;
+  }
+
+  /* Light theme (Catppuccin Frappe) */
+  :root[data-theme="light"] {
+    --color-rosewater: 242 213 207;
+    --color-flamingo: 238 190 190;
+    --color-pink: 244 184 228;
+    --color-mauve: 202 158 230;
+    --color-red: 231 130 132;
+    --color-maroon: 234 153 156;
+    --color-green: 166 209 137;
+    --color-teal: 129 200 190;
+    --color-sky: 153 209 219;
+    --color-sapphire: 133 193 220;
+    --color-blue: 140 170 238;
+    --color-lavender: 186 187 241;
+    --color-base: 239 241 245;
+    --color-mantle: 230 233 239;
+    --color-crust: 220 224 232;
+    --color-surface0: 204 208 218;
+    --color-surface1: 188 192 204;
+    --color-surface2: 165 173 206;
+    --color-overlay0: 156 160 176;
+    --color-overlay1: 140 143 161;
+    --color-overlay2: 124 127 147;
+    --color-subtext0: 108 111 133;
+    --color-subtext1: 92 95 119;
+    --color-text: 76 79 105;
+  }
+
   body {
-    @apply bg-base text-text antialiased;
+    background-color: rgb(var(--color-base));
+    color: rgb(var(--color-text));
+    @apply antialiased;
+    transition: background-color 300ms ease, color 300ms ease;
+  }
+
+  /* Smooth theme transitions */
+  * {
+    transition: background-color 300ms ease, color 300ms ease, border-color 300ms ease;
   }
   
   /* Smooth scrolling for anchor links */

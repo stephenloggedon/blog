@@ -22,8 +22,47 @@ import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 
-// Infinite Scroll Hook
+// Hooks
 let Hooks = {}
+
+// Theme Toggle Hook
+Hooks.ThemeToggle = {
+  mounted() {
+    // Initialize theme from localStorage or default to dark
+    const savedTheme = localStorage.getItem('theme') || 'dark'
+    this.setTheme(savedTheme)
+    
+    // Add click event listener
+    this.el.addEventListener('click', () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark'
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark'
+      this.setTheme(newTheme)
+    })
+  },
+  
+  setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('theme', theme)
+    
+    // Update icon visibility based on theme
+    const sunIcon = this.el.querySelector('.sun-icon')
+    const moonIcon = this.el.querySelector('.moon-icon')
+    
+    if (theme === 'light') {
+      if (sunIcon) sunIcon.classList.add('hidden')
+      if (moonIcon) moonIcon.classList.remove('hidden')
+      this.el.setAttribute('aria-label', 'Switch to dark theme')
+      this.el.setAttribute('title', 'Switch to dark theme')
+    } else {
+      if (sunIcon) sunIcon.classList.remove('hidden')
+      if (moonIcon) moonIcon.classList.add('hidden')
+      this.el.setAttribute('aria-label', 'Switch to light theme')
+      this.el.setAttribute('title', 'Switch to light theme')
+    }
+  }
+}
+
+// Infinite Scroll Hook
 Hooks.InfiniteScroll = {
   mounted() {
     this.pending = false
