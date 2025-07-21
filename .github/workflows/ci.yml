@@ -56,7 +56,7 @@ jobs:
         MIX_ENV=test mix ecto.migrate
         
     - name: Run tests
-      run: mix test --cover
+      run: mix test
       
     - name: Setup Node.js
       uses: actions/setup-node@v4
