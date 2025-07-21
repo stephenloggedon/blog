@@ -322,18 +322,16 @@ defmodule BlogWeb.HomeLive do
                 <h2 class="text-lg font-semibold text-text">Settings</h2>
                 <.theme_toggle id="mobile-theme-toggle" />
               </div>
-              
-    <!-- Mobile Navigation Content (reuse desktop component) -->
-              <div class="[&>nav]:border-0 [&>nav]:h-auto [&>nav]:w-full [&>div]:p-0 [&>div]:border-0">
-                <.content_nav
-                  current_user={assigns[:current_user]}
-                  top_tags={@top_tags}
-                  available_tags={@available_tags}
-                  selected_tags={@selected_tags}
-                  search_query={@search_query}
-                  search_suggestions={@search_suggestions}
-                />
-              </div>
+
+              <!-- Mobile Navigation Content -->
+              <.mobile_content_nav
+                current_user={assigns[:current_user]}
+                top_tags={@top_tags}
+                available_tags={@available_tags}
+                selected_tags={@selected_tags}
+                search_query={@search_query}
+                search_suggestions={@search_suggestions}
+              />
             </div>
           </.mobile_drawer>
         </div>
