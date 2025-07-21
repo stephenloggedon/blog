@@ -224,15 +224,15 @@ defmodule BlogWeb.HomeLive do
 
   def render(assigns) do
     ~H"""
-    <div class="h-screen bg-mantle overflow-hidden">
+    <div class="bg-mantle overflow-hidden" style="height: 100dvh; height: 100vh;">
       <!-- Theme Toggle - Top Right (Desktop only) -->
       <div class="fixed top-6 right-6 z-50 hidden lg:block">
         <.theme_toggle />
       </div>
       
       <!-- Desktop Layout -->
-      <div class="w-full h-full px-8 hidden lg:block">
-        <div class="max-w-6xl mx-auto flex h-full overflow-hidden">
+      <div class="w-full px-8 hidden lg:block" style="height: 100dvh; height: 100vh;">
+        <div class="max-w-6xl mx-auto flex overflow-hidden" style="height: 100dvh; height: 100vh;">
           <!-- Navigation Adjacent to Blog Posts (Desktop) -->
           <.content_nav
             current_user={assigns[:current_user]}
@@ -260,12 +260,13 @@ defmodule BlogWeb.HomeLive do
       </div>
       
       <!-- Mobile Layout -->
-      <div class="w-full h-full lg:hidden">
+      <div id="mobile-layout" class="w-full lg:hidden" style="height: 100dvh; height: 100vh;" phx-hook="MobileScrollFix">
         <!-- Mobile Posts Scroll Area -->
         <main
-          class="h-full overflow-y-auto scrollbar-hide px-4 pb-24"
+          class="overflow-y-auto scrollbar-hide px-4 pb-24 mobile-scroll-container"
           id="mobile-posts-container"
           phx-hook="InfiniteScroll"
+          style="height: 100dvh; height: 100vh;"
         >
           <.posts_content 
             posts={@posts}
