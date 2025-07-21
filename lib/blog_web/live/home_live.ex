@@ -322,8 +322,8 @@ defmodule BlogWeb.HomeLive do
                 <h2 class="text-lg font-semibold text-text">Settings</h2>
                 <.theme_toggle id="mobile-theme-toggle" />
               </div>
-
-              <!-- Mobile Navigation Content -->
+              
+    <!-- Mobile Navigation Content -->
               <.mobile_content_nav
                 current_user={assigns[:current_user]}
                 top_tags={@top_tags}
