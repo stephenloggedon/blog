@@ -4,7 +4,7 @@ defmodule BlogWeb.HomeLive do
 
   def mount(_params, _session, socket) do
     # Determine viewport - in tests, default to desktop for consistent behavior
-    viewport = if Mix.env() == :test, do: "desktop", else: detect_viewport(socket)
+    viewport = detect_viewport(socket)
 
     {:ok,
      socket
