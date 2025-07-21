@@ -106,13 +106,16 @@ defmodule BlogWeb.Api.PostController do
   end
 
   defp parse_metadata(params) do
-    # If metadata is not provided as JSON, extract from direct params
+    # Handle nested post parameters or direct parameters
+    post_params = params["post"] || params
+    
     metadata = %{
-      "title" => params["title"],
-      "content" => params["content"],
-      "tags" => params["tags"] || [],
-      "published" => params["published"] || false,
-      "subtitle" => params["subtitle"]
+      "title" => post_params["title"],
+      "content" => post_params["content"],
+      "slug" => post_params["slug"],
+      "tags" => post_params["tags"] || [],
+      "published" => post_params["published"] || false,
+      "subtitle" => post_params["subtitle"]
     }
 
     {:ok, metadata}
