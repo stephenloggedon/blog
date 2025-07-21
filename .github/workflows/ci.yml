@@ -47,6 +47,9 @@ jobs:
     - name: Run Credo for code analysis
       run: mix credo --strict
       
+    - name: Generate test certificates
+      run: ./scripts/generate_test_certs.sh
+      
     - name: Setup test database
       run: |
         MIX_ENV=test mix ecto.create
