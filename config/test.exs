@@ -39,6 +39,22 @@ config :blog, BlogWeb.Endpoint,
   secret_key_base: "kKEUSeUJ9hKNmBizHeILCVP13lLA3AmLiKvT27ZGMXcLTNeaz7UWrzd/KKTRH85p",
   server: true
 
+config :blog, BlogWeb.ApiEndpoint,
+  https: [
+    ip: {127, 0, 0, 1},
+    port: 4004,
+    cipher_suite: :strong,
+    keyfile: "priv/cert/server/server-key.pem",
+    certfile: "priv/cert/server/server-cert.pem",
+    cacertfile: "priv/cert/ca/ca.pem",
+    verify: :verify_peer,
+    fail_if_no_peer_cert: true,
+    reuse_sessions: false,
+    depth: 2
+  ],
+  secret_key_base: "kKEUSeUJ9hKNmBizHeILCVP13lLA3AmLiKvT27ZGMXcLTNeaz7UWrzd/KKTRH85p",
+  server: true
+
 # Print only warnings and errors during test
 config :logger, level: :warning
 

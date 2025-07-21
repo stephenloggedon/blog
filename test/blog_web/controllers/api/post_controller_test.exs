@@ -68,6 +68,9 @@ defmodule BlogWeb.Api.PostControllerTest do
   end
 
   describe "protected endpoints (require mTLS)" do
+    # Override endpoint for protected tests to use ApiEndpoint
+    @endpoint BlogWeb.ApiEndpoint
+
     test "create endpoint rejects requests without client certificate", %{conn: conn} do
       valid_attrs = %{
         title: "New Post",
