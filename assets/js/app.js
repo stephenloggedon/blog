@@ -33,7 +33,10 @@ Hooks.ThemeToggle = {
     this.setTheme(savedTheme)
     
     // Add click event listener
-    this.el.addEventListener('click', () => {
+    this.el.addEventListener('click', (e) => {
+      // Prevent the click from bubbling up to parent elements (like drawer backdrop)
+      e.stopPropagation()
+      
       const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark'
       const newTheme = currentTheme === 'dark' ? 'light' : 'dark'
       this.setTheme(newTheme)
