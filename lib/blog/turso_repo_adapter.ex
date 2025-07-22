@@ -170,7 +170,7 @@ defmodule Blog.TursoRepoAdapter do
     # Add tag filtering
     {conditions, params} = add_tag_filtering(base_conditions, params, tags)
 
-    # Add search filtering  
+    # Add search filtering
     {conditions, params} = add_search_filtering(conditions, params, search)
 
     # Build final SQL
