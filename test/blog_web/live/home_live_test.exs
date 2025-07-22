@@ -99,7 +99,7 @@ defmodule BlogWeb.HomeLiveTest do
       assert rendered =~ "Web Development"
     end
 
-    test "remove_tag event removes specific tag from selection", %{conn: conn} do
+    test "toggle_tag event removes specific tag from selection", %{conn: conn} do
       # Start with multiple tags selected
       {:ok, view, _html} = live(conn, "/?tags=elixir,web")
 
@@ -109,8 +109,8 @@ defmodule BlogWeb.HomeLiveTest do
       assert rendered =~ "Elixir Patterns"
       assert rendered =~ "Web Development"
 
-      # Remove elixir tag by clicking × on bubble
-      view |> element("button[phx-click='remove_tag'][phx-value-tag='elixir']") |> render_click()
+      # Remove elixir tag by clicking toggle button
+      view |> element("button[phx-click='toggle_tag'][phx-value-tag='elixir']") |> render_click()
 
       # Should only show posts with web tag
       assert_patch(view, "/?tags=web")

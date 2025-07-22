@@ -26,3 +26,14 @@ repos:
         pass_filenames: false
         require_serial: true
         description: "Runs mix credo --strict on staged Elixir files."
+      - id: mix-test
+        name: mix test
+        entry: mix test
+        language: system
+        files: \.(ex|exs)'$
+        types: [file, elixir]
+        stages: [pre-commit]
+        always_run: true
+        pass_filenames: false
+        require_serial: true
+        description: "Runs mix test before committing."
