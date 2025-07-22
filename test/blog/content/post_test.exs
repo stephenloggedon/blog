@@ -28,9 +28,14 @@ defmodule Blog.Content.PostTest do
     end
 
     test "handles multiple links in same content" do
-      content = "Read [part 1](/blog_part_1) and [part 2](./blog_part_2.md) but not [external](https://example.com)."
+      content =
+        "Read [part 1](/blog_part_1) and [part 2](./blog_part_2.md) but not [external](https://example.com)."
+
       result = Post.convert_internal_links(content)
-      expected = "Read [part 1](/blog/blog-part-1) and [part 2](/blog/blog-part-2) but not [external](https://example.com)."
+
+      expected =
+        "Read [part 1](/blog/blog-part-1) and [part 2](/blog/blog-part-2) but not [external](https://example.com)."
+
       assert result == expected
     end
   end

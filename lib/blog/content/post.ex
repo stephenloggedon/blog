@@ -91,11 +91,13 @@ defmodule Blog.Content.Post do
   """
   def generate_slug_from_filename(filename) do
     # Remove numbered prefixes like "02_" and generate slug from the rest
-    cleaned_filename = 
+    cleaned_filename =
       filename
-      |> String.replace(~r/^\d+_/, "")  # Remove leading numbers and underscore
-      |> String.replace("_", " ")       # Convert underscores to spaces
-    
+      # Remove leading numbers and underscore
+      |> String.replace(~r/^\d+_/, "")
+      # Convert underscores to spaces
+      |> String.replace("_", " ")
+
     generate_slug(cleaned_filename)
   end
 
