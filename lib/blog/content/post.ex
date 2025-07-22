@@ -73,10 +73,27 @@ defmodule Blog.Content.Post do
   Returns the first N lines of content for preview.
   """
   def preview_content(content, lines \\ 6) do
-    content
-    |> String.split("\n")
-    |> Enum.take(lines)
-    |> Enum.join("\n")
+    truncated_markdown =
+      content
+      |> String.split("\n")
+      |> Enum.take(lines)
+      |> Enum.join("\n")
+
+    html = Earmark.as_html!(truncated_markdown)
+
+    # Parse the HTML and remove any anchor tags to avoid nested links.
+    # The text content of the links will be preserved.
+    {:ok, parsed_html} = Floki.parse_document(html)
+
+    cleaned_html =
+      parsed_html
+      |> Floki.traverse_and_update(fn
+        {"a", _attrs, children} -> children
+        node -> node
+      end)
+      |> Floki.raw_html()
+
+    Phoenix.HTML.raw(cleaned_html)
   end
 
   defp maybe_generate_slug(changeset) do
