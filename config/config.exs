@@ -21,6 +21,12 @@ config :blog, BlogWeb.Endpoint,
   pubsub_server: Blog.PubSub,
   live_view: [signing_salt: "f7j7b37q"]
 
+config :blog, BlogWeb.ApiEndpoint,
+  render_errors: [
+    formats: [json: BlogWeb.ErrorJSON],
+    layout: false
+  ]
+
 # Configures the mailer
 #
 # By default it uses the "Local" adapter which stores the emails
