@@ -17,6 +17,7 @@ defmodule BlogWeb.ApiRouter do
   scope "/api", BlogWeb.Api do
     pipe_through :api_authenticated
 
+    # Now handles both regular and chunked uploads automatically
     post "/posts", PostController, :create
     put "/posts/:id", PostController, :update
     patch "/posts/:id", PostController, :patch

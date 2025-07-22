@@ -34,6 +34,30 @@ defmodule BlogWeb.Api.PostController do
   end
 
   def create(conn, params) do
+    # Automatically handle both regular and chunked uploads based on content size
+    # Large content (>50KB) is uploaded in chunks to avoid request size limits
+    case detect_upload_type(params) do
+      :chunked ->
+        create_with_chunks(conn, params)
+
+      :regular ->
+        create_regular(conn, params)
+    end
+  end
+
+  defp detect_upload_type(params) do
+    content = get_in(params, ["content"]) || get_in(params, ["post", "content"]) || ""
+    content_size = byte_size(content)
+
+    # If content is very large (>50KB) or if chunks are explicitly provided, use chunked
+    if content_size > 50_000 or Map.has_key?(params, "chunks") do
+      :chunked
+    else
+      :regular
+    end
+  end
+
+  defp create_regular(conn, params) do
     with {:ok, post_params} <- parse_metadata(params),
          {:ok, %Post{} = post} <- Content.create_post(post_params) do
       conn
@@ -52,6 +76,102 @@ defmodule BlogWeb.Api.PostController do
         |> put_status(:bad_request)
         |> render(:error, %{message: format_error(reason)})
     end
+  end
+
+  defp create_with_chunks(conn, params) do
+    {:ok, post_params} = parse_chunked_metadata(params)
+    create_chunked_post_with_content(conn, post_params, params)
+  end
+
+  defp create_chunked_post_with_content(conn, post_params, params) do
+    case Content.create_post(post_params) do
+      {:ok, %Post{} = post} ->
+        handle_chunked_content_upload(conn, post, params)
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> render(:error, changeset: changeset)
+
+      {:error, reason} ->
+        conn
+        |> put_status(:bad_request)
+        |> render(:error, %{message: format_error(reason)})
+    end
+  end
+
+  defp handle_chunked_content_upload(conn, post, params) do
+    content = get_in(params, ["content"]) || get_in(params, ["post", "content"]) || ""
+
+    if content != "" do
+      upload_and_finalize_chunked_post(conn, post, content, params)
+    else
+      conn
+      |> put_status(:created)
+      |> render("show.json", post: post)
+    end
+  end
+
+  defp upload_and_finalize_chunked_post(conn, post, content, params) do
+    case upload_content_in_chunks(post, content) do
+      {:ok, updated_post} ->
+        finalize_chunked_post(conn, updated_post, params)
+
+      {:error, reason} ->
+        conn
+        |> put_status(:bad_request)
+        |> render(:error, %{message: format_error(reason)})
+    end
+  end
+
+  defp finalize_chunked_post(conn, post, params) do
+    published = get_in(params, ["published"]) || get_in(params, ["post", "published"]) || false
+
+    case Content.update_post(post, %{"published" => published}) do
+      {:ok, final_post} ->
+        conn
+        |> put_status(:created)
+        |> render("show.json", post: final_post)
+
+      {:error, reason} ->
+        conn
+        |> put_status(:bad_request)
+        |> render(:error, %{message: format_error(reason)})
+    end
+  end
+
+  defp upload_content_in_chunks(post, content) do
+    # 10KB chunks
+    chunk_size = 10_000
+    chunks = chunk_string(content, chunk_size)
+
+    Enum.reduce_while(chunks, {:ok, post}, fn {chunk, index}, {:ok, current_post} ->
+      # For first chunk, replace placeholder content; for subsequent chunks, append
+      updated_content =
+        if index == 0 do
+          # Replace placeholder content with first chunk
+          chunk
+        else
+          # Append subsequent chunks
+          (current_post.content || "") <> chunk
+        end
+
+      case Content.update_post(current_post, %{"content" => updated_content}) do
+        {:ok, updated_post} ->
+          {:cont, {:ok, updated_post}}
+
+        {:error, reason} ->
+          {:halt, {:error, "Failed at chunk #{index}: #{inspect(reason)}"}}
+      end
+    end)
+  end
+
+  defp chunk_string(string, chunk_size) do
+    string
+    |> String.graphemes()
+    |> Enum.chunk_every(chunk_size)
+    |> Enum.with_index()
+    |> Enum.map(fn {chunk, index} -> {Enum.join(chunk), index} end)
   end
 
   def update(conn, %{"id" => id} = params) do
@@ -190,6 +310,24 @@ defmodule BlogWeb.Api.PostController do
 
   defp parse_integer(value, _default) when is_integer(value), do: value
   defp parse_integer(_, default), do: default
+
+  defp parse_chunked_metadata(params) do
+    # Create post with minimal content initially
+    post_params = params["post"] || params
+
+    metadata = %{
+      "title" => post_params["title"],
+      # Temporary placeholder content
+      "content" => "Draft content - uploading in chunks...",
+      "slug" => post_params["slug"],
+      "tags" => post_params["tags"] || [],
+      # Don't publish until finalized
+      "published" => false,
+      "subtitle" => post_params["subtitle"]
+    }
+
+    {:ok, metadata}
+  end
 
   defp format_error(:invalid_json_metadata), do: "Invalid JSON in metadata field"
   defp format_error({:error, reason}), do: "Error: #{reason}"
