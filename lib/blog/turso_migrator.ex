@@ -200,6 +200,35 @@ defmodule Blog.TursoMigrator do
           ]
         end
 
+      Blog.Repo.Migrations.FixInternalLinksInPosts ->
+        [
+          """
+          UPDATE posts 
+          SET content = REPLACE(REPLACE(REPLACE(content,
+            '](/posts/', '](/blog/'),
+            '](./blog_development)', '](/blog/blog-development)'),
+            '](/blog_development)', '](/blog/blog-development)')
+          WHERE content LIKE '%](/%'
+          """
+        ]
+
+      Blog.Repo.Migrations.FixDevlogInternalLinks ->
+        [
+          """
+          UPDATE posts 
+          SET content = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(content,
+            '](/02_blog_development)', '](/blog/building-a-blog-with-claude-4-an-ai-development-adventure)'),
+            '](/03_blog_development)', '](/blog/the-art-of-polish-when-ai-meets-human-ux-intuition)'),
+            '](/04_blog_development)', '](/blog/when-ai-debugging-meets-real-world-chaos-building-search-that-actually-works)'),
+            '](/05_blog_development)', '](/blog/the-deployment-odyssey-when-ai-promises-meet-platform-reality)'),
+            '](/06_blog_development)', '](/blog/securing-the-recursive-loop-when-ai-builds-mtls-authentication-for-its-own-blog)'),
+            '](/07_blog_development)', '](/blog/the-database-evolution-when-ai-discovers-the-magic-of-distributed-sqlite)'),
+            '](/08_blog_development)', '](/blog/the-dual-endpoint-discovery-when-architecture-decisions-hide-in-production-failures)'),
+            '](/09_blog_development)', '](/blog/the-mobile-revolution-when-ai-discovers-the-power-of-touch-interfaces)')
+          WHERE content LIKE '%](/0%blog_development)%'
+          """
+        ]
+
       _ ->
         []
     end
