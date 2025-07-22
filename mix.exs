@@ -40,7 +40,7 @@ defmodule Blog.MixProject do
       {:phoenix_html, "~> 4.1"},
       {:phoenix_live_reload, "~> 1.5", only: :dev},
       {:phoenix_live_view, "~> 1.0"},
-      {:floki, ">= 0.36.0", only: :test},
+      {:floki, ">= 0.36.0"},
       {:phoenix_live_dashboard, "~> 0.8.6"},
       {:esbuild, "~> 0.8", runtime: Mix.env() != :test},
       {:tailwind, "~> 0.2", runtime: Mix.env() != :test},

@@ -74,9 +74,11 @@ defmodule Blog.Content.Post do
   """
   def preview_content(content, lines \\ 6) do
     content
+    |> Earmark.as_html!()
     |> String.split("\n")
     |> Enum.take(lines)
     |> Enum.join("\n")
+    |> Phoenix.HTML.raw()
   end
 
   defp maybe_generate_slug(changeset) do
