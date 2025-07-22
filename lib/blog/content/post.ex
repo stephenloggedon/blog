@@ -40,6 +40,7 @@ defmodule Blog.Content.Post do
     |> maybe_generate_slug()
     |> maybe_generate_excerpt()
     |> maybe_set_published_at()
+    |> convert_content_links()
     |> parse_tags()
     |> unique_constraint(:slug)
   end
@@ -68,6 +69,35 @@ defmodule Blog.Content.Post do
   end
 
   def render_content(_), do: ""
+
+  @doc """
+  Converts internal markdown file links to proper blog post URLs.
+  Converts patterns like [text](/filename) or [text](./filename.md) to [text](/blog/slug)
+  """
+  def convert_internal_links(content) when is_binary(content) do
+    # Pattern to match markdown links that reference local files
+    # Matches: [text](/filename), [text](./filename.md), [text](filename.md)
+    link_pattern = ~r/\[([^\]]+)\]\(\.?\/?([\w_-]+)(?:\.md)?\)/
+
+    Regex.replace(link_pattern, content, fn _full_match, link_text, filename ->
+      # Convert filename to slug format (same as generate_slug/1)
+      slug = generate_slug_from_filename(filename)
+      "[#{link_text}](/blog/#{slug})"
+    end)
+  end
+
+  @doc """
+  Generates a slug from a filename, converting common patterns.
+  """
+  def generate_slug_from_filename(filename) do
+    # Remove numbered prefixes like "02_" and generate slug from the rest
+    cleaned_filename = 
+      filename
+      |> String.replace(~r/^\d+_/, "")  # Remove leading numbers and underscore
+      |> String.replace("_", " ")       # Convert underscores to spaces
+    
+    generate_slug(cleaned_filename)
+  end
 
   @doc """
   Returns the first N lines of content for preview.
@@ -148,6 +178,20 @@ defmodule Blog.Content.Post do
       put_change(changeset, :published_at, DateTime.utc_now() |> DateTime.truncate(:second))
     else
       changeset
+    end
+  end
+
+  defp convert_content_links(changeset) do
+    case get_change(changeset, :content) do
+      nil ->
+        changeset
+
+      content when is_binary(content) ->
+        converted_content = convert_internal_links(content)
+        put_change(changeset, :content, converted_content)
+
+      _ ->
+        changeset
     end
   end
 
