@@ -155,49 +155,8 @@ defmodule Blog.TursoRepoAdapter do
     error -> {:error, error}
   end
 
-  # Helper functions for common queries
-  def list_published_posts(opts \\ []) do
-    page = Keyword.get(opts, :page, 1)
-    per_page = Keyword.get(opts, :per_page, 10)
-    offset = (page - 1) * per_page
-    tags = Keyword.get(opts, :tags, [])
-    search = Keyword.get(opts, :search)
-
-    # Build base query with published filter
-    base_conditions = ["published = 1", "published_at IS NOT NULL"]
-    params = []
-
-    # Add tag filtering
-    {conditions, params} = add_tag_filtering(base_conditions, params, tags)
-
-    # Add search filtering
-    {conditions, params} = add_search_filtering(conditions, params, search)
-
-    # Build final SQL
-    where_clause = Enum.join(conditions, " AND ")
-
-    sql = """
-    SELECT * FROM posts
-    WHERE #{where_clause}
-    ORDER BY published_at DESC
-    LIMIT ? OFFSET ?
-    """
-
-    final_params = params ++ [per_page, offset]
-
-    case TursoHttpClient.execute(sql, final_params) do
-      {:ok, result} ->
-        posts =
-          Enum.map(result.rows, fn row ->
-            convert_row_to_struct(Post, row, result.columns)
-          end)
-
-        {:ok, posts}
-
-      error ->
-        error
-    end
-  end
+  # Helper functions for common queries - removed list_published_posts/1
+  # to force usage of RepoService.all(ecto_query) path like EctoRepoAdapter
 
   def get_post_by_slug(slug) do
     get_by(Post, slug: slug)
@@ -353,10 +312,25 @@ defmodule Blog.TursoRepoAdapter do
   defp convert_ecto_query_to_sql_with_params(query) do
     # Extract basic components from Ecto query and return SQL with parameters
     case query do
-      %Ecto.Query{from: %{source: {"posts", _}}} ->
-        # Handle posts queries with published filter
-        {"SELECT * FROM posts WHERE published = 1 AND published_at IS NOT NULL ORDER BY published_at DESC",
-         []}
+      %Ecto.Query{
+        from: %{source: {"posts", _}},
+        wheres: wheres,
+        order_bys: order_bys,
+        limit: limit,
+        offset: offset
+      } ->
+        # Handle posts queries with filtering, search, and pagination
+        {where_clause, extracted_params} = convert_posts_where_clauses_with_params(wheres, query)
+        order_clause = convert_posts_order_clauses(order_bys)
+
+        base_sql = "SELECT * FROM posts"
+        sql = if where_clause != "", do: base_sql <> " WHERE " <> where_clause, else: base_sql
+        sql = if order_clause != "", do: sql <> " ORDER BY " <> order_clause, else: sql
+
+        # Add LIMIT and OFFSET
+        {sql, params} = add_limit_offset_to_query(sql, extracted_params, limit, offset)
+
+        {sql, params}
 
       %Ecto.Query{from: %{source: {"images", _}}, wheres: wheres, order_bys: order_bys} = query ->
         # Handle images queries
@@ -410,41 +384,174 @@ defmodule Blog.TursoRepoAdapter do
     end)
   end
 
-  # Helper functions for SQL generation with tag and search filtering
+  # Helper functions for Ecto query conversion
 
-  defp add_tag_filtering(conditions, params, []), do: {conditions, params}
-
-  defp add_tag_filtering(conditions, params, [single_tag]) do
-    # Single tag filtering
-    tag_condition = "tags LIKE ?"
-    tag_param = "%#{single_tag}%"
-    {conditions ++ [tag_condition], params ++ [tag_param]}
+  defp convert_posts_where_clauses_with_params([], _query) do
+    # Default published filter when no specific wheres
+    {"published = 1 AND published_at IS NOT NULL", []}
   end
 
-  defp add_tag_filtering(conditions, params, multiple_tags) when is_list(multiple_tags) do
-    # Multiple tag filtering with OR logic
-    tag_conditions = Enum.map(multiple_tags, fn _tag -> "tags LIKE ?" end)
-    tag_params = Enum.map(multiple_tags, fn tag -> "%#{tag}%" end)
+  defp convert_posts_where_clauses_with_params(wheres, query) do
+    # Process each where clause and extract parameters - don't add base conditions
+    {all_conditions, all_params} =
+      Enum.reduce(wheres, {[], []}, fn where_expr, {conditions, params} ->
+        case convert_single_where_clause(where_expr, query) do
+          {condition, new_params} when condition != "" ->
+            {[condition | conditions], params ++ new_params}
 
-    combined_condition = "(#{Enum.join(tag_conditions, " OR ")})"
-    {conditions ++ [combined_condition], params ++ tag_params}
+          _ ->
+            {conditions, params}
+        end
+      end)
+
+    # If no conditions were converted, add default published filter
+    final_conditions =
+      if all_conditions == [] do
+        ["published = 1", "published_at IS NOT NULL"]
+      else
+        Enum.reverse(all_conditions)
+      end
+
+    where_clause = Enum.join(final_conditions, " AND ")
+    {where_clause, all_params}
   end
 
-  defp add_search_filtering(conditions, params, nil), do: {conditions, params}
-  defp add_search_filtering(conditions, params, ""), do: {conditions, params}
+  defp convert_single_where_clause(%Ecto.Query.BooleanExpr{expr: expr, params: params}, _query) do
+    # Extract parameter values and convert the expression
+    param_values = Enum.map(params, fn {value, _type} -> value end)
+    convert_where_expr_simple(expr, param_values)
+  end
 
-  defp add_search_filtering(conditions, params, search) do
-    clean_search = String.trim(search)
+  # Convert Ecto expressions to SQL
+  defp convert_where_expr_simple(expr, param_values) do
+    case expr do
+      {:like, [], _} -> handle_like_expr(expr, param_values)
+      {:==, [], _} -> handle_equality_expr(expr, param_values)
+      {:not, [], _} -> handle_not_expr(expr, param_values)
+      {:and, [], [left, right]} -> handle_and_expr(left, right, param_values)
+      {:or, [], [left, right]} -> handle_or_expr(left, right, param_values)
+      _ -> handle_fallback_expr(expr, param_values)
+    end
+  end
 
-    if clean_search == "" do
-      {conditions, params}
+  defp handle_like_expr(
+         {:like, [], [{{:., [], [{:&, [], [0]}, :tags]}, [], []}, {:^, [], [0]}]},
+         param_values
+       ) do
+    param_value = List.first(param_values) || ""
+    {"tags LIKE ?", [param_value]}
+  end
+
+  defp handle_like_expr(_, _), do: {"", []}
+
+  defp handle_equality_expr(
+         {:==, [],
+          [{{:., [], [{:&, [], [0]}, :published]}, [], []}, %Ecto.Query.Tagged{value: true}]},
+         _
+       ) do
+    {"published = 1", []}
+  end
+
+  defp handle_equality_expr({:==, [], [{{:., [], [{:&, [], [0]}, :published]}, [], []}, true]}, _) do
+    {"published = 1", []}
+  end
+
+  defp handle_equality_expr(_, _), do: {"", []}
+
+  defp handle_not_expr(
+         {:not, [], [{:is_nil, [], [{{:., [], [{:&, [], [0]}, :published_at]}, [], []}]}]},
+         _
+       ) do
+    {"published_at IS NOT NULL", []}
+  end
+
+  defp handle_not_expr(_, _), do: {"", []}
+
+  defp handle_and_expr(left_expr, right_expr, param_values) do
+    {left_condition, left_params} = convert_where_expr_simple(left_expr, param_values)
+    {right_condition, right_params} = convert_where_expr_simple(right_expr, param_values)
+
+    combine_conditions_with_and(left_condition, left_params, right_condition, right_params)
+  end
+
+  defp combine_conditions_with_and(left_condition, left_params, right_condition, right_params) do
+    cond do
+      left_condition != "" and right_condition != "" ->
+        {"(#{left_condition}) AND (#{right_condition})", left_params ++ right_params}
+
+      left_condition != "" ->
+        {left_condition, left_params}
+
+      right_condition != "" ->
+        {right_condition, right_params}
+
+      true ->
+        {"", []}
+    end
+  end
+
+  defp handle_or_expr(left_expr, right_expr, param_values) do
+    {left_condition, left_params} = convert_where_expr_simple(left_expr, param_values)
+    {right_condition, right_params} = convert_where_expr_simple(right_expr, param_values)
+
+    if left_condition != "" and right_condition != "" do
+      {"(#{left_condition}) OR (#{right_condition})", left_params ++ right_params}
     else
-      search_param = "%#{clean_search}%"
+      {"", []}
+    end
+  end
 
-      search_condition =
-        "(title LIKE ? OR content LIKE ? OR (subtitle IS NOT NULL AND subtitle LIKE ?))"
+  defp handle_fallback_expr(expr, param_values) do
+    expr_str = inspect(expr)
 
-      {conditions ++ [search_condition], params ++ [search_param, search_param, search_param]}
+    if String.contains?(expr_str, ":tags") and String.contains?(expr_str, ":like") do
+      param_value = List.first(param_values) || ""
+      {"tags LIKE ?", [param_value]}
+    else
+      {"", []}
+    end
+  end
+
+  defp convert_posts_order_clauses([]), do: "published_at DESC"
+
+  defp convert_posts_order_clauses(order_bys) do
+    Enum.map_join(order_bys, ", ", fn
+      %{expr: [desc: _]} -> "published_at DESC"
+      %{expr: [asc: _]} -> "published_at ASC"
+      _ -> "published_at DESC"
+    end)
+  end
+
+  defp add_limit_offset_to_query(sql, params, limit, offset) do
+    # Add LIMIT - handle both LimitExpr and QueryExpr
+    {sql_with_limit, params_with_limit} =
+      case limit do
+        %Ecto.Query.LimitExpr{expr: {:^, [], [_]}, params: [{limit_val, _}]} ->
+          {sql <> " LIMIT ?", params ++ [limit_val]}
+
+        %Ecto.Query.QueryExpr{expr: {:^, [], [_]}, params: [{limit_val, _}]} ->
+          {sql <> " LIMIT ?", params ++ [limit_val]}
+
+        %Ecto.Query.LimitExpr{expr: limit_val} when is_integer(limit_val) ->
+          {sql <> " LIMIT ?", params ++ [limit_val]}
+
+        %Ecto.Query.QueryExpr{expr: limit_val} when is_integer(limit_val) ->
+          {sql <> " LIMIT ?", params ++ [limit_val]}
+
+        nil ->
+          {sql, params}
+      end
+
+    # Add OFFSET
+    case offset do
+      %Ecto.Query.QueryExpr{expr: {:^, [], [_]}, params: [{offset_val, _}]} ->
+        {sql_with_limit <> " OFFSET ?", params_with_limit ++ [offset_val]}
+
+      %Ecto.Query.QueryExpr{expr: offset_val} when is_integer(offset_val) ->
+        {sql_with_limit <> " OFFSET ?", params_with_limit ++ [offset_val]}
+
+      nil ->
+        {sql_with_limit, params_with_limit}
     end
   end
 end
