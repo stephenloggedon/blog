@@ -3,7 +3,7 @@ import Config
 # Use local SQLite for development
 config :blog, :repo_adapter, Blog.EctoRepoAdapter
 
-# Configure your database
+# Configure your database (fallback - not used when Turso adapter is active)
 config :blog, Blog.Repo,
   adapter: Ecto.Adapters.SQLite3,
   database: Path.expand("~/.local/share/blog/blog_dev.db"),

@@ -160,15 +160,32 @@ defmodule Blog.TursoRepoAdapter do
     page = Keyword.get(opts, :page, 1)
     per_page = Keyword.get(opts, :per_page, 10)
     offset = (page - 1) * per_page
+    tags = Keyword.get(opts, :tags, [])
+    search = Keyword.get(opts, :search)
+
+    # Build base query with published filter
+    base_conditions = ["published = 1", "published_at IS NOT NULL"]
+    params = []
+
+    # Add tag filtering
+    {conditions, params} = add_tag_filtering(base_conditions, params, tags)
+
+    # Add search filtering  
+    {conditions, params} = add_search_filtering(conditions, params, search)
+
+    # Build final SQL
+    where_clause = Enum.join(conditions, " AND ")
 
     sql = """
     SELECT * FROM posts
-    WHERE published_at IS NOT NULL
+    WHERE #{where_clause}
     ORDER BY published_at DESC
     LIMIT ? OFFSET ?
     """
 
-    case TursoHttpClient.execute(sql, [per_page, offset]) do
+    final_params = params ++ [per_page, offset]
+
+    case TursoHttpClient.execute(sql, final_params) do
       {:ok, result} ->
         posts =
           Enum.map(result.rows, fn row ->
@@ -353,7 +370,8 @@ defmodule Blog.TursoRepoAdapter do
 
       _ ->
         # Fallback for other queries
-        {"SELECT * FROM posts WHERE published_at IS NOT NULL ORDER BY published_at DESC", []}
+        {"SELECT * FROM posts WHERE published = 1 AND published_at IS NOT NULL ORDER BY published_at DESC",
+         []}
     end
   end
 
@@ -390,5 +408,43 @@ defmodule Blog.TursoRepoAdapter do
         # Fallback
         "id ASC"
     end)
+  end
+
+  # Helper functions for SQL generation with tag and search filtering
+
+  defp add_tag_filtering(conditions, params, []), do: {conditions, params}
+
+  defp add_tag_filtering(conditions, params, [single_tag]) do
+    # Single tag filtering
+    tag_condition = "tags LIKE ?"
+    tag_param = "%#{single_tag}%"
+    {conditions ++ [tag_condition], params ++ [tag_param]}
+  end
+
+  defp add_tag_filtering(conditions, params, multiple_tags) when is_list(multiple_tags) do
+    # Multiple tag filtering with OR logic
+    tag_conditions = Enum.map(multiple_tags, fn _tag -> "tags LIKE ?" end)
+    tag_params = Enum.map(multiple_tags, fn tag -> "%#{tag}%" end)
+
+    combined_condition = "(#{Enum.join(tag_conditions, " OR ")})"
+    {conditions ++ [combined_condition], params ++ tag_params}
+  end
+
+  defp add_search_filtering(conditions, params, nil), do: {conditions, params}
+  defp add_search_filtering(conditions, params, ""), do: {conditions, params}
+
+  defp add_search_filtering(conditions, params, search) do
+    clean_search = String.trim(search)
+
+    if clean_search == "" do
+      {conditions, params}
+    else
+      search_param = "%#{clean_search}%"
+
+      search_condition =
+        "(title LIKE ? OR content LIKE ? OR (subtitle IS NOT NULL AND subtitle LIKE ?))"
+
+      {conditions ++ [search_condition], params ++ [search_param, search_param, search_param]}
+    end
   end
 end
