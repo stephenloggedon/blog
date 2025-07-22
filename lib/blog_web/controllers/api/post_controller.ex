@@ -77,6 +77,33 @@ defmodule BlogWeb.Api.PostController do
     end
   end
 
+  def patch(conn, %{"id" => id} = params) do
+    case Content.get_post(id) do
+      nil ->
+        conn
+        |> put_status(:not_found)
+        |> render(:error, %{message: "Post not found"})
+
+      post ->
+        with {:ok, patch_params} <- parse_patch_params(params),
+             {:ok, updated_post} <- Content.update_post(post, patch_params) do
+          conn
+          |> put_status(:ok)
+          |> render(:show, post: updated_post)
+        else
+          {:error, %Ecto.Changeset{} = changeset} ->
+            conn
+            |> put_status(:unprocessable_entity)
+            |> render(:error, changeset: changeset)
+
+          {:error, reason} ->
+            conn
+            |> put_status(:bad_request)
+            |> render(:error, %{message: format_error(reason)})
+        end
+    end
+  end
+
   def delete(conn, %{"id" => id}) do
     case Content.get_post(id) do
       nil ->
@@ -121,6 +148,26 @@ defmodule BlogWeb.Api.PostController do
 
     {:ok, metadata}
   end
+
+  defp parse_patch_params(params) do
+    # Handle nested post parameters or direct parameters
+    post_params = params["post"] || params
+
+    # Only include non-nil values for partial updates
+    patch_data =
+      %{}
+      |> maybe_put("title", post_params["title"])
+      |> maybe_put("content", post_params["content"])
+      |> maybe_put("slug", post_params["slug"])
+      |> maybe_put("tags", post_params["tags"])
+      |> maybe_put("published", post_params["published"])
+      |> maybe_put("subtitle", post_params["subtitle"])
+
+    {:ok, patch_data}
+  end
+
+  defp maybe_put(map, _key, nil), do: map
+  defp maybe_put(map, key, value), do: Map.put(map, key, value)
 
   defp parse_integer(value, default) when is_binary(value) do
     case Integer.parse(value) do

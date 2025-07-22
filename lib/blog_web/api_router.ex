@@ -19,6 +19,7 @@ defmodule BlogWeb.ApiRouter do
 
     post "/posts", PostController, :create
     put "/posts/:id", PostController, :update
+    patch "/posts/:id", PostController, :patch
     delete "/posts/:id", PostController, :delete
 
     # Image upload endpoint
