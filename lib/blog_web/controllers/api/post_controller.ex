@@ -4,6 +4,8 @@ defmodule BlogWeb.Api.PostController do
   alias Blog.Content
   alias Blog.Content.Post
 
+  require Logger
+
   plug :put_view, json: BlogWeb.Api.PostJSON
 
   def index(conn, params) do
@@ -44,6 +46,8 @@ defmodule BlogWeb.Api.PostController do
         |> render(:error, changeset: changeset)
 
       {:error, reason} ->
+        Logger.error("Bad request in create_post: #{inspect(reason)}, params: #{inspect(params)}")
+
         conn
         |> put_status(:bad_request)
         |> render(:error, %{message: format_error(reason)})
@@ -70,6 +74,10 @@ defmodule BlogWeb.Api.PostController do
             |> render(:error, changeset: changeset)
 
           {:error, reason} ->
+            Logger.error(
+              "Bad request in update_post: #{inspect(reason)}, params: #{inspect(params)}"
+            )
+
             conn
             |> put_status(:bad_request)
             |> render(:error, %{message: format_error(reason)})
@@ -97,6 +105,10 @@ defmodule BlogWeb.Api.PostController do
             |> render(:error, changeset: changeset)
 
           {:error, reason} ->
+            Logger.error(
+              "Bad request in patch_post: #{inspect(reason)}, params: #{inspect(params)}"
+            )
+
             conn
             |> put_status(:bad_request)
             |> render(:error, %{message: format_error(reason)})
