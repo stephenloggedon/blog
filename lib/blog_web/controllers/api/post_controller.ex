@@ -180,5 +180,6 @@ defmodule BlogWeb.Api.PostController do
   defp parse_integer(_, default), do: default
 
   defp format_error(:invalid_json_metadata), do: "Invalid JSON in metadata field"
-  defp format_error(reason), do: "Error: #{reason}"
+  defp format_error({:error, reason}), do: "Error: #{reason}"
+  defp format_error(reason), do: "Error: #{inspect(reason)}"
 end
