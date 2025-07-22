@@ -166,6 +166,10 @@
   .prose-catppuccin a {
     @apply text-blue hover:text-lavender transition-colors;
   }
+
+  :root[data-theme="light"] .prose-catppuccin strong {
+    @apply text-text;
+  }
 }
 
 /* Utility to hide scrollbars */
