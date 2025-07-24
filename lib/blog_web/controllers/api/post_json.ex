@@ -25,18 +25,31 @@ defmodule BlogWeb.Api.PostJSON do
     end)
   end
 
+  # Handle both Post structs and maps dynamically
   defp data(%Post{} = post) do
-    %{
-      id: post.id,
-      title: post.title,
-      slug: post.slug,
-      content: post.content,
-      excerpt: post.excerpt,
-      tags: post.tags,
-      published: post.published,
-      published_at: post.published_at,
-      inserted_at: post.inserted_at,
-      updated_at: post.updated_at
-    }
+    post |> Map.from_struct() |> data()
+  end
+
+  defp data(%{} = post_data) do
+    # Only include fields that exist in the post data
+    base_fields = [
+      :id,
+      :title,
+      :slug,
+      :excerpt,
+      :tags,
+      :published,
+      :published_at,
+      :inserted_at,
+      :updated_at
+    ]
+
+    optional_fields = [:content, :subtitle]
+
+    all_fields = base_fields ++ optional_fields
+
+    all_fields
+    |> Enum.filter(&Map.has_key?(post_data, &1))
+    |> Map.new(fn field -> {field, Map.get(post_data, field)} end)
   end
 end

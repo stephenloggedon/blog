@@ -17,6 +17,7 @@ defmodule Blog.Content do
   - `:tags` - List of tags to filter by
   - `:search` - Search term for title/content
   - `:allow_unpublished` - Include unpublished posts (default: false)
+  - `:include_content` - Include full post content (default: false)
 
   ## Examples
 
@@ -40,16 +41,19 @@ defmodule Blog.Content do
     tags = Keyword.get(opts, :tags, [])
     search = Keyword.get(opts, :search)
     allow_unpublished = Keyword.get(opts, :allow_unpublished, false)
+    include_content = Keyword.get(opts, :include_content, false)
 
-    query =
+    # Build base query with conditional content selection
+    base_query =
       if allow_unpublished do
         from(p in Post)
       else
         from(p in Post, where: p.published == true and not is_nil(p.published_at))
       end
 
+    # Always query full structs, then filter fields as needed
     result =
-      query
+      base_query
       |> apply_tag_filter(tags)
       |> apply_search_filter(search)
       |> order_by([p], desc: p.inserted_at)
@@ -61,16 +65,57 @@ defmodule Blog.Content do
         {:error, _} -> []
       end
 
-    # Only add rendered content if this looks like a web request (has pagination/search/tags)
-    if tags != [] or search != nil or page != 1 or per_page != 10 do
-      Enum.map(result, fn post ->
+    # Post-process results based on options
+    result
+    |> maybe_add_rendered_content(include_content, tags, search, page, per_page)
+    |> maybe_filter_fields(opts)
+  rescue
+    _ -> []
+  end
+
+  defp maybe_add_rendered_content(posts, include_content, tags, search, page, per_page) do
+    # Add rendered content only if content is included and this looks like a web request
+    if include_content and (tags != [] or search != nil or page != 1 or per_page != 10) do
+      Enum.map(posts, fn post ->
         %{post | rendered_content: Post.render_content(post)}
       end)
     else
-      result
+      posts
     end
-  rescue
-    _ -> []
+  end
+
+  defp maybe_filter_fields(posts, opts) do
+    exclude_fields = get_excluded_fields(opts)
+
+    # Always convert to maps and filter fields
+    Enum.map(posts, fn post ->
+      exclude_fields_from_struct(post, exclude_fields)
+    end)
+  end
+
+  defp get_excluded_fields(opts) do
+    # Always exclude internal Ecto fields
+    excluded = [:__meta__, :rendered_content, :images]
+
+    excluded =
+      if Keyword.get(opts, :include_content, false), do: excluded, else: [:content | excluded]
+
+    # Future field exclusions can be added here:
+    # excluded = if Keyword.get(opts, :include_images, true), do: excluded, else: [:images | excluded]
+    # excluded = if Keyword.get(opts, :include_metadata, true), do: excluded, else: [:subtitle, :excerpt | excluded]
+
+    excluded
+  end
+
+  defp exclude_fields_from_struct(%Post{} = post, fields) do
+    # Always convert struct to map and remove specified fields
+    post
+    |> Map.from_struct()
+    |> Map.drop(fields)
+  end
+
+  defp exclude_fields_from_struct(post_map, fields) when is_map(post_map) do
+    Map.drop(post_map, fields)
   end
 
   def list_published_posts(opts \\ []) do

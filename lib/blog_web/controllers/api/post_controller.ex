@@ -11,8 +11,15 @@ defmodule BlogWeb.Api.PostController do
   def index(conn, params) do
     page = Map.get(params, "page", 1) |> parse_integer(1)
     per_page = Map.get(params, "per_page", 20) |> parse_integer(20) |> min(100)
+    include_content = Map.get(params, "include_content", "false") |> parse_boolean()
 
-    posts = Content.list_posts_paginated(page, per_page)
+    opts = [
+      page: page,
+      per_page: per_page,
+      include_content: include_content
+    ]
+
+    posts = Content.list_posts(opts)
 
     conn
     |> put_status(:ok)
@@ -310,6 +317,11 @@ defmodule BlogWeb.Api.PostController do
 
   defp parse_integer(value, _default) when is_integer(value), do: value
   defp parse_integer(_, default), do: default
+
+  defp parse_boolean("true"), do: true
+  defp parse_boolean("1"), do: true
+  defp parse_boolean(true), do: true
+  defp parse_boolean(_), do: false
 
   defp parse_chunked_metadata(params) do
     # Create post with minimal content initially

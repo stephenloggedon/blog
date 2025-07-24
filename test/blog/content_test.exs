@@ -18,9 +18,19 @@ defmodule Blog.ContentTest do
       published_at: nil
     }
 
-    test "list_posts/0 returns all posts" do
+    test "list_posts/0 returns all posts without content" do
       post = post_fixture()
-      assert Content.list_posts() == [post]
+
+      expected =
+        post |> Map.from_struct() |> Map.drop([:__meta__, :rendered_content, :images, :content])
+
+      assert Content.list_posts() == [expected]
+    end
+
+    test "list_posts/1 with include_content: true returns posts with content" do
+      post = post_fixture()
+      expected = post |> Map.from_struct() |> Map.drop([:__meta__, :rendered_content, :images])
+      assert Content.list_posts(include_content: true) == [expected]
     end
 
     test "get_post!/1 returns the post with given id" do
