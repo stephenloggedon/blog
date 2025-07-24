@@ -175,7 +175,7 @@ defmodule BlogWeb.Api.PostController do
   end
 
   def update(conn, %{"id" => id} = params) do
-    case Content.get_post(id) do
+    case Content.get_post(id, allow_unpublished: true) do
       nil ->
         conn
         |> put_status(:not_found)
@@ -206,7 +206,7 @@ defmodule BlogWeb.Api.PostController do
   end
 
   def patch(conn, %{"id" => id} = params) do
-    case Content.get_post(id) do
+    case Content.get_post(id, allow_unpublished: true) do
       nil ->
         conn
         |> put_status(:not_found)

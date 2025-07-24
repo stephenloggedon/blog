@@ -9,23 +9,14 @@ defmodule Blog.Content do
   alias Blog.Content.Post
 
   @doc """
-  Returns the list of posts.
+  Returns posts with pagination, filtering, and search support.
 
-  ## Examples
-
-      iex> list_posts()
-      [%Post{}, ...]
-
-  """
-  def list_posts do
-    case RepoService.all(Post) do
-      {:ok, posts} -> posts
-      {:error, _} -> []
-    end
-  end
-
-  @doc """
-  Returns published posts with pagination, filtering, and search support.
+  ## Options
+  - `:page` - Page number (default: 1)
+  - `:per_page` - Posts per page (default: 10)  
+  - `:tags` - List of tags to filter by
+  - `:search` - Search term for title/content
+  - `:allow_unpublished` - Include unpublished posts (default: false)
 
   ## Examples
 
@@ -42,6 +33,46 @@ defmodule Blog.Content do
       [%Post{}, ...]
 
   """
+  def list_posts(opts \\ []) do
+    page = Keyword.get(opts, :page, 1)
+    per_page = Keyword.get(opts, :per_page, 10)
+    offset = (page - 1) * per_page
+    tags = Keyword.get(opts, :tags, [])
+    search = Keyword.get(opts, :search)
+    allow_unpublished = Keyword.get(opts, :allow_unpublished, false)
+
+    query =
+      if allow_unpublished do
+        from(p in Post)
+      else
+        from(p in Post, where: p.published == true and not is_nil(p.published_at))
+      end
+
+    result =
+      query
+      |> apply_tag_filter(tags)
+      |> apply_search_filter(search)
+      |> order_by([p], desc: p.inserted_at)
+      |> limit(^per_page)
+      |> offset(^offset)
+      |> RepoService.all()
+      |> case do
+        {:ok, posts} -> posts
+        {:error, _} -> []
+      end
+
+    # Only add rendered content if this looks like a web request (has pagination/search/tags)
+    if tags != [] or search != nil or page != 1 or per_page != 10 do
+      Enum.map(result, fn post ->
+        %{post | rendered_content: Post.render_content(post)}
+      end)
+    else
+      result
+    end
+  rescue
+    _ -> []
+  end
+
   def list_published_posts(opts \\ []) do
     page = Keyword.get(opts, :page, 1)
     per_page = Keyword.get(opts, :per_page, 10)
@@ -177,8 +208,11 @@ defmodule Blog.Content do
       nil
 
   """
-  def get_post(id) do
+  def get_post(id, opts \\ []) do
+    allow_unpublished = Keyword.get(opts, :allow_unpublished, false)
+
     case RepoService.get(Post, id) do
+      {:ok, post} when allow_unpublished == true -> post
       {:ok, post} when post.published == true and not is_nil(post.published_at) -> post
       _ -> nil
     end
