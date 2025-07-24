@@ -150,6 +150,11 @@
   .prose-catppuccin code {
     @apply bg-surface1 text-text px-2 py-1 rounded text-sm;
   }
+
+  .prose-catppuccin code::before,
+  .prose-catppuccin code::after {
+    content: none;
+  }
   
   .prose-catppuccin pre {
     @apply bg-surface0 border border-surface1 rounded-lg p-4 overflow-x-auto;
