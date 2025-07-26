@@ -97,6 +97,9 @@ defmodule Blog.Content do
     # Always exclude internal Ecto fields
     excluded = [:__meta__, :rendered_content, :images]
 
+    # Always exclude these fields from list API responses
+    excluded = excluded ++ [:excerpt, :inserted_at, :published]
+
     excluded =
       if Keyword.get(opts, :include_content, false), do: excluded, else: [:content | excluded]
 
@@ -108,14 +111,23 @@ defmodule Blog.Content do
   end
 
   defp exclude_fields_from_struct(%Post{} = post, fields) do
-    # Always convert struct to map and remove specified fields
+    # Always convert struct to map, remove specified fields, and filter null values
     post
     |> Map.from_struct()
     |> Map.drop(fields)
+    |> remove_null_values()
   end
 
   defp exclude_fields_from_struct(post_map, fields) when is_map(post_map) do
-    Map.drop(post_map, fields)
+    post_map
+    |> Map.drop(fields)
+    |> remove_null_values()
+  end
+
+  defp remove_null_values(map) do
+    map
+    |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+    |> Map.new()
   end
 
   def list_published_posts(opts \\ []) do

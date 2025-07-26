@@ -31,16 +31,13 @@ defmodule BlogWeb.Api.PostJSON do
   end
 
   defp data(%{} = post_data) do
-    # Only include fields that exist in the post data
+    # Define allowed fields for list API (excludes excerpt, inserted_at, published)
     base_fields = [
       :id,
       :title,
       :slug,
-      :excerpt,
       :tags,
-      :published,
       :published_at,
-      :inserted_at,
       :updated_at
     ]
 
@@ -48,8 +45,10 @@ defmodule BlogWeb.Api.PostJSON do
 
     all_fields = base_fields ++ optional_fields
 
+    # Only include fields that exist in the post data and filter out null values
     all_fields
     |> Enum.filter(&Map.has_key?(post_data, &1))
+    |> Enum.reject(fn field -> is_nil(Map.get(post_data, field)) end)
     |> Map.new(fn field -> {field, Map.get(post_data, field)} end)
   end
 end

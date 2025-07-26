@@ -18,18 +18,37 @@ defmodule Blog.ContentTest do
       published_at: nil
     }
 
-    test "list_posts/0 returns all posts without content" do
+    test "list_posts/0 returns all posts without content and excludes specific fields" do
       post = post_fixture()
 
       expected =
-        post |> Map.from_struct() |> Map.drop([:__meta__, :rendered_content, :images, :content])
+        post
+        |> Map.from_struct()
+        |> Map.drop([
+          :__meta__,
+          :rendered_content,
+          :images,
+          :content,
+          :excerpt,
+          :inserted_at,
+          :published
+        ])
+        |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+        |> Map.new()
 
       assert Content.list_posts() == [expected]
     end
 
-    test "list_posts/1 with include_content: true returns posts with content" do
+    test "list_posts/1 with include_content: true returns posts with content but still excludes specific fields" do
       post = post_fixture()
-      expected = post |> Map.from_struct() |> Map.drop([:__meta__, :rendered_content, :images])
+
+      expected =
+        post
+        |> Map.from_struct()
+        |> Map.drop([:__meta__, :rendered_content, :images, :excerpt, :inserted_at, :published])
+        |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+        |> Map.new()
+
       assert Content.list_posts(include_content: true) == [expected]
     end
 
