@@ -220,3 +220,28 @@ config :opentelemetry, :resource,
   deployment: [
     environment: environment
   ]
+
+# Configure dual logging: human-readable console + structured OTLP
+config :logger,
+  backends: [:console, Blog.OTLPLoggerBackend],
+  level: :info
+
+# Human-readable console logs using default Elixir logger format
+config :logger, :console,
+  format: "$time $metadata[$level] $message\n",
+  metadata: [:request_id]
+
+# Structured logging for OTLP export
+config :logger, Blog.OTLPLoggerBackend,
+  level: :info,
+  metadata: [
+    :request_id,
+    :trace_id,
+    :span_id,
+    :user_id,
+    :remote_ip,
+    :method,
+    :path,
+    :status,
+    :duration
+  ]

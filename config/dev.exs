@@ -82,7 +82,7 @@ config :blog, BlogWeb.Endpoint,
 # Enable dev routes for dashboard
 config :blog, dev_routes: true
 
-# Do not include metadata nor timestamps in development logs
+# Use default Elixir logger format for development console logs
 config :logger, :console, format: "[$level] $message\n"
 
 # Set a higher stacktrace during development. Avoid configuring such
