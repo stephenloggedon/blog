@@ -137,11 +137,16 @@ defmodule Blog.OTLPLoggerBackend do
   defp get_environment do
     case Application.get_env(:blog, :environment) do
       nil ->
-        case Mix.env() do
-          :prod -> "production"
-          :dev -> "development"
-          :test -> "test"
-          env -> to_string(env)
+        # In releases, Mix.env is not available, so determine from other indicators
+        cond do
+          Application.get_env(:blog, BlogWeb.Endpoint)[:server] == true ->
+            "production"
+
+          Code.ensure_loaded?(IEx) ->
+            "development"
+
+          true ->
+            "production"
         end
 
       env ->
