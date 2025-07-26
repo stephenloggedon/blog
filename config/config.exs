@@ -70,9 +70,19 @@ config :logger, :console,
     :path,
     :status,
     :duration,
+    :duration_ms,
+    :query_string,
+    :response_size,
     :params,
     :trace_id,
-    :span_id
+    :span_id,
+    :operation,
+    :error,
+    :post_id,
+    :post_title,
+    :post_slug,
+    :published,
+    :reason
   ]
 
 # Use Jason for JSON parsing in Phoenix

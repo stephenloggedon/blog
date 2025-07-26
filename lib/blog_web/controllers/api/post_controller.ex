@@ -4,8 +4,7 @@ defmodule BlogWeb.Api.PostController do
   alias Blog.Analytics
   alias Blog.Content
   alias Blog.Content.Post
-
-  require Logger
+  alias BlogWeb.LogHelper
 
   plug :put_view, json: BlogWeb.Api.PostJSON
 
@@ -75,6 +74,13 @@ defmodule BlogWeb.Api.PostController do
   defp create_regular(conn, params) do
     with {:ok, post_params} <- parse_metadata(params),
          {:ok, %Post{} = post} <- Content.create_post(post_params) do
+      LogHelper.log_operation_success("create_post", conn,
+        post_id: post.id,
+        post_title: post.title,
+        post_slug: post.slug,
+        published: post.published
+      )
+
       conn
       |> put_status(:created)
       |> render("show.json", post: post)
@@ -85,7 +91,7 @@ defmodule BlogWeb.Api.PostController do
         |> render(:error, changeset: changeset)
 
       {:error, reason} ->
-        Logger.error("Bad request in create_post: #{inspect(reason)}, params: #{inspect(params)}")
+        LogHelper.log_operation_error("create_post", reason, conn)
 
         conn
         |> put_status(:bad_request)
@@ -209,9 +215,7 @@ defmodule BlogWeb.Api.PostController do
             |> render(:error, changeset: changeset)
 
           {:error, reason} ->
-            Logger.error(
-              "Bad request in update_post: #{inspect(reason)}, params: #{inspect(params)}"
-            )
+            LogHelper.log_operation_error("update_post", reason, conn, post_id: id)
 
             conn
             |> put_status(:bad_request)
@@ -240,9 +244,7 @@ defmodule BlogWeb.Api.PostController do
             |> render(:error, changeset: changeset)
 
           {:error, reason} ->
-            Logger.error(
-              "Bad request in patch_post: #{inspect(reason)}, params: #{inspect(params)}"
-            )
+            LogHelper.log_operation_error("patch_post", reason, conn, post_id: id)
 
             conn
             |> put_status(:bad_request)

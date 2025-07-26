@@ -243,5 +243,16 @@ config :logger, Blog.OTLPLoggerBackend,
     :method,
     :path,
     :status,
-    :duration
+    :duration,
+    :duration_ms,
+    :query_string,
+    :response_size,
+    :user_agent,
+    :operation,
+    :error,
+    :post_id,
+    :post_title,
+    :post_slug,
+    :published,
+    :reason
   ]

@@ -93,11 +93,8 @@ defmodule Blog.OTLPLoggerBackend do
   end
 
   defp build_log_record(level, msg, timestamp, metadata) do
-    # Convert timestamp to Unix nanoseconds
-    unix_nano =
-      timestamp
-      |> DateTime.from_unix!(:microsecond)
-      |> DateTime.to_unix(:nanosecond)
+    # Convert timestamp to Unix nanoseconds - handle different timestamp formats
+    unix_nano = convert_timestamp_to_nano(timestamp)
 
     # Build OpenTelemetry log record in JSON format (simplified protobuf representation)
     %{
@@ -210,6 +207,35 @@ defmodule Blog.OTLPLoggerBackend do
 
   defp severity_number(level) do
     Map.get(@severity_map, level, 5)
+  end
+
+  defp convert_timestamp_to_nano(timestamp) do
+    case timestamp do
+      # Erlang datetime tuple format: {{year, month, day}, {hour, minute, second, microsecond}}
+      {{year, month, day}, {hour, minute, second, microsecond}} ->
+        # Convert to DateTime and then to nanoseconds
+        case DateTime.new(
+               Date.new!(year, month, day),
+               Time.new!(hour, minute, second, {microsecond, 6})
+             ) do
+          {:ok, dt} -> DateTime.to_unix(dt, :nanosecond)
+          {:error, _} -> DateTime.utc_now() |> DateTime.to_unix(:nanosecond)
+        end
+
+      # Unix microsecond timestamp (integer)
+      microsecond_timestamp when is_integer(microsecond_timestamp) ->
+        microsecond_timestamp
+        |> DateTime.from_unix!(:microsecond)
+        |> DateTime.to_unix(:nanosecond)
+
+      # Already a DateTime struct
+      %DateTime{} = dt ->
+        DateTime.to_unix(dt, :nanosecond)
+
+      # Fallback: use current time
+      _ ->
+        DateTime.utc_now() |> DateTime.to_unix(:nanosecond)
+    end
   end
 
   defp send_to_otlp(log_record, state) do
