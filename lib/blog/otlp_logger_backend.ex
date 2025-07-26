@@ -74,7 +74,7 @@ defmodule Blog.OTLPLoggerBackend do
   end
 
   defp get_otlp_headers(opts) do
-    base_headers = [{"Content-Type", "application/x-protobuf"}]
+    base_headers = [{"Content-Type", "application/json"}]
 
     case System.get_env("OTEL_EXPORTER_OTLP_HEADERS_AUTHORIZATION") do
       nil ->
@@ -244,24 +244,31 @@ defmodule Blog.OTLPLoggerBackend do
   end
 
   defp send_to_otlp(log_record, state) do
-    endpoint = "#{state.endpoint}/v1/logs"
-    body = Jason.encode!(log_record)
+    if state.endpoint do
+      endpoint = "#{state.endpoint}/v1/logs"
+      body = Jason.encode!(log_record)
 
-    request = Finch.build(:post, endpoint, state.headers, body)
+      request = Finch.build(:post, endpoint, state.headers, body)
 
-    case Finch.request(request, Blog.Finch, receive_timeout: 5_000) do
-      {:ok, %{status: status}} when status in 200..299 ->
-        :ok
+      case Finch.request(request, Blog.Finch, receive_timeout: 5_000) do
+        {:ok, %{status: status}} when status in 200..299 ->
+          :ok
 
-      {:ok, %{status: _status}} ->
-        # Don't log failures to avoid infinite loops
-        :error
+        {:ok, %{status: status}} ->
+          # Log OTLP export failures to console only (avoid infinite loop)
+          IO.puts("OTLP log export failed with status: #{status}")
+          :error
 
-      {:error, _reason} ->
-        :error
+        {:error, reason} ->
+          IO.puts("OTLP log export error: #{inspect(reason)}")
+          :error
+      end
+    else
+      :ok
     end
   rescue
-    _error ->
+    error ->
+      IO.puts("OTLP log export exception: #{inspect(error)}")
       :error
   end
 end
