@@ -182,7 +182,48 @@ defmodule Blog.OTLPLoggerBackend do
   defp format_value(value) when is_binary(value), do: value
   defp format_value(value) when is_atom(value), do: to_string(value)
   defp format_value(value) when is_number(value), do: to_string(value)
-  defp format_value(value), do: inspect(value)
+
+  defp format_value(value) when is_list(value) do
+    # Handle charlists and regular lists safely
+    case List.ascii_printable?(value) do
+      true -> to_string(value)
+      false -> Jason.encode!(value)
+    end
+  rescue
+    _ -> inspect(value, limit: 100, printable_limit: 100)
+  end
+
+  defp format_value(value) when is_tuple(value) do
+    # Convert tuples to JSON-safe format
+    value
+    |> Tuple.to_list()
+    |> Jason.encode!()
+  rescue
+    _ -> inspect(value, limit: 100, printable_limit: 100)
+  end
+
+  defp format_value(value) when is_map(value) do
+    # Ensure maps are JSON-safe
+    Jason.encode!(value)
+  rescue
+    _ -> inspect(value, limit: 100, printable_limit: 100)
+  end
+
+  defp format_value(value) do
+    # Fallback for other types - ensure output is JSON-safe
+    case Jason.encode(value) do
+      {:ok, json_str} ->
+        # Remove outer quotes if it's a simple string
+        case String.starts_with?(json_str, "\"") and String.ends_with?(json_str, "\"") do
+          true -> String.slice(json_str, 1..-2)
+          false -> json_str
+        end
+
+      {:error, _} ->
+        # If JSON encoding fails, use inspect but limit output
+        inspect(value, limit: 100, printable_limit: 100)
+    end
+  end
 
   # OpenTelemetry severity numbers mapping
   @severity_map %{
