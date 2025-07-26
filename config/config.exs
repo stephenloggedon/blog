@@ -82,7 +82,11 @@ config :logger, :console,
     :post_title,
     :post_slug,
     :published,
-    :reason
+    :reason,
+    # Geographic metadata
+    :country,
+    :country_code,
+    :ip_type
   ]
 
 # Use Jason for JSON parsing in Phoenix
@@ -95,6 +99,16 @@ config :blog, BlogWeb.Endpoint, server: true
 
 # Repository adapter configuration
 config :blog, :repo_adapter, Blog.EctoRepoAdapter
+
+# GeoIP configuration (lightweight country-only)
+config :geolix,
+  databases: [
+    %{
+      id: :country,
+      adapter: Geolix.Adapter.MMDB2,
+      source: "priv/geoip/GeoLite2-Country.mmdb"
+    }
+  ]
 
 # OpenTelemetry configuration
 config :opentelemetry,

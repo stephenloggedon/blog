@@ -254,5 +254,9 @@ config :logger, Blog.OTLPLoggerBackend,
     :post_title,
     :post_slug,
     :published,
-    :reason
+    :reason,
+    # Geographic metadata
+    :country,
+    :country_code,
+    :ip_type
   ]

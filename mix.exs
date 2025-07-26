@@ -72,7 +72,10 @@ defmodule Blog.MixProject do
       {:opentelemetry_ecto, "~> 1.2"},
       {:opentelemetry_cowboy, "~> 0.3"},
       # Structured JSON logging
-      {:logger_json, "~> 6.1"}
+      {:logger_json, "~> 6.1"},
+      # GeoIP for geolocation analysis
+      {:geolix, "~> 2.0"},
+      {:geolix_adapter_mmdb2, "~> 0.6.0"}
     ]
   end
 
@@ -102,9 +105,25 @@ defmodule Blog.MixProject do
       blog: [
         include_executables_for: [:unix],
         applications: [runtime_tools: :permanent],
-        steps: [:assemble, &copy_bin_files/1, :tar]
+        steps: [:assemble, &copy_geoip_files/1, &copy_bin_files/1, :tar]
       ]
     ]
+  end
+
+  defp copy_geoip_files(release) do
+    # Copy GeoIP database to release if it exists
+    geoip_source = "priv/geoip"
+
+    if File.exists?(geoip_source) do
+      geoip_dest = Path.join([release.path, "lib", "blog-#{release.version}", "priv", "geoip"])
+      File.mkdir_p!(geoip_dest)
+      File.cp_r!(geoip_source, Path.dirname(geoip_dest))
+      IO.puts("GeoIP database included in release")
+    else
+      IO.puts("GeoIP database not found - geolocation will use fallbacks")
+    end
+
+    release
   end
 
   defp copy_bin_files(release) do

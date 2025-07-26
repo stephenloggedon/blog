@@ -17,6 +17,8 @@ defmodule BlogWeb.Plugs.RequestLogger do
     register_before_send(conn, fn conn ->
       duration = System.monotonic_time() - start_time
       duration_ms = System.convert_time_unit(duration, :native, :millisecond)
+      remote_ip = get_client_ip(conn)
+      geo_data = Blog.GeoIP.lookup_for_logging(remote_ip)
 
       Logger.info("HTTP request completed",
         method: conn.method,
@@ -24,10 +26,14 @@ defmodule BlogWeb.Plugs.RequestLogger do
         status: conn.status,
         duration_ms: duration_ms,
         user_agent: get_user_agent(conn),
-        remote_ip: get_client_ip(conn),
+        remote_ip: remote_ip,
         query_string: conn.query_string,
         response_size: get_response_size(conn),
-        request_id: Logger.metadata()[:request_id]
+        request_id: Logger.metadata()[:request_id],
+        # Geographic data
+        country: geo_data.country,
+        country_code: geo_data.country_code,
+        ip_type: geo_data.ip_type
       )
 
       conn
