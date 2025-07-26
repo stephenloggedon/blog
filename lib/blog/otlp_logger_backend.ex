@@ -244,20 +244,13 @@ defmodule Blog.OTLPLoggerBackend do
   end
 
   defp format_message_with_metadata(msg, metadata) do
-    # Create a structured JSON string that includes both message and metadata
-    structured_data = %{
-      message: to_string(msg),
-      metadata: build_flat_metadata(metadata)
-    }
+    structured_data =
+      metadata
+      |> Enum.reduce(%{message: to_string(msg)}, fn {key, value}, acc ->
+        Map.put(acc, to_string(key), format_value(value))
+      end)
 
     Jason.encode!(structured_data)
-  end
-
-  defp build_flat_metadata(metadata) do
-    metadata
-    |> Enum.reduce(%{}, fn {key, value}, acc ->
-      Map.put(acc, to_string(key), format_value(value))
-    end)
   end
 
   defp send_to_otlp(log_record, state) do
