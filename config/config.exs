@@ -82,9 +82,9 @@ config :opentelemetry,
 
 # OpenTelemetry exporter configuration (will be set in runtime.exs with env vars)
 config :opentelemetry_exporter,
-  otlp_protocol: :grpc,
+  otlp_protocol: :http_protobuf,
   # Placeholder - will be configured in runtime.exs with real Grafana Cloud endpoint
-  otlp_endpoint: "http://localhost:4317",
+  otlp_endpoint: "http://localhost:4318",
   otlp_headers: []
 
 # Resource attributes to identify your service
