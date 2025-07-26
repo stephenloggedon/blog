@@ -7,6 +7,9 @@ defmodule Blog.Application do
 
   @impl true
   def start(_type, _args) do
+    # Initialize OpenTelemetry instrumentation
+    setup_opentelemetry()
+
     children = [
       BlogWeb.Telemetry,
       # Start the Finch HTTP client before TursoRepo
@@ -42,5 +45,22 @@ defmodule Blog.Application do
   def config_change(changed, _new, removed) do
     BlogWeb.Endpoint.config_change(changed, removed)
     :ok
+  end
+
+  # Initialize OpenTelemetry automatic instrumentation
+  defp setup_opentelemetry do
+    # Setup Cowboy (web server) instrumentation
+    :opentelemetry_cowboy.setup()
+
+    # Setup Phoenix instrumentation - includes HTTP requests, LiveView, and router
+    OpentelemetryPhoenix.setup(adapter: :cowboy2)
+
+    # Setup Ecto instrumentation for database queries
+    OpentelemetryEcto.setup([:blog, :repo])
+
+    # Add process propagator for better distributed tracing
+    :application.set_env(:opentelemetry, :processors, [
+      {:otel_batch_processor, %{}}
+    ])
   end
 end

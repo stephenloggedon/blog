@@ -1,6 +1,7 @@
 defmodule BlogWeb.Api.PostController do
   use BlogWeb, :controller
 
+  alias Blog.Analytics
   alias Blog.Content
   alias Blog.Content.Post
 
@@ -21,6 +22,9 @@ defmodule BlogWeb.Api.PostController do
 
     posts = Content.list_posts(opts)
 
+    # Track API usage for analytics
+    Analytics.track_api_usage("/api/posts", "GET", 200, conn)
+
     conn
     |> put_status(:ok)
     |> render(:index, posts: posts)
@@ -34,6 +38,10 @@ defmodule BlogWeb.Api.PostController do
         |> render(:error, %{message: "Post not found"})
 
       post ->
+        # Track individual post API access
+        Analytics.track_api_usage("/api/posts/#{id}", "GET", 200, conn)
+        Analytics.track_post_view(post.id, post.title, post.slug, conn)
+
         conn
         |> put_status(:ok)
         |> render(:show, post: post)

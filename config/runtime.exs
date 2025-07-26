@@ -192,3 +192,31 @@ if config_env() == :prod do
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
 end
+
+# OpenTelemetry configuration for all environments
+# Configure OTLP exporter with Grafana Cloud credentials from environment variables
+if System.get_env("OTEL_EXPORTER_OTLP_ENDPOINT") do
+  config :opentelemetry_exporter,
+    otlp_endpoint: System.get_env("OTEL_EXPORTER_OTLP_ENDPOINT"),
+    otlp_headers: [
+      {"Authorization", "Basic #{System.get_env("OTEL_EXPORTER_OTLP_HEADERS_AUTHORIZATION")}"}
+    ]
+end
+
+# Configure environment-specific attributes
+environment =
+  case config_env() do
+    :prod -> "production"
+    :dev -> "development"
+    :test -> "test"
+    env -> to_string(env)
+  end
+
+config :opentelemetry, :resource,
+  service: [
+    name: "blog",
+    version: "0.1.0"
+  ],
+  deployment: [
+    environment: environment
+  ]

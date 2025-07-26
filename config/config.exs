@@ -73,6 +73,31 @@ config :blog, BlogWeb.Endpoint, server: true
 # Repository adapter configuration
 config :blog, :repo_adapter, Blog.EctoRepoAdapter
 
+# OpenTelemetry configuration
+config :opentelemetry,
+  # Enable batch span processor for better performance
+  span_processor: :batch,
+  # Use OTLP exporter to send data to Grafana Cloud
+  traces_exporter: :otlp
+
+# OpenTelemetry exporter configuration (will be set in runtime.exs with env vars)
+config :opentelemetry_exporter,
+  otlp_protocol: :grpc,
+  # Placeholder - will be configured in runtime.exs with real Grafana Cloud endpoint
+  otlp_endpoint: "http://localhost:4317",
+  otlp_headers: []
+
+# Resource attributes to identify your service
+config :opentelemetry, :resource,
+  service: [
+    name: "blog",
+    version: "0.1.0"
+  ],
+  # Add custom attributes for better filtering
+  deployment: [
+    environment: "production"
+  ]
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

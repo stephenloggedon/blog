@@ -63,7 +63,14 @@ defmodule Blog.MixProject do
       {:credo, "~> 1.7", runtime: false},
       {:live_svelte, "~> 0.13.3"},
       # Image processing
-      {:vix, "~> 0.26"}
+      {:vix, "~> 0.26"},
+      # OpenTelemetry observability
+      {:opentelemetry, "~> 1.5"},
+      {:opentelemetry_api, "~> 1.4"},
+      {:opentelemetry_exporter, "~> 1.8"},
+      {:opentelemetry_phoenix, "~> 2.0"},
+      {:opentelemetry_ecto, "~> 1.2"},
+      {:opentelemetry_cowboy, "~> 0.3"}
     ]
   end
 

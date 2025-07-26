@@ -1,5 +1,6 @@
 defmodule BlogWeb.HomeLive do
   use BlogWeb, :live_view
+  alias Blog.Analytics
   alias Blog.Content
 
   def mount(_params, _session, socket) do
@@ -139,6 +140,9 @@ defmodule BlogWeb.HomeLive do
          search_query not in socket.assigns.selected_tags do
       updated_tags = [search_query | socket.assigns.selected_tags]
 
+      # Track tag selection as search analytics
+      Analytics.track_search("tag:#{search_query}", length(updated_tags))
+
       {:noreply,
        socket
        |> assign(:search_query, "")
@@ -146,6 +150,7 @@ defmodule BlogWeb.HomeLive do
        |> push_patch(to: build_path_with_tags(socket, updated_tags))}
     else
       # Otherwise, treat it as a text search
+      # We'll track actual results in load_posts
       {:noreply,
        socket
        |> assign(:search_suggestions, [])
@@ -193,6 +198,19 @@ defmodule BlogWeb.HomeLive do
     new_posts = Content.list_published_posts(opts)
     all_posts = existing_posts ++ new_posts
     has_more = length(new_posts) == per_page
+
+    # Track search analytics if there's a search query or tags
+    if search_query != "" or selected_tags != [] do
+      search_term =
+        if search_query != "", do: search_query, else: "tags:#{Enum.join(selected_tags, ",")}"
+
+      Analytics.track_search(search_term, length(new_posts))
+    end
+
+    # Track general page view analytics
+    if page == 1 do
+      Analytics.track_page_view("/", "Blog Home")
+    end
 
     assign(socket, posts: all_posts, has_more: has_more)
   end

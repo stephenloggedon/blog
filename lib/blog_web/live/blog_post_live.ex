@@ -1,5 +1,6 @@
 defmodule BlogWeb.BlogPostLive do
   use BlogWeb, :live_view
+  alias Blog.Analytics
   alias Blog.Content
 
   def mount(%{"slug" => slug}, _session, socket) do
@@ -11,6 +12,9 @@ defmodule BlogWeb.BlogPostLive do
          |> redirect(to: "/")}
 
       post ->
+        # Track post view for analytics
+        Analytics.track_post_view(post.id, post.title, post.slug)
+
         {:ok,
          socket
          |> assign(:page_title, post.title)
