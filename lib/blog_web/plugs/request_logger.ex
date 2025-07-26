@@ -26,7 +26,8 @@ defmodule BlogWeb.Plugs.RequestLogger do
         user_agent: get_user_agent(conn),
         remote_ip: get_client_ip(conn),
         query_string: conn.query_string,
-        response_size: get_response_size(conn)
+        response_size: get_response_size(conn),
+        request_id: Logger.metadata()[:request_id]
       )
 
       conn

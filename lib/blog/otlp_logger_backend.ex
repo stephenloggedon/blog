@@ -121,7 +121,7 @@ defmodule Blog.OTLPLoggerBackend do
                   "timeUnixNano" => unix_nano,
                   "severityNumber" => severity_number(level),
                   "severityText" => String.upcase(to_string(level)),
-                  "body" => %{"stringValue" => to_string(msg)},
+                  "body" => %{"stringValue" => format_message_with_metadata(msg, metadata)},
                   "attributes" => build_attributes(metadata),
                   "traceId" => get_trace_id(metadata),
                   "spanId" => get_span_id(metadata)
@@ -241,6 +241,23 @@ defmodule Blog.OTLPLoggerBackend do
       _ ->
         DateTime.utc_now() |> DateTime.to_unix(:nanosecond)
     end
+  end
+
+  defp format_message_with_metadata(msg, metadata) do
+    # Create a structured JSON string that includes both message and metadata
+    structured_data = %{
+      message: to_string(msg),
+      metadata: build_flat_metadata(metadata)
+    }
+
+    Jason.encode!(structured_data)
+  end
+
+  defp build_flat_metadata(metadata) do
+    metadata
+    |> Enum.reduce(%{}, fn {key, value}, acc ->
+      Map.put(acc, to_string(key), format_value(value))
+    end)
   end
 
   defp send_to_otlp(log_record, state) do

@@ -226,7 +226,7 @@ config :logger,
   backends: [:console, Blog.OTLPLoggerBackend],
   level: :info
 
-# Human-readable console logs using default Elixir logger format
+# Human-readable console logs
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
