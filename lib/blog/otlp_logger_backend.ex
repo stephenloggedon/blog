@@ -1,9 +1,9 @@
 defmodule Blog.OTLPLoggerBackend do
   @moduledoc """
-  A custom logger backend that forwards structured logs to Grafana Cloud via OTLP HTTP/protobuf.
+  A custom logger backend that forwards structured logs to Grafana Cloud via OTLP.
 
-  This backend converts Elixir log messages to OpenTelemetry log records and sends them
-  to the configured OTLP endpoint using HTTP/protobuf protocol.
+  This backend converts Elixir log messages to OpenTelemetry log records with 
+  embedded JSON metadata and sends them to the configured OTLP endpoint.
   """
 
   @behaviour :gen_event
@@ -93,10 +93,8 @@ defmodule Blog.OTLPLoggerBackend do
   end
 
   defp build_log_record(level, msg, timestamp, metadata) do
-    # Convert timestamp to Unix nanoseconds - handle different timestamp formats
     unix_nano = convert_timestamp_to_nano(timestamp)
 
-    # Build OpenTelemetry log record in JSON format (simplified protobuf representation)
     %{
       "resourceLogs" => [
         %{
@@ -122,7 +120,6 @@ defmodule Blog.OTLPLoggerBackend do
                   "severityNumber" => severity_number(level),
                   "severityText" => String.upcase(to_string(level)),
                   "body" => %{"stringValue" => format_message_with_metadata(msg, metadata)},
-                  "attributes" => build_attributes(metadata),
                   "traceId" => get_trace_id(metadata),
                   "spanId" => get_span_id(metadata)
                 }
@@ -152,17 +149,6 @@ defmodule Blog.OTLPLoggerBackend do
       env ->
         to_string(env)
     end
-  end
-
-  defp build_attributes(metadata) do
-    metadata
-    |> Enum.filter(fn {key, _value} -> key not in [:trace_id, :span_id] end)
-    |> Enum.map(fn {key, value} ->
-      %{
-        "key" => to_string(key),
-        "value" => %{"stringValue" => format_value(value)}
-      }
-    end)
   end
 
   defp get_trace_id(metadata) do
