@@ -142,6 +142,16 @@ if config_env() == :prod do
     ],
     secret_key_base: secret_key_base
 
+  # Configure GeoIP database path for production release
+  config :geolix,
+    databases: [
+      %{
+        id: :country,
+        adapter: Geolix.Adapter.MMDB2,
+        source: Path.join([Application.app_dir(:blog), "priv", "geoip", "GeoLite2-Country.mmdb"])
+      }
+    ]
+
   # ## SSL Support
   #
   # To get SSL working, you will need to add the `https` key
