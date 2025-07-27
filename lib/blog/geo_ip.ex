@@ -84,7 +84,7 @@ defmodule Blog.GeoIP do
   """
   def available? do
     case Application.get_application(Geolix) do
-      {:ok, _} ->
+      :geolix ->
         try do
           case Geolix.lookup({8, 8, 8, 8}, where: :country) do
             nil -> false
@@ -110,7 +110,7 @@ defmodule Blog.GeoIP do
 
   defp lookup_ip(ip) do
     case Application.get_application(Geolix) do
-      {:ok, _} ->
+      :geolix ->
         try do
           case Geolix.lookup(ip, where: :country) do
             %{country: country_data} when is_map(country_data) ->
