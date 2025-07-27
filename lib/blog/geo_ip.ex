@@ -83,12 +83,20 @@ defmodule Blog.GeoIP do
   Returns whether the GeoIP database is available and configured.
   """
   def available? do
-    case Geolix.lookup({8, 8, 8, 8}, where: :country) do
-      nil -> false
-      _ -> true
+    case Application.get_application(Geolix) do
+      {:ok, _} ->
+        try do
+          case Geolix.lookup({8, 8, 8, 8}, where: :country) do
+            nil -> false
+            _ -> true
+          end
+        rescue
+          _ -> false
+        end
+
+      _ ->
+        false
     end
-  rescue
-    _ -> false
   end
 
   # Private functions
@@ -101,26 +109,40 @@ defmodule Blog.GeoIP do
   end
 
   defp lookup_ip(ip) do
-    case Geolix.lookup(ip, where: :country) do
-      %Geolix.Adapter.MMDB2.Result.Country{country: country_data} ->
-        {:ok,
-         %{
-           country: get_country_name(country_data),
-           country_code: get_country_code(country_data)
-         }}
+    case Application.get_application(Geolix) do
+      {:ok, _} ->
+        try do
+          case Geolix.lookup(ip, where: :country) do
+            %{country: country_data} when is_map(country_data) ->
+              {:ok,
+               %{
+                 country: get_country_name(country_data),
+                 country_code: get_country_code(country_data)
+               }}
 
-      %{country: country_data} ->
-        {:ok,
-         %{
-           country: get_country_name(country_data),
-           country_code: get_country_code(country_data)
-         }}
+            result when is_map(result) ->
+              case Map.get(result, :country) do
+                country_data when is_map(country_data) ->
+                  {:ok,
+                   %{
+                     country: get_country_name(country_data),
+                     country_code: get_country_code(country_data)
+                   }}
+
+                _ ->
+                  {:error, :not_found}
+              end
+
+            _ ->
+              {:error, :not_found}
+          end
+        rescue
+          _ -> {:error, :lookup_failed}
+        end
 
       _ ->
-        {:error, :not_found}
+        {:error, :geolix_not_available}
     end
-  rescue
-    _ -> {:error, :lookup_failed}
   end
 
   defp get_country_name(%{names: names}) when is_map(names) do
