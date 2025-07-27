@@ -1,14 +1,125 @@
 {
   "annotations": {
-    "list": []
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
   },
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": null,
+  "id": 0,
   "links": [],
-  "liveNow": false,
   "panels": [
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "grafanacloud-logs"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.0-16426244399",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate({service_name=\"blog\"} | json [1h]))",
+          "legendFormat": "Hourly Traffic",
+          "queryType": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Hourly Traffic Pattern",
+      "type": "timeseries"
+    },
     {
       "datasource": {
         "type": "loki",
@@ -23,7 +134,8 @@
             "hideFrom": {
               "legend": false,
               "tooltip": false,
-              "vis": false
+              "vis": false,
+              "viz": false
             }
           },
           "mappings": [],
@@ -35,16 +147,21 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 0
+        "y": 8
       },
       "id": 1,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": [
+            "mean",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "right",
           "showLegend": true,
-          "values": ["value"]
+          "values": [
+            "value"
+          ]
         },
         "pieType": "pie",
         "reduceOptions": {
@@ -55,10 +172,12 @@
           "values": false
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.1.0-16426244399",
       "targets": [
         {
           "datasource": {
@@ -85,348 +204,21 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "vis": false
-            }
-          },
-          "mappings": [],
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 0
-      },
-      "id": 2,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true,
-          "values": ["value"]
-        },
-        "pieType": "donut",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "sum(count_over_time({service_name=\"blog\"} | json | user_agent =~ \".*iPhone.*Safari.*\" and user_agent !~ \".*Chrome.*\" [24h]))",
-          "queryType": "",
-          "refId": "A",
-          "legendFormat": "iPhone Safari"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "sum(count_over_time({service_name=\"blog\"} | json | user_agent =~ \".*iPhone.*Chrome.*\" [24h]))",
-          "queryType": "",
-          "refId": "B",
-          "legendFormat": "iPhone Chrome"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "sum(count_over_time({service_name=\"blog\"} | json | user_agent =~ \".*Macintosh.*Safari.*\" and user_agent !~ \".*Chrome.*\" [24h]))",
-          "queryType": "",
-          "refId": "C",
-          "legendFormat": "Mac Safari"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "sum(count_over_time({service_name=\"blog\"} | json | user_agent =~ \".*Macintosh.*Chrome.*\" [24h]))",
-          "queryType": "",
-          "refId": "D",
-          "legendFormat": "Mac Chrome"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "sum(count_over_time({service_name=\"blog\"} | json | user_agent =~ \".*Android.*Chrome.*\" [24h]))",
-          "queryType": "",
-          "refId": "E",
-          "legendFormat": "Android Chrome"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "sum(count_over_time({service_name=\"blog\"} | json | user_agent =~ \".*Firefox.*\" [24h]))",
-          "queryType": "",
-          "refId": "F",
-          "legendFormat": "Firefox"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "sum(count_over_time({service_name=\"blog\"} | json | user_agent = \"\" or user_agent = \"unknown\" [24h]))",
-          "queryType": "",
-          "refId": "G",
-          "legendFormat": "No User Agent"
-        }
-      ],
-      "title": "Browser & Platform Distribution",
-      "type": "piechart"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "grafanacloud-logs"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "vis": false
-            }
-          },
-          "mappings": [],
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 8
-      },
-      "id": 15,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true,
-          "values": ["value"]
-        },
-        "pieType": "pie",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "topk(10, sum by (path) (count_over_time({service_name=\"blog\"} | json | user_agent = \"\" or user_agent = \"unknown\" [24h])))",
-          "queryType": "",
-          "refId": "A",
-          "legendFormat": "{{path}}"
-        }
-      ],
-      "title": "No User Agent Traffic - Top Paths",
-      "type": "piechart"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "grafanacloud-logs"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "vis": false
-            }
-          },
-          "mappings": [],
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 16
-      },
-      "id": 16,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true,
-          "values": ["value"]
-        },
-        "pieType": "donut",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "sum by (status) (count_over_time({service_name=\"blog\"} | json | user_agent = \"\" or user_agent = \"unknown\" [24h]))",
-          "queryType": "",
-          "refId": "A",
-          "legendFormat": "{{status}}"
-        }
-      ],
-      "title": "No User Agent Traffic - Status Codes",
-      "type": "piechart"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "grafanacloud-logs"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "vis": false
-            }
-          },
-          "mappings": [],
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 16
-      },
-      "id": 17,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true,
-          "values": ["value"]
-        },
-        "pieType": "donut",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "topk(5, sum by (remote_ip) (count_over_time({service_name=\"blog\"} | json | user_agent = \"\" or user_agent = \"unknown\" [24h])))",
-          "queryType": "",
-          "refId": "A",
-          "legendFormat": "{{remote_ip}}"
-        }
-      ],
-      "title": "No User Agent Traffic - Top IPs",
-      "type": "piechart"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "grafanacloud-logs"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
             "axisBorderShow": false,
+            "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
-              "vis": false
+              "vis": false,
+              "viz": false
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
@@ -451,145 +243,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "reqps"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 8
-      },
-      "id": 18,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate({service_name=\"blog\"} | json | user_agent =~ \".*Chrome.*\" and user_agent !~ \".*bot.*|.*crawler.*\" [1h]))",
-          "queryType": "",
-          "refId": "A",
-          "legendFormat": "Chrome Users"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate({service_name=\"blog\"} | json | user_agent =~ \".*Safari.*\" and user_agent !~ \".*Chrome.*|.*bot.*|.*crawler.*\" [1h]))",
-          "queryType": "",
-          "refId": "B",
-          "legendFormat": "Safari Users"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate({service_name=\"blog\"} | json | user_agent =~ \".*Firefox.*\" and user_agent !~ \".*bot.*|.*crawler.*\" [1h]))",
-          "queryType": "",
-          "refId": "C",
-          "legendFormat": "Firefox Users"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate({service_name=\"blog\"} | json | user_agent =~ \".*bot.*|.*crawler.*|.*spider.*\" [1h]))",
-          "queryType": "",
-          "refId": "D",
-          "legendFormat": "Bots/Crawlers"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate({service_name=\"blog\"} | json | user_agent = \"\" or user_agent = \"unknown\" [1h]))",
-          "queryType": "",
-          "refId": "E",
-          "legendFormat": "No User Agent"
-        }
-      ],
-      "title": "Activity by User Agent Type",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "grafanacloud-logs"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "vis": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "red",
@@ -616,10 +270,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.1.0-16426244399",
       "targets": [
         {
           "datasource": {
@@ -628,9 +284,9 @@
           },
           "editorMode": "code",
           "expr": "sum(rate({service_name=\"blog\"} | json | user_agent =~ \".*Mobile.*|.*iPhone.*|.*Android.*\" and user_agent !~ \".*bot.*|.*crawler.*\" and path =~ \"/blog/.*\" [1h]))",
+          "legendFormat": "Mobile - Blog Posts",
           "queryType": "",
-          "refId": "A",
-          "legendFormat": "Mobile - Blog Posts"
+          "refId": "A"
         },
         {
           "datasource": {
@@ -639,9 +295,9 @@
           },
           "editorMode": "code",
           "expr": "sum(rate({service_name=\"blog\"} | json | user_agent !~ \".*Mobile.*|.*iPhone.*|.*Android.*|.*bot.*|.*crawler.*\" and user_agent != \"\" and path =~ \"/blog/.*\" [1h]))",
+          "legendFormat": "Desktop - Blog Posts",
           "queryType": "",
-          "refId": "B",
-          "legendFormat": "Desktop - Blog Posts"
+          "refId": "B"
         },
         {
           "datasource": {
@@ -650,9 +306,9 @@
           },
           "editorMode": "code",
           "expr": "sum(rate({service_name=\"blog\"} | json | user_agent =~ \".*Mobile.*|.*iPhone.*|.*Android.*\" and user_agent !~ \".*bot.*|.*crawler.*\" and path = \"/\" [1h]))",
+          "legendFormat": "Mobile - Homepage",
           "queryType": "",
-          "refId": "C",
-          "legendFormat": "Mobile - Homepage"
+          "refId": "C"
         },
         {
           "datasource": {
@@ -661,9 +317,9 @@
           },
           "editorMode": "code",
           "expr": "sum(rate({service_name=\"blog\"} | json | user_agent !~ \".*Mobile.*|.*iPhone.*|.*Android.*|.*bot.*|.*crawler.*\" and user_agent != \"\" and path = \"/\" [1h]))",
+          "legendFormat": "Desktop - Homepage",
           "queryType": "",
-          "refId": "D",
-          "legendFormat": "Desktop - Homepage"
+          "refId": "D"
         }
       ],
       "title": "Mobile vs Desktop Activity",
@@ -680,18 +336,314 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false,
+              "viz": false
+            }
+          },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 0,
+        "y": 16
+      },
+      "id": 15,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value"
+          ]
+        },
+        "pieType": "pie",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.0-16426244399",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "topk(10, sum by (path) (count_over_time({service_name=\"blog\"} | json | user_agent = \"\" or user_agent = \"unknown\" [1h])))",
+          "legendFormat": "{{path}}",
+          "queryType": "",
+          "refId": "A"
+        }
+      ],
+      "title": "No User Agent Traffic - Top Paths",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "grafanacloud-logs"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false,
+              "viz": false
+            }
+          },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 6,
+        "y": 16
+      },
+      "id": 2,
+      "options": {
+        "displayLabels": [
+          "percent"
+        ],
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": true,
+          "values": []
+        },
+        "pieType": "pie",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.0-16426244399",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "sum(count_over_time({service_name=\"blog\"} | json | user_agent =~ \".*iPhone.*Safari.*\" and user_agent !~ \".*Chrome.*\" [24h]))",
+          "legendFormat": "iPhone Safari",
+          "queryType": "",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "sum(count_over_time({service_name=\"blog\"} | json | user_agent =~ \".*iPhone.*Chrome.*\" [24h]))",
+          "legendFormat": "iPhone Chrome",
+          "queryType": "",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "sum(count_over_time({service_name=\"blog\"} | json | user_agent =~ \".*Macintosh.*Safari.*\" and user_agent !~ \".*Chrome.*\" [24h]))",
+          "legendFormat": "Mac Safari",
+          "queryType": "",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "sum(count_over_time({service_name=\"blog\"} | json | user_agent =~ \".*Macintosh.*Chrome.*\" [24h]))",
+          "legendFormat": "Mac Chrome",
+          "queryType": "",
+          "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "sum(count_over_time({service_name=\"blog\"} | json | user_agent =~ \".*Android.*Chrome.*\" [24h]))",
+          "legendFormat": "Android Chrome",
+          "queryType": "",
+          "refId": "E"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "sum(count_over_time({service_name=\"blog\"} | json | user_agent =~ \".*Firefox.*\" [24h]))",
+          "legendFormat": "Firefox",
+          "queryType": "",
+          "refId": "F"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "sum(count_over_time({service_name=\"blog\"} | json | user_agent = \"\" or user_agent = \"unknown\" [24h]))",
+          "legendFormat": "No User Agent",
+          "queryType": "",
+          "refId": "G"
+        }
+      ],
+      "title": "Browser & Platform Distribution",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "grafanacloud-logs"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "id": 4,
+      "options": {
+        "displayMode": "basic",
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "pluginVersion": "12.1.0-16426244399",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "topk(10, sum by (remote_ip) (count_over_time({service_name=\"blog\"} | json | remote_ip != \"\" [24h])))",
+          "legendFormat": "{{remote_ip}}",
+          "queryType": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Top 10 Visitor IPs",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "grafanacloud-logs"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
             "axisBorderShow": false,
+            "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
-              "vis": false
+              "vis": false,
+              "viz": false
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
@@ -716,7 +668,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "red",
@@ -732,9 +684,9 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 16
+        "y": 24
       },
-      "id": 3,
+      "id": 18,
       "options": {
         "legend": {
           "calcs": [],
@@ -743,10 +695,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.1.0-16426244399",
       "targets": [
         {
           "datasource": {
@@ -754,10 +708,10 @@
             "uid": "grafanacloud-logs"
           },
           "editorMode": "code",
-          "expr": "sum(rate({service_name=\"blog\"} | json | path =~ \"/blog/.*\" [1h]))",
+          "expr": "sum(rate({service_name=\"blog\"} | json | user_agent =~ \".*Chrome.*\" and user_agent !~ \".*bot.*|.*crawler.*\" [1h]))",
+          "legendFormat": "Chrome Users",
           "queryType": "",
-          "refId": "A",
-          "legendFormat": "Blog Posts"
+          "refId": "A"
         },
         {
           "datasource": {
@@ -765,10 +719,10 @@
             "uid": "grafanacloud-logs"
           },
           "editorMode": "code",
-          "expr": "sum(rate({service_name=\"blog\"} | json | path = \"/\" [1h]))",
+          "expr": "sum(rate({service_name=\"blog\"} | json | user_agent =~ \".*Safari.*\" and user_agent !~ \".*Chrome.*|.*bot.*|.*crawler.*\" [1h]))",
+          "legendFormat": "Safari Users",
           "queryType": "",
-          "refId": "B",
-          "legendFormat": "Homepage"
+          "refId": "B"
         },
         {
           "datasource": {
@@ -776,13 +730,35 @@
             "uid": "grafanacloud-logs"
           },
           "editorMode": "code",
-          "expr": "sum(rate({service_name=\"blog\"} | json | path =~ \"/api/.*\" [1h]))",
+          "expr": "sum(rate({service_name=\"blog\"} | json | user_agent =~ \".*Firefox.*\" and user_agent !~ \".*bot.*|.*crawler.*\" [1h]))",
+          "legendFormat": "Firefox Users",
           "queryType": "",
-          "refId": "C",
-          "legendFormat": "API"
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate({service_name=\"blog\"} | json | user_agent =~ \".*bot.*|.*crawler.*|.*spider.*\" [1h]))",
+          "legendFormat": "Bots/Crawlers",
+          "queryType": "",
+          "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate({service_name=\"blog\"} | json | user_agent = \"\" or user_agent = \"unknown\" [1h]))",
+          "legendFormat": "No User Agent",
+          "queryType": "",
+          "refId": "E"
         }
       ],
-      "title": "Overall User Activity Over Time",
+      "title": "Activity by User Agent Type",
       "type": "timeseries"
     },
     {
@@ -799,7 +775,8 @@
             "hideFrom": {
               "legend": false,
               "tooltip": false,
-              "vis": false
+              "vis": false,
+              "viz": false
             }
           },
           "mappings": [],
@@ -811,16 +788,18 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 16
+        "y": 24
       },
-      "id": 20,
+      "id": 17,
       "options": {
         "legend": {
           "calcs": [],
           "displayMode": "table",
           "placement": "right",
           "showLegend": true,
-          "values": ["value"]
+          "values": [
+            "value"
+          ]
         },
         "pieType": "donut",
         "reduceOptions": {
@@ -831,10 +810,154 @@
           "values": false
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.1.0-16426244399",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "editorMode": "code",
+          "expr": "topk(5, sum by (remote_ip) (count_over_time({service_name=\"blog\"} | json | user_agent = \"\" or user_agent = \"unknown\" [24h])))",
+          "legendFormat": "{{remote_ip}}",
+          "queryType": "",
+          "refId": "A"
+        }
+      ],
+      "title": "No User Agent Traffic - Top IPs",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "grafanacloud-logs"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false,
+              "viz": false
+            }
+          },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 32
+      },
+      "id": 16,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value"
+          ]
+        },
+        "pieType": "donut",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.0-16426244399",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "editorMode": "code",
+          "expr": "sum by (status) (count_over_time({service_name=\"blog\"} | json | user_agent = \"\" or user_agent = \"unknown\" [24h]))",
+          "legendFormat": "{{status}}",
+          "queryType": "",
+          "refId": "A"
+        }
+      ],
+      "title": "No User Agent Traffic - Status Codes",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "grafanacloud-logs"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false,
+              "viz": false
+            }
+          },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 32
+      },
+      "id": 20,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value"
+          ]
+        },
+        "pieType": "donut",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.0-16426244399",
       "targets": [
         {
           "datasource": {
@@ -843,9 +966,9 @@
           },
           "editorMode": "code",
           "expr": "topk(5, sum by (path) (count_over_time({service_name=\"blog\"} | json | user_agent =~ \".*Chrome.*\" and user_agent !~ \".*bot.*|.*crawler.*\" and path =~ \"/blog/.*\" [24h])))",
+          "legendFormat": "{{path}}",
           "queryType": "",
-          "refId": "A",
-          "legendFormat": "{{path}}"
+          "refId": "A"
         }
       ],
       "title": "Top Blog Posts - Chrome Users",
@@ -863,199 +986,20 @@
           },
           "custom": {
             "axisBorderShow": false,
+            "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
-            "drawStyle": "bars",
-            "fillOpacity": 80,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "vis": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "normal"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 24
-      },
-      "id": 21,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "sum by (path) (count_over_time({service_name=\"blog\"} | json | user_agent =~ \".*Chrome.*\" and user_agent !~ \".*bot.*|.*crawler.*\" and path =~ \"/blog/.*\" [1h]))",
-          "queryType": "",
-          "refId": "A",
-          "legendFormat": "Chrome Users"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "sum by (path) (count_over_time({service_name=\"blog\"} | json | user_agent =~ \".*Safari.*\" and user_agent !~ \".*Chrome.*|.*bot.*|.*crawler.*\" and path =~ \"/blog/.*\" [1h]))",
-          "queryType": "",
-          "refId": "B",
-          "legendFormat": "Safari Users"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "sum by (path) (count_over_time({service_name=\"blog\"} | json | user_agent =~ \".*Firefox.*\" and user_agent !~ \".*bot.*|.*crawler.*\" and path =~ \"/blog/.*\" [1h]))",
-          "queryType": "",
-          "refId": "C",
-          "legendFormat": "Firefox Users"
-        }
-      ],
-      "title": "Blog Post Popularity by Browser",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "grafanacloud-logs"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "vis": false
-            }
-          },
-          "mappings": [],
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 32
-      },
-      "id": 22,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true,
-          "values": ["value"]
-        },
-        "pieType": "pie",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "topk(10, sum by (remote_ip) (count_over_time({service_name=\"blog\"} | json | remote_ip != \"\" and user_agent !~ \".*bot.*|.*crawler.*|.*spider.*\" [24h])))",
-          "queryType": "",
-          "refId": "A",
-          "legendFormat": "{{remote_ip}}"
-        }
-      ],
-      "title": "Top Visitor Locations (by IP)",
-      "type": "piechart"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "grafanacloud-logs"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
-              "vis": false
+              "vis": false,
+              "viz": false
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
@@ -1080,7 +1024,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "red",
@@ -1095,10 +1039,10 @@
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 32
+        "x": 0,
+        "y": 40
       },
-      "id": 23,
+      "id": 3,
       "options": {
         "legend": {
           "calcs": [],
@@ -1107,10 +1051,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.1.0-16426244399",
       "targets": [
         {
           "datasource": {
@@ -1118,10 +1064,10 @@
             "uid": "grafanacloud-logs"
           },
           "editorMode": "code",
-          "expr": "sum(rate({service_name=\"blog\"} | json | remote_ip =~ \"^192\\.168\\..*|^10\\..*|^172\\.(1[6-9]|2[0-9]|3[01])\\..*\" and user_agent !~ \".*bot.*|.*crawler.*\" [1h]))",
+          "expr": "sum(rate({service_name=\"blog\"} | json | path =~ \"/blog/.*\" [1h]))",
+          "legendFormat": "Blog Posts",
           "queryType": "",
-          "refId": "A",
-          "legendFormat": "Private/Local IPs"
+          "refId": "A"
         },
         {
           "datasource": {
@@ -1129,10 +1075,10 @@
             "uid": "grafanacloud-logs"
           },
           "editorMode": "code",
-          "expr": "sum(rate({service_name=\"blog\"} | json | remote_ip =~ \"^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$\" and remote_ip !~ \"^192\\.168\\..*|^10\\..*|^172\\.(1[6-9]|2[0-9]|3[01])\\..*\" and user_agent !~ \".*bot.*|.*crawler.*\" [1h]))",
+          "expr": "sum(rate({service_name=\"blog\"} | json | path = \"/\" [1h]))",
+          "legendFormat": "Homepage",
           "queryType": "",
-          "refId": "B",
-          "legendFormat": "Public IPv4"
+          "refId": "B"
         },
         {
           "datasource": {
@@ -1140,107 +1086,13 @@
             "uid": "grafanacloud-logs"
           },
           "editorMode": "code",
-          "expr": "sum(rate({service_name=\"blog\"} | json | remote_ip =~ \".*:.*\" and user_agent !~ \".*bot.*|.*crawler.*\" [1h]))",
+          "expr": "sum(rate({service_name=\"blog\"} | json | path =~ \"/api/.*\" [1h]))",
+          "legendFormat": "API",
           "queryType": "",
-          "refId": "C",
-          "legendFormat": "IPv6"
+          "refId": "C"
         }
       ],
-      "title": "Traffic by IP Type",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "grafanacloud-logs"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "vis": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 40
-      },
-      "id": 24,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "sum by (remote_ip) (count_over_time({service_name=\"blog\"} | json | remote_ip != \"\" and user_agent !~ \".*bot.*|.*crawler.*\" and path =~ \"/blog/.*\" [1h]))",
-          "queryType": "",
-          "refId": "A",
-          "legendFormat": "{{remote_ip}} - Blog Posts"
-        }
-      ],
-      "title": "Unique Visitor Engagement by Location (IP)",
+      "title": "Overall User Activity Over Time",
       "type": "timeseries"
     },
     {
@@ -1259,157 +1111,15 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "yellow",
-                "value": 5
+                "value": 100
               },
               {
                 "color": "red",
-                "value": 20
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 0,
-        "y": 48
-      },
-      "id": 25,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "10.2.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "count by (remote_ip) (count_over_time({service_name=\"blog\"} | json | remote_ip != \"\" and user_agent !~ \".*bot.*|.*crawler.*\" [24h]))",
-          "queryType": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Unique Geographic Locations",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "grafanacloud-logs"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 10
-              },
-              {
-                "color": "red",
-                "value": 50
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 6,
-        "y": 48
-      },
-      "id": 26,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "10.2.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "count(count by (remote_ip) (count_over_time({service_name=\"blog\"} | json | remote_ip =~ \"^192\\.168\\..*|^10\\..*|^172\\.(1[6-9]|2[0-9]|3[01])\\..*\" and user_agent !~ \".*bot.*|.*crawler.*\" [24h]))) / count(count by (remote_ip) (count_over_time({service_name=\"blog\"} | json | remote_ip != \"\" and user_agent !~ \".*bot.*|.*crawler.*\" [24h]))) * 100",
-          "queryType": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Local/Private IP %",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "grafanacloud-logs"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 2
-              },
-              {
-                "color": "red",
-                "value": 10
+                "value": 500
               }
             ]
           },
@@ -1421,14 +1131,15 @@
         "h": 4,
         "w": 6,
         "x": 12,
-        "y": 48
+        "y": 40
       },
-      "id": 27,
+      "id": 7,
       "options": {
         "colorMode": "value",
-        "graphMode": "area",
+        "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -1440,20 +1151,21 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.2.0",
+      "pluginVersion": "12.1.0-16426244399",
       "targets": [
         {
           "datasource": {
             "type": "loki",
             "uid": "grafanacloud-logs"
           },
+          "direction": "backward",
           "editorMode": "code",
-          "expr": "avg(count by (remote_ip) (count_over_time({service_name=\"blog\"} | json | remote_ip != \"\" and user_agent !~ \".*bot.*|.*crawler.*\" [24h])))",
+          "expr": "sum(count_over_time({service_name=\"blog\"} | json | path =~ \"/blog/.*\" [24h]))",
           "queryType": "",
           "refId": "A"
         }
       ],
-      "title": "Avg Sessions per Location",
+      "title": "Blog Post Views (24h)",
       "type": "stat"
     },
     {
@@ -1472,19 +1184,19 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "yellow",
-                "value": 5
+                "value": 50
               },
               {
                 "color": "red",
-                "value": 20
+                "value": 200
               }
             ]
           },
-          "unit": "percent"
+          "unit": "short"
         },
         "overrides": []
       },
@@ -1492,14 +1204,15 @@
         "h": 4,
         "w": 6,
         "x": 18,
-        "y": 48
+        "y": 40
       },
-      "id": 28,
+      "id": 8,
       "options": {
         "colorMode": "value",
-        "graphMode": "area",
+        "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -1511,157 +1224,21 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.2.0",
+      "pluginVersion": "12.1.0-16426244399",
       "targets": [
         {
           "datasource": {
             "type": "loki",
             "uid": "grafanacloud-logs"
           },
+          "direction": "backward",
           "editorMode": "code",
-          "expr": "count(count by (remote_ip) (count_over_time({service_name=\"blog\"} | json | remote_ip =~ \".*:.*\" and user_agent !~ \".*bot.*|.*crawler.*\" [24h]))) / count(count by (remote_ip) (count_over_time({service_name=\"blog\"} | json | remote_ip != \"\" and user_agent !~ \".*bot.*|.*crawler.*\" [24h]))) * 100",
+          "expr": "sum(count_over_time({service_name=\"blog\"} | json | user_agent =~ \".*bot.*\" [24h]))",
           "queryType": "",
           "refId": "A"
         }
       ],
-      "title": "IPv6 Adoption %",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "grafanacloud-logs"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "vis": false
-            }
-          },
-          "mappings": [],
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 8
-      },
-      "id": 4,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true,
-          "values": ["value"]
-        },
-        "pieType": "pie",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "topk(10, sum by (remote_ip) (count_over_time({service_name=\"blog\"} | json | remote_ip != \"\" [24h])))",
-          "queryType": "",
-          "refId": "A",
-          "legendFormat": "{{remote_ip}}"
-        }
-      ],
-      "title": "Top 10 Visitor IPs",
-      "type": "piechart"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "grafanacloud-logs"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 10000
-              },
-              {
-                "color": "red",
-                "value": 50000
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 0,
-        "y": 20
-      },
-      "id": 5,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "10.2.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "sum(count_over_time({service_name=\"blog\"} | json [24h]))",
-          "queryType": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Total Page Views (24h)",
+      "title": "Bot Traffic (24h)",
       "type": "stat"
     },
     {
@@ -1680,7 +1257,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "yellow",
@@ -1699,8 +1276,8 @@
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 6,
-        "y": 20
+        "x": 12,
+        "y": 44
       },
       "id": 6,
       "options": {
@@ -1708,6 +1285,7 @@
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -1719,7 +1297,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.2.0",
+      "pluginVersion": "12.1.0-16426244399",
       "targets": [
         {
           "datasource": {
@@ -1751,86 +1329,15 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "yellow",
-                "value": 100
+                "value": 10000
               },
               {
                 "color": "red",
-                "value": 500
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 12,
-        "y": 20
-      },
-      "id": 7,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "10.2.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "editorMode": "code",
-          "expr": "sum(count_over_time({service_name=\"blog\"} | json | path =~ \"/blog/.*\" [24h]))",
-          "queryType": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Blog Post Views (24h)",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "grafanacloud-logs"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 50
-              },
-              {
-                "color": "red",
-                "value": 200
+                "value": 50000
               }
             ]
           },
@@ -1842,14 +1349,15 @@
         "h": 4,
         "w": 6,
         "x": 18,
-        "y": 20
+        "y": 44
       },
-      "id": 8,
+      "id": 5,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -1861,7 +1369,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "10.2.0",
+      "pluginVersion": "12.1.0-16426244399",
       "targets": [
         {
           "datasource": {
@@ -1869,12 +1377,12 @@
             "uid": "grafanacloud-logs"
           },
           "editorMode": "code",
-          "expr": "count_over_time({service_name=\"blog\"} | json | user_agent =~ \".*bot.*\" [24h])",
+          "expr": "sum(count_over_time({service_name=\"blog\"} | json [24h]))",
           "queryType": "",
           "refId": "A"
         }
       ],
-      "title": "Bot Traffic (24h)",
+      "title": "Total Page Views (24h)",
       "type": "stat"
     },
     {
@@ -1889,17 +1397,212 @@
           },
           "custom": {
             "axisBorderShow": false,
+            "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "bars",
             "fillOpacity": 80,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
-              "vis": false
+              "vis": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 48
+      },
+      "id": 21,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "12.1.0-16426244399",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "editorMode": "code",
+          "expr": "sum by (path) (count_over_time({service_name=\"blog\"} | json | user_agent =~ \".*Chrome.*\" and user_agent !~ \".*bot.*|.*crawler.*\" and path =~ \"/blog/.*\" [1h]))",
+          "legendFormat": "Chrome Users",
+          "queryType": "",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "editorMode": "code",
+          "expr": "sum by (path) (count_over_time({service_name=\"blog\"} | json | user_agent =~ \".*Safari.*\" and user_agent !~ \".*Chrome.*|.*bot.*|.*crawler.*\" and path =~ \"/blog/.*\" [1h]))",
+          "legendFormat": "Safari Users",
+          "queryType": "",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "editorMode": "code",
+          "expr": "sum by (path) (count_over_time({service_name=\"blog\"} | json | user_agent =~ \".*Firefox.*\" and user_agent !~ \".*bot.*|.*crawler.*\" and path =~ \"/blog/.*\" [1h]))",
+          "legendFormat": "Firefox Users",
+          "queryType": "",
+          "refId": "C"
+        }
+      ],
+      "title": "Blog Post Popularity by Browser",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "grafanacloud-logs"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false,
+              "viz": false
+            }
+          },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 56
+      },
+      "id": 22,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value"
+          ]
+        },
+        "pieType": "pie",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.0-16426244399",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "editorMode": "code",
+          "expr": "topk(10, sum by (country) (count_over_time({service_name=\"blog\"} | json | country != \"\" and country != \"Unknown\" and user_agent !~ \".*bot.*|.*crawler.*|.*spider.*\" [24h])))",
+          "legendFormat": "{{country}}",
+          "queryType": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Top Visitor Countries",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "grafanacloud-logs"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false,
+              "viz": false
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
@@ -1924,7 +1627,139 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 56
+      },
+      "id": 23,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.0-16426244399",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate({service_name=\"blog\"} | json | ip_type = \"private\" and user_agent !~ \".*bot.*|.*crawler.*\" [1h]))",
+          "legendFormat": "Private Networks",
+          "queryType": "",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate({service_name=\"blog\"} | json | ip_type = \"public\" and user_agent !~ \".*bot.*|.*crawler.*\" [1h]))",
+          "legendFormat": "Public Internet",
+          "queryType": "",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate({service_name=\"blog\"} | json | ip_type = \"localhost\" and user_agent !~ \".*bot.*|.*crawler.*\" [1h]))",
+          "legendFormat": "Localhost",
+          "queryType": "",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate({service_name=\"blog\"} | json | ip_type = \"unknown\" and user_agent !~ \".*bot.*|.*crawler.*\" [1h]))",
+          "legendFormat": "Unknown",
+          "queryType": "",
+          "refId": "D"
+        }
+      ],
+      "title": "Traffic by Network Type",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "grafanacloud-logs"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -1940,9 +1775,9 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 52
+        "y": 64
       },
-      "id": 9,
+      "id": 24,
       "options": {
         "legend": {
           "calcs": [],
@@ -1951,10 +1786,12 @@
           "showLegend": true
         },
         "tooltip": {
-          "mode": "single",
-          "sort": "none"
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
         }
       },
+      "pluginVersion": "12.1.0-16426244399",
       "targets": [
         {
           "datasource": {
@@ -1962,18 +1799,260 @@
             "uid": "grafanacloud-logs"
           },
           "editorMode": "code",
-          "expr": "sum(rate({service_name=\"blog\"} | json [1h]))",
+          "expr": "sum by (country) (count_over_time({service_name=\"blog\"} | json | country != \"\" and country != \"Unknown\" and user_agent !~ \".*bot.*|.*crawler.*\" and path =~ \"/blog/.*\" [1h]))",
+          "legendFormat": "{{country}} - Blog Posts",
           "queryType": "",
-          "refId": "A",
-          "legendFormat": "Hourly Traffic"
+          "refId": "A"
         }
       ],
-      "title": "Hourly Traffic Pattern",
+      "title": "Blog Engagement by Country",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "grafanacloud-logs"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false,
+              "viz": false
+            }
+          },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 72
+      },
+      "id": 31,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value"
+          ]
+        },
+        "pieType": "donut",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.0-16426244399",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "editorMode": "code",
+          "expr": "topk(5, sum by (country_code) (count_over_time({service_name=\"blog\"} | json | country_code != \"\" and country_code != \"XX\" and user_agent =~ \".*Mobile.*|.*iPhone.*|.*Android.*\" and user_agent !~ \".*bot.*|.*crawler.*\" [24h])))",
+          "legendFormat": "{{country_code}}",
+          "queryType": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Top Countries - Mobile Traffic",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "grafanacloud-logs"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 72
+      },
+      "id": 30,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.0-16426244399",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "editorMode": "code",
+          "expr": "sum by (country) (rate({service_name=\"blog\"} | json | country != \"\" and country != \"Unknown\" and user_agent !~ \".*bot.*|.*crawler.*\" and path =~ \"/blog/.*\" [1h]))",
+          "legendFormat": "{{country}}",
+          "queryType": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Blog Post Views by Country Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "grafanacloud-logs"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false,
+              "viz": false
+            }
+          },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 80
+      },
+      "id": 32,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value"
+          ]
+        },
+        "pieType": "donut",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.0-16426244399",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "editorMode": "code",
+          "expr": "topk(5, sum by (country_code) (count_over_time({service_name=\"blog\"} | json | country_code != \"\" and country_code != \"XX\" and user_agent !~ \".*Mobile.*|.*iPhone.*|.*Android.*|.*bot.*|.*crawler.*\" and user_agent != \"\" [24h])))",
+          "legendFormat": "{{country_code}}",
+          "queryType": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Top Countries - Desktop Traffic",
+      "type": "piechart"
     }
   ],
+  "preload": false,
   "refresh": "30s",
-  "schemaVersion": 39,
+  "schemaVersion": 41,
   "tags": [
     "blog",
     "user-behavior",
@@ -1984,13 +2063,12 @@
     "list": []
   },
   "time": {
-    "from": "now-24h",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Blog - User Behavior, User Agent & Geographic Analysis",
   "uid": "blog-user-behavior-logs",
-  "version": 1,
-  "weekStart": ""
+  "version": 19
 }

@@ -1,12 +1,14 @@
 # Blog Deployment Guide
 
-This guide covers deploying the Phoenix LiveView blog to Fly.io with Turso (distributed SQLite) database.
+This guide covers deploying the Phoenix LiveView blog to Fly.io with Turso (distributed SQLite) database and OpenTelemetry observability.
 
 ## Prerequisites
 
 1. **Fly.io Account**: Sign up at [fly.io](https://fly.io)
 2. **GitHub Account**: Repository hosted on GitHub
-3. **Local Development**: Blog working locally
+3. **Grafana Cloud Account**: For observability (optional but recommended)
+4. **MaxMind Account**: For GeoIP analytics (optional)
+5. **Local Development**: Blog working locally
 
 ## Fly.io Setup
 
@@ -52,6 +54,10 @@ fly secrets set PHX_HOST=your-app-name.fly.dev
 # Turso database configuration (required for production)
 fly secrets set LIBSQL_URI=libsql://your-database-name-your-org.turso.io
 fly secrets set LIBSQL_TOKEN=your_turso_auth_token
+
+# OpenTelemetry configuration (optional)
+fly secrets set OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp-gateway-prod-us-central-0.grafana.net/otlp
+fly secrets set OTEL_EXPORTER_OTLP_HEADERS_AUTHORIZATION=your_base64_encoded_credentials
 ```
 
 ### 4. Deploy
@@ -128,6 +134,8 @@ Optional:
 - `SSL_KEYFILE`: Path to SSL private key
 - `SSL_CERTFILE`: Path to SSL certificate
 - `SSL_CACERTFILE`: Path to CA certificate
+- `OTEL_EXPORTER_OTLP_ENDPOINT`: Grafana Cloud OTLP endpoint
+- `OTEL_EXPORTER_OTLP_HEADERS_AUTHORIZATION`: Base64 encoded credentials
 
 ### Fly.io Configuration
 
@@ -370,12 +378,36 @@ fly ssh console -C "/app/bin/blog eval 'Blog.Content.export_all_posts()'"
 fly ssh console -C "/app/bin/blog eval 'Blog.Content.import_posts(data)'"
 ```
 
+## Observability Setup
+
+### Grafana Cloud Integration
+
+The blog includes comprehensive observability with Grafana Cloud:
+
+1. **Create Grafana Cloud account** at https://grafana.com/auth/sign-up/create-user
+2. **Get OTLP credentials** from Grafana Cloud → OpenTelemetry → Configuration
+3. **Set environment variables** (shown above in step 3)
+4. **Import dashboards** from `grafana-dashboards/` directory
+
+### Available Dashboards
+
+- **Performance Dashboard**: UI/API latency, error rates, traffic patterns
+- **User Behavior Dashboard**: Geographic analytics, browser patterns, user activity
+
+### GeoIP Analytics
+
+For geographic user analytics:
+
+1. **Register at MaxMind**: https://www.maxmind.com/en/geolite2/signup
+2. **Download GeoIP database**: See [GEOIP_SETUP.md](GEOIP_SETUP.md)
+3. **Deploy with database included** (automatic)
+
 ## Next Steps
 
 1. Deploy your blog following this guide
-2. Set up custom domain (optional)
-3. Configure monitoring and logging
-4. Set up backup automation
-5. Consider error tracking (Sentry, etc.)
+2. Set up observability with Grafana Cloud (recommended)
+3. Configure GeoIP analytics (optional)
+4. Set up custom domain (optional)
+5. Import Grafana dashboards for monitoring
 
 For more information, visit the [Fly.io documentation](https://fly.io/docs/).

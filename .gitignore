@@ -64,3 +64,6 @@ npm-debug.log
 .env
 .env.local
 .env.*.local
+
+# Claude Code configuration and cache
+.claude/

@@ -76,12 +76,11 @@ GET /api/posts/:id
 }
 ```
 
-### Authenticated Endpoints (API Key Required)
+### Authenticated Endpoints (mTLS Client Certificate Required)
 
 #### Create Post
 ```http
-POST /api/posts
-X-API-Key: your-api-key
+POST https://localhost:8443/api/posts
 Content-Type: application/json
 
 {
@@ -91,8 +90,7 @@ Content-Type: application/json
 
 **With Images:**
 ```http
-POST /api/posts
-X-API-Key: your-api-key
+POST https://localhost:8443/api/posts
 Content-Type: multipart/form-data
 
 metadata: {"title":"My Post","content":"Content with {{image_0}} placeholder","published":true}
@@ -119,8 +117,7 @@ images: [file1.jpg, file2.png]
 
 #### Update Post
 ```http
-PUT /api/posts/:id
-X-API-Key: your-api-key
+PUT https://localhost:8443/api/posts/:id
 Content-Type: application/json
 
 {
@@ -130,8 +127,7 @@ Content-Type: application/json
 
 #### Delete Post
 ```http
-DELETE /api/posts/:id
-X-API-Key: your-api-key
+DELETE https://localhost:8443/api/posts/:id
 ```
 
 **Response:** 204 No Content
@@ -174,13 +170,13 @@ Post metadata must be provided as a JSON string in the `metadata` field:
 ### Authentication Error
 ```json
 {
-  "error": "API key required in X-API-Key header"
+  "error": "Client certificate required for this operation"
 }
 ```
 
 ```json
 {
-  "error": "Invalid API key"
+  "error": "Invalid or expired client certificate"
 }
 ```
 
