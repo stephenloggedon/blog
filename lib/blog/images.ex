@@ -94,7 +94,6 @@ defmodule Blog.Images do
     end
   end
 
-
   defp get_post(post_id) do
     case RepoService.get(Post, post_id) do
       {:ok, post} -> {:ok, post}

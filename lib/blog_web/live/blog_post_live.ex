@@ -27,7 +27,7 @@ defmodule BlogWeb.BlogPostLive do
       <div class="fixed top-6 right-6 z-50 hidden lg:block">
         <.theme_toggle />
       </div>
-      
+
       <main class="max-w-4xl mx-auto px-4 lg:px-6 py-8 lg:py-12">
         <article class="prose prose-invert prose-xl max-w-none">
           <header class="mb-12 text-center">
@@ -55,13 +55,13 @@ defmodule BlogWeb.BlogPostLive do
               <% end %>
             </div>
           </header>
-          
+
           <div class="prose-catppuccin">
             {raw(Blog.Content.Post.render_content(@post))}
           </div>
         </article>
       </main>
-      
+
       <div class="fixed bottom-4 left-4 lg:bottom-6 lg:left-6 z-50">
         <.link
           navigate="/"

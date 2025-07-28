@@ -25,7 +25,8 @@ defmodule Blog.RepoAdapter do
   @callback update(changeset :: term()) :: {:ok, map()} | {:error, term()}
 
   @doc "Update multiple records"
-  @callback update_all(query :: term(), updates :: keyword()) :: {:ok, integer()} | {:error, term()}
+  @callback update_all(query :: term(), updates :: keyword()) ::
+              {:ok, integer()} | {:error, term()}
 
   @doc "Delete a record"
   @callback delete(record :: map()) :: {:ok, map()} | {:error, term()}
@@ -35,10 +36,4 @@ defmodule Blog.RepoAdapter do
 
   @doc "Execute transaction"
   @callback transaction(fun :: function()) :: {:ok, term()} | {:error, term()}
-
-  @doc "Get one record from a query"
-  @callback one(query :: term()) :: {:ok, map()} | {:error, :not_found}
-
-  @doc "Update multiple records"
-  @callback update_all(query :: term(), updates :: keyword()) :: {:ok, integer()} | {:error, term()}
 end

@@ -453,7 +453,7 @@ defmodule BlogWeb.HomeLiveTest do
       assert rendered =~
                ~r/class="[^"]*text-blue[^"]*font-bold[^"]*border-b-2[^"]*border-blue[^"]*"/
 
-      # Unselected series should have different styling  
+      # Unselected series should have different styling
       assert rendered =~ series2.title
     end
 

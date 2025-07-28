@@ -25,8 +25,10 @@ defmodule Blog.OTLPLoggerBackend do
   end
 
   def handle_event({level, _gl, {Logger, msg, timestamp, metadata}}, state) do
-    if Logger.compare_levels(level, state.level) != :lt do
-      send_log(level, msg, timestamp, metadata, state)
+    normalized_level = normalize_level(level)
+
+    if Logger.compare_levels(normalized_level, state.level) != :lt do
+      send_log(normalized_level, msg, timestamp, metadata, state)
     end
 
     {:ok, state}
@@ -53,6 +55,9 @@ defmodule Blog.OTLPLoggerBackend do
   end
 
   # Private functions
+
+  defp normalize_level(:warn), do: :warning
+  defp normalize_level(level), do: level
 
   defp configure(opts) do
     endpoint = get_otlp_endpoint(opts)

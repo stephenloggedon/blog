@@ -1,9 +1,9 @@
 defmodule Blog.TursoRepoAdapterTest do
   use ExUnit.Case, async: true
 
-  alias Blog.TursoRepoAdapter
   alias Blog.Content.Post
   alias Blog.Content.Series
+  alias Blog.TursoRepoAdapter
   import Ecto.Query
 
   # Since we can't easily mock external dependencies without adding new deps,

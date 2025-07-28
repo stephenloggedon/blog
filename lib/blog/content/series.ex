@@ -1,4 +1,8 @@
 defmodule Blog.Content.Series do
+  @moduledoc """
+  Schema for blog post series, allowing posts to be grouped and ordered sequentially.
+  """
+  
   use Ecto.Schema
   import Ecto.Changeset
 

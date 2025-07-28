@@ -39,7 +39,6 @@ defmodule Blog.RepoService do
   def delegate_query(sql, params), do: repo_adapter().query(sql, params)
   def delegate_transaction(fun), do: repo_adapter().transaction(fun)
 
-
   @doc """
   List published posts with pagination.
   """
