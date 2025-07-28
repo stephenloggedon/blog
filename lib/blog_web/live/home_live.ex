@@ -27,39 +27,9 @@ defmodule BlogWeb.HomeLive do
   end
 
   def handle_params(params, _url, socket) do
-    selected_tags =
-      case Map.get(params, "tags") do
-        nil ->
-          []
-
-        tags_string when is_binary(tags_string) ->
-          String.split(tags_string, ",") |> Enum.map(&String.trim/1)
-
-        _ ->
-          []
-      end
-
-    selected_series =
-      case Map.get(params, "series") do
-        nil ->
-          nil
-
-        series_string when is_binary(series_string) ->
-          String.trim(series_string)
-
-        _ ->
-          nil
-      end
-
-    search_param = Map.get(params, "search")
-
-    search_query =
-      case search_param do
-        nil -> ""
-        query when is_binary(query) -> String.trim(query)
-        %{"query" => query} when is_binary(query) -> String.trim(query)
-        _ -> ""
-      end
+    selected_tags = parse_tags_param(params)
+    selected_series = parse_series_param(params)
+    search_query = parse_search_param(params)
 
     {:noreply,
      socket
@@ -71,6 +41,36 @@ defmodule BlogWeb.HomeLive do
      |> assign(:page, 1)
      |> assign(:series_empty_state, nil)
      |> load_posts()}
+  end
+
+  defp parse_tags_param(params) do
+    case Map.get(params, "tags") do
+      nil ->
+        []
+
+      tags_string when is_binary(tags_string) ->
+        String.split(tags_string, ",") |> Enum.map(&String.trim/1)
+
+      _ ->
+        []
+    end
+  end
+
+  defp parse_series_param(params) do
+    case Map.get(params, "series") do
+      nil -> nil
+      series_string when is_binary(series_string) -> String.trim(series_string)
+      _ -> nil
+    end
+  end
+
+  defp parse_search_param(params) do
+    case Map.get(params, "search") do
+      nil -> ""
+      query when is_binary(query) -> String.trim(query)
+      %{"query" => query} when is_binary(query) -> String.trim(query)
+      _ -> ""
+    end
   end
 
   def handle_event("load_more", _params, socket) do
@@ -221,50 +221,57 @@ defmodule BlogWeb.HomeLive do
       search_query: search_query
     } = socket.assigns
 
-    opts = [page: page, per_page: per_page]
-    opts = if selected_tags != [], do: Keyword.put(opts, :tags, selected_tags), else: opts
-
-    opts =
-      if selected_series != nil, do: Keyword.put(opts, :series, [selected_series]), else: opts
-
-    opts = if search_query != "", do: Keyword.put(opts, :search, search_query), else: opts
-
+    opts = build_post_query_opts(page, per_page, selected_tags, selected_series, search_query)
     new_posts = Content.list_published_posts(opts)
     all_posts = existing_posts ++ new_posts
     has_more = length(new_posts) == per_page
 
-    if search_query != "" or selected_tags != [] or selected_series != nil do
-      search_term =
-        cond do
-          search_query != "" ->
-            search_query
+    track_analytics(page, search_query, selected_tags, selected_series, new_posts)
+    series_empty_state = get_series_empty_state(selected_series)
 
-          selected_tags != [] and selected_series != nil ->
-            "tags:#{Enum.join(selected_tags, ",")} series:#{selected_series}"
+    assign(socket, posts: all_posts, has_more: has_more, series_empty_state: series_empty_state)
+  end
 
-          selected_tags != [] ->
-            "tags:#{Enum.join(selected_tags, ",")}"
+  defp build_post_query_opts(page, per_page, selected_tags, selected_series, search_query) do
+    [page: page, per_page: per_page]
+    |> maybe_add_tags(selected_tags)
+    |> maybe_add_series(selected_series)
+    |> maybe_add_search(search_query)
+  end
 
-          selected_series != nil ->
-            "series:#{selected_series}"
-        end
+  defp maybe_add_tags(opts, []), do: opts
+  defp maybe_add_tags(opts, tags), do: Keyword.put(opts, :tags, tags)
 
+  defp maybe_add_series(opts, nil), do: opts
+  defp maybe_add_series(opts, series), do: Keyword.put(opts, :series, [series])
+
+  defp maybe_add_search(opts, ""), do: opts
+  defp maybe_add_search(opts, query), do: Keyword.put(opts, :search, query)
+
+  defp track_analytics(page, search_query, selected_tags, selected_series, new_posts) do
+    if has_search_criteria?(search_query, selected_tags, selected_series) do
+      search_term = build_search_term(search_query, selected_tags, selected_series)
       Analytics.track_search(search_term, length(new_posts))
     end
 
     if page == 1 do
       Analytics.track_page_view("/", "Blog Home")
     end
-
-    series_empty_state =
-      if selected_series != nil do
-        Content.get_series_empty_state(selected_series)
-      else
-        nil
-      end
-
-    assign(socket, posts: all_posts, has_more: has_more, series_empty_state: series_empty_state)
   end
+
+  defp has_search_criteria?("", [], nil), do: false
+  defp has_search_criteria?(_, _, _), do: true
+
+  defp build_search_term("", [], series) when series != nil, do: "series:#{series}"
+  defp build_search_term("", tags, nil) when tags != [], do: "tags:#{Enum.join(tags, ",")}"
+
+  defp build_search_term("", tags, series) when tags != [] and series != nil,
+    do: "tags:#{Enum.join(tags, ",")} series:#{series}"
+
+  defp build_search_term(query, _, _), do: query
+
+  defp get_series_empty_state(nil), do: nil
+  defp get_series_empty_state(series), do: Content.get_series_empty_state(series)
 
   defp build_path_with_tags(socket, tags) do
     %{search_query: search_query, selected_series: selected_series} = socket.assigns

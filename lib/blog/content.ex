@@ -825,51 +825,58 @@ defmodule Blog.Content do
   def get_series_empty_state(nil), do: :no_posts
 
   defp get_series_empty_state_by_id(series_id) do
-    published_count =
-      from(p in Post,
-        where: p.series_id == ^series_id and p.published == true,
-        select: count(p.id)
-      )
-      |> RepoService.one()
-      |> case do
-        {:ok, count} -> count
-        {:error, _} -> 0
-      end
+    published_count = get_series_published_count(series_id)
+    total_count = get_series_total_count(series_id)
 
-    total_count =
-      from(p in Post,
-        where: p.series_id == ^series_id,
-        select: count(p.id)
-      )
-      |> RepoService.one()
-      |> case do
-        {:ok, count} -> count
-        {:error, _} -> 0
-      end
+    determine_series_empty_state(series_id, published_count, total_count)
+  end
 
-    cond do
-      total_count == 0 ->
-        :no_posts
+  defp get_series_published_count(series_id) do
+    from(p in Post,
+      where: p.series_id == ^series_id and p.published == true,
+      select: count(p.id)
+    )
+    |> RepoService.one()
+    |> case do
+      {:ok, count} -> count
+      {:error, _} -> 0
+    end
+  end
 
-      published_count > 0 ->
-        :has_published
+  defp get_series_total_count(series_id) do
+    from(p in Post,
+      where: p.series_id == ^series_id,
+      select: count(p.id)
+    )
+    |> RepoService.one()
+    |> case do
+      {:ok, count} -> count
+      {:error, _} -> 0
+    end
+  end
 
-      published_count == 0 and total_count > 0 ->
-        # Get the earliest scheduled publication date
-        earliest_date =
-          from(p in Post,
-            where: p.series_id == ^series_id and p.published == false,
-            select: min(p.published_at),
-            order_by: [asc: :series_position]
-          )
-          |> RepoService.one()
-          |> case do
-            {:ok, nil} -> nil
-            {:ok, datetime} -> datetime
-            {:error, _} -> nil
-          end
+  defp determine_series_empty_state(_series_id, _published_count, 0), do: :no_posts
 
-        {:upcoming_only, earliest_date}
+  defp determine_series_empty_state(_series_id, published_count, _total_count)
+       when published_count > 0,
+       do: :has_published
+
+  defp determine_series_empty_state(series_id, 0, total_count) when total_count > 0 do
+    earliest_date = get_earliest_unpublished_date(series_id)
+    {:upcoming_only, earliest_date}
+  end
+
+  defp get_earliest_unpublished_date(series_id) do
+    from(p in Post,
+      where: p.series_id == ^series_id and p.published == false,
+      select: min(p.published_at),
+      order_by: [asc: :series_position]
+    )
+    |> RepoService.one()
+    |> case do
+      {:ok, nil} -> nil
+      {:ok, datetime} -> datetime
+      {:error, _} -> nil
     end
   end
 end
