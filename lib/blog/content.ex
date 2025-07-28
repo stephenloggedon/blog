@@ -7,6 +7,7 @@ defmodule Blog.Content do
   alias Blog.RepoService
 
   alias Blog.Content.Post
+  alias Blog.Content.Series
 
   @doc """
   Returns posts with pagination, filtering, and search support.
@@ -40,10 +41,10 @@ defmodule Blog.Content do
     offset = (page - 1) * per_page
     tags = Keyword.get(opts, :tags, [])
     search = Keyword.get(opts, :search)
+    series = Keyword.get(opts, :series, [])
     allow_unpublished = Keyword.get(opts, :allow_unpublished, false)
     include_content = Keyword.get(opts, :include_content, false)
 
-    # Build base query with conditional content selection
     base_query =
       if allow_unpublished do
         from(p in Post)
@@ -51,11 +52,11 @@ defmodule Blog.Content do
         from(p in Post, where: p.published == true and not is_nil(p.published_at))
       end
 
-    # Always query full structs, then filter fields as needed
     result =
       base_query
       |> apply_tag_filter(tags)
       |> apply_search_filter(search)
+      |> apply_series_filter(series)
       |> order_by([p], desc: p.inserted_at)
       |> limit(^per_page)
       |> offset(^offset)
@@ -65,7 +66,6 @@ defmodule Blog.Content do
         {:error, _} -> []
       end
 
-    # Post-process results based on options
     result
     |> maybe_add_rendered_content(include_content, tags, search, page, per_page)
     |> maybe_filter_fields(opts)
@@ -74,7 +74,6 @@ defmodule Blog.Content do
   end
 
   defp maybe_add_rendered_content(posts, include_content, tags, search, page, per_page) do
-    # Add rendered content only if content is included and this looks like a web request
     if include_content and (tags != [] or search != nil or page != 1 or per_page != 10) do
       Enum.map(posts, fn post ->
         %{post | rendered_content: Post.render_content(post)}
@@ -87,17 +86,14 @@ defmodule Blog.Content do
   defp maybe_filter_fields(posts, opts) do
     exclude_fields = get_excluded_fields(opts)
 
-    # Always convert to maps and filter fields
     Enum.map(posts, fn post ->
       exclude_fields_from_struct(post, exclude_fields)
     end)
   end
 
   defp get_excluded_fields(opts) do
-    # Always exclude internal Ecto fields
     excluded = [:__meta__, :rendered_content, :images]
 
-    # Always exclude these fields from list API responses
     excluded = excluded ++ [:excerpt, :inserted_at, :published]
 
     excluded =
@@ -111,7 +107,6 @@ defmodule Blog.Content do
   end
 
   defp exclude_fields_from_struct(%Post{} = post, fields) do
-    # Always convert struct to map, remove specified fields, and filter null values
     post
     |> Map.from_struct()
     |> Map.drop(fields)
@@ -136,12 +131,14 @@ defmodule Blog.Content do
     offset = (page - 1) * per_page
     tags = Keyword.get(opts, :tags, [])
     search = Keyword.get(opts, :search)
+    series = Keyword.get(opts, :series, [])
 
     query = from(p in Post, where: p.published == true and not is_nil(p.published_at))
 
     query
     |> apply_tag_filter(tags)
     |> apply_search_filter(search)
+    |> apply_series_filter(series)
     |> order_by([p], desc: p.published_at)
     |> limit(^per_page)
     |> offset(^offset)
@@ -188,6 +185,16 @@ defmodule Blog.Content do
             (not is_nil(p.subtitle) and like(p.subtitle, ^search_term))
       )
     end
+  end
+
+  defp apply_series_filter(query, []), do: query
+
+  defp apply_series_filter(query, series_slugs) when is_list(series_slugs) do
+    from(p in query,
+      join: s in Series,
+      on: p.series_id == s.id,
+      where: s.slug in ^series_slugs
+    )
   end
 
   defp execute_query_and_render(query) do
@@ -433,5 +440,422 @@ defmodule Blog.Content do
     |> Enum.map(fn {tag, _count} -> tag end)
   rescue
     _ -> []
+  end
+
+
+  @doc """
+  Returns the list of series.
+
+  ## Examples
+
+      iex> list_series()
+      [%Series{}, ...]
+
+  """
+  def list_series do
+    from(s in Series, order_by: [asc: s.title])
+    |> RepoService.all()
+    |> case do
+      {:ok, series} -> series
+      {:error, _} -> []
+    end
+  end
+
+  @doc """
+  Returns the list of series for filtering.
+  A series is available for filtering if it exists, regardless of published status.
+
+  ## Examples
+
+      iex> list_series_for_filtering()
+      [%Series{}, ...]
+
+  """
+  def list_series_for_filtering do
+    from(s in Series, order_by: [asc: s.title])
+    |> RepoService.all()
+    |> case do
+      {:ok, series} -> series
+      {:error, _} -> []
+    end
+  end
+
+  @doc """
+  Gets a single series.
+
+  Raises `Ecto.NoResultsError` if the Series does not exist.
+
+  ## Examples
+
+      iex> get_series!(123)
+      %Series{}
+
+      iex> get_series!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_series!(id) do
+    case RepoService.get(Series, id) do
+      {:ok, series} -> series
+      {:error, :not_found} -> raise Ecto.NoResultsError, queryable: Series
+      {:error, _} -> raise "Database error"
+    end
+  end
+
+  @doc """
+  Gets a single series by ID.
+
+  Returns nil if the Series does not exist.
+
+  ## Examples
+
+      iex> get_series(123)
+      %Series{}
+
+      iex> get_series(456)
+      nil
+
+  """
+  def get_series(id) do
+    case RepoService.get(Series, id) do
+      {:ok, series} -> series
+      {:error, _} -> nil
+    end
+  end
+
+  @doc """
+  Gets a series by slug.
+
+  Returns nil if the series does not exist.
+
+  ## Examples
+
+      iex> get_series_by_slug("my-series")
+      %Series{}
+
+      iex> get_series_by_slug("nonexistent")
+      nil
+
+  """
+  def get_series_by_slug(slug) do
+    case RepoService.get_by(Series, slug: slug) do
+      {:ok, series} -> series
+      {:error, _} -> nil
+    end
+  end
+
+  @doc """
+  Creates a series.
+
+  ## Examples
+
+      iex> create_series(%{field: value})
+      {:ok, %Series{}}
+
+      iex> create_series(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_series(attrs \\ %{}) do
+    %Series{}
+    |> Series.changeset(attrs)
+    |> RepoService.insert()
+  end
+
+  @doc """
+  Updates a series.
+
+  ## Examples
+
+      iex> update_series(series, %{field: new_value})
+      {:ok, %Series{}}
+
+      iex> update_series(series, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_series(%Series{} = series, attrs) do
+    series
+    |> Series.changeset(attrs)
+    |> RepoService.update()
+  end
+
+  @doc """
+  Deletes a series.
+
+  ## Examples
+
+      iex> delete_series(series)
+      {:ok, %Series{}}
+
+      iex> delete_series(series)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_series(%Series{} = series) do
+    RepoService.delete(series)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking series changes.
+
+  ## Examples
+
+      iex> change_series(series)
+      %Ecto.Changeset{data: %Series{}}
+
+  """
+  def change_series(%Series{} = series, attrs \\ %{}) do
+    Series.changeset(series, attrs)
+  end
+
+  @doc """
+  Gets posts in a series, ordered by position.
+
+  ## Examples
+
+      iex> get_posts_in_series(series_id)
+      [%Post{}, ...]
+
+  """
+  def get_posts_in_series(series_id, opts \\ []) do
+    allow_unpublished = Keyword.get(opts, :allow_unpublished, false)
+
+    base_query = 
+      if allow_unpublished do
+        from(p in Post, where: p.series_id == ^series_id)
+      else
+        from(p in Post, 
+          where: p.series_id == ^series_id and p.published == true and not is_nil(p.published_at))
+      end
+
+    base_query
+    |> order_by([p], asc: p.series_position)
+    |> RepoService.all()
+    |> case do
+      {:ok, posts} -> posts
+      {:error, _} -> []
+    end
+  end
+
+  @doc """
+  Adds a post to a series at the specified position.
+  If position is not provided, adds at the end.
+
+  ## Examples
+
+      iex> add_post_to_series(post, series_id, 1)
+      {:ok, %Post{}}
+
+      iex> add_post_to_series(post, series_id)
+      {:ok, %Post{}}
+
+  """
+  def add_post_to_series(%Post{} = post, series_id, position \\ nil) do
+    final_position = position || get_next_series_position(series_id)
+    
+    # If inserting in the middle, shift other posts
+    if position && position <= get_max_series_position(series_id) do
+      shift_series_positions(series_id, position, 1)
+    end
+
+    update_post(post, %{
+      series_id: series_id,
+      series_position: final_position
+    })
+  end
+
+  @doc """
+  Removes a post from its series.
+
+  ## Examples
+
+      iex> remove_post_from_series(post)
+      {:ok, %Post{}}
+
+  """
+  def remove_post_from_series(%Post{} = post) do
+    case post do
+      %{series_id: nil} -> {:ok, post}
+      %{series_id: series_id, series_position: position} ->
+        # Remove from series
+        result = update_post(post, %{series_id: nil, series_position: nil})
+        
+        # Shift remaining posts down
+        shift_series_positions(series_id, position + 1, -1)
+        
+        result
+    end
+  end
+
+  @doc """
+  Reorders posts within a series.
+
+  ## Examples
+
+      iex> reorder_series_posts(series_id, [post_id1, post_id2, post_id3])
+      :ok
+
+  """
+  def reorder_series_posts(_series_id, ordered_post_ids) do
+    ordered_post_ids
+    |> Enum.with_index(1)
+    |> Enum.each(fn {post_id, position} ->
+      case get_post(post_id, allow_unpublished: true) do
+        %Post{} = post ->
+          update_post(post, %{series_position: position})
+        nil ->
+          :skip
+      end
+    end)
+
+    :ok
+  end
+
+  @doc """
+  Gets the next post in a series.
+
+  ## Examples
+
+      iex> get_next_post_in_series(post)
+      %Post{}
+
+      iex> get_next_post_in_series(last_post)
+      nil
+
+  """
+  def get_next_post_in_series(%Post{series_id: nil}), do: nil
+  def get_next_post_in_series(%Post{series_id: series_id, series_position: position}) do
+    from(p in Post,
+      where: p.series_id == ^series_id and p.series_position == ^(position + 1) and
+             p.published == true and not is_nil(p.published_at)
+    )
+    |> RepoService.one()
+    |> case do
+      {:ok, post} -> post
+      {:error, _} -> nil
+    end
+  end
+
+  @doc """
+  Gets the previous post in a series.
+
+  ## Examples
+
+      iex> get_previous_post_in_series(post)
+      %Post{}
+
+      iex> get_previous_post_in_series(first_post)
+      nil
+
+  """
+  def get_previous_post_in_series(%Post{series_id: nil}), do: nil
+  def get_previous_post_in_series(%Post{series_id: series_id, series_position: position}) do
+    from(p in Post,
+      where: p.series_id == ^series_id and p.series_position == ^(position - 1) and
+             p.published == true and not is_nil(p.published_at)
+    )
+    |> RepoService.one()
+    |> case do
+      {:ok, post} -> post
+      {:error, _} -> nil
+    end
+  end
+
+  # Private helper functions for series management
+
+  defp get_next_series_position(series_id) do
+    get_max_series_position(series_id) + 1
+  end
+
+  defp get_max_series_position(series_id) do
+    from(p in Post,
+      where: p.series_id == ^series_id,
+      select: max(p.series_position)
+    )
+    |> RepoService.one()
+    |> case do
+      {:ok, nil} -> 0
+      {:ok, max_position} -> max_position
+      {:error, _} -> 0
+    end
+  end
+
+  defp shift_series_positions(series_id, from_position, shift_amount) do
+    from(p in Post,
+      where: p.series_id == ^series_id and p.series_position >= ^from_position
+    )
+    |> RepoService.update_all(inc: [series_position: shift_amount])
+  end
+
+  @doc """
+  Checks if a series (by slug) has unpublished posts but no published posts.
+  
+  Returns metadata about the series empty state:
+  - `:no_posts` - Series has no posts at all
+  - `:has_published` - Series has published posts
+  - `{:upcoming_only, nil}` - Series has only unpublished posts with no scheduled date
+  - `{:upcoming_only, datetime}` - Series has unpublished posts with earliest publication date
+  
+  ## Examples
+  
+      iex> get_series_empty_state("my-series")
+      {:upcoming_only, ~U[2024-12-01 10:00:00Z]}
+      
+      iex> get_series_empty_state("published-series")
+      :has_published
+      
+      iex> get_series_empty_state("empty-series")
+      :no_posts
+  """
+  def get_series_empty_state(series_slug) when is_binary(series_slug) do
+    case get_series_by_slug(series_slug) do
+      nil -> :no_posts
+      series -> get_series_empty_state_by_id(series.id)
+    end
+  end
+  
+  def get_series_empty_state(nil), do: :no_posts
+  
+  defp get_series_empty_state_by_id(series_id) do
+    published_count = from(p in Post,
+      where: p.series_id == ^series_id and p.published == true,
+      select: count(p.id)
+    )
+    |> RepoService.one()
+    |> case do
+      {:ok, count} -> count
+      {:error, _} -> 0
+    end
+    
+    total_count = from(p in Post,
+      where: p.series_id == ^series_id,
+      select: count(p.id)
+    )
+    |> RepoService.one()
+    |> case do
+      {:ok, count} -> count
+      {:error, _} -> 0
+    end
+    
+    cond do
+      total_count == 0 -> :no_posts
+      published_count > 0 -> :has_published
+      published_count == 0 and total_count > 0 -> 
+        # Get the earliest scheduled publication date
+        earliest_date = from(p in Post,
+          where: p.series_id == ^series_id and p.published == false,
+          select: min(p.published_at),
+          order_by: [asc: :series_position]
+        )
+        |> RepoService.one()
+        |> case do
+          {:ok, nil} -> nil
+          {:ok, datetime} -> datetime
+          {:error, _} -> nil
+        end
+        
+        {:upcoming_only, earliest_date}
+    end
   end
 end

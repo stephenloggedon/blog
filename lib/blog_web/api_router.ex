@@ -18,11 +18,17 @@ defmodule BlogWeb.ApiRouter do
   scope "/api", BlogWeb.Api do
     pipe_through :api_authenticated
 
-    # Now handles both regular and chunked uploads automatically
+    # Post management endpoints
     post "/posts", PostController, :create
     put "/posts/:id", PostController, :update
     patch "/posts/:id", PostController, :patch
     delete "/posts/:id", PostController, :delete
+
+    # Series management endpoints
+    post "/series", SeriesController, :create
+    put "/series/:id", SeriesController, :update
+    patch "/series/:id", SeriesController, :update
+    delete "/series/:id", SeriesController, :delete
 
     # Image upload endpoint
     post "/posts/:post_id/images", ImageController, :upload

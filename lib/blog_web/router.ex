@@ -35,6 +35,9 @@ defmodule BlogWeb.Router do
 
     get "/posts", PostController, :index
     get "/posts/:id", PostController, :show
+    
+    get "/series", SeriesController, :index
+    get "/series/:id", SeriesController, :show
   end
 
   # Protected API routes moved to separate ApiEndpoint (port 8443 with mTLS)

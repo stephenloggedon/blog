@@ -15,16 +15,18 @@ defmodule BlogWeb.HomeLive do
      |> assign(:per_page, 10)
      |> assign(:has_more, true)
      |> assign(:selected_tags, [])
+     |> assign(:selected_series, nil)
      |> assign(:search_query, "")
      |> assign(:search_suggestions, [])
      |> assign(:top_tags, Content.list_top_tags(5))
      |> assign(:available_tags, Content.list_available_tags())
+     |> assign(:available_series, Content.list_series_for_filtering())
      |> assign(:drawer_open, false)
-     |> assign(:viewport, viewport)}
+     |> assign(:viewport, viewport)
+     |> assign(:series_empty_state, nil)}
   end
 
   def handle_params(params, _url, socket) do
-    # Handle multiple selected tags from URL parameters
     selected_tags =
       case Map.get(params, "tags") do
         nil ->
@@ -37,9 +39,20 @@ defmodule BlogWeb.HomeLive do
           []
       end
 
+    selected_series =
+      case Map.get(params, "series") do
+        nil ->
+          nil
+
+        series_string when is_binary(series_string) ->
+          String.trim(series_string)
+
+        _ ->
+          nil
+      end
+
     search_param = Map.get(params, "search")
 
-    # Ensure search_query is always a clean string
     search_query =
       case search_param do
         nil -> ""
@@ -51,10 +64,12 @@ defmodule BlogWeb.HomeLive do
     {:noreply,
      socket
      |> assign(:selected_tags, selected_tags)
+     |> assign(:selected_series, selected_series)
      |> assign(:search_query, search_query)
      |> assign(:search_suggestions, [])
      |> assign(:posts, [])
      |> assign(:page, 1)
+     |> assign(:series_empty_state, nil)
      |> load_posts()}
   end
 
@@ -72,10 +87,8 @@ defmodule BlogWeb.HomeLive do
 
     updated_tags =
       if tag in current_tags do
-        # Remove tag if already selected
         List.delete(current_tags, tag)
       else
-        # Add tag if not selected
         [tag | current_tags]
       end
 
@@ -90,6 +103,27 @@ defmodule BlogWeb.HomeLive do
     {:noreply,
      socket
      |> push_patch(to: build_path_with_tags(socket, updated_tags))}
+  end
+
+  def handle_event("toggle_series", %{"series" => series_slug}, socket) do
+    current_series = socket.assigns.selected_series
+
+    updated_series =
+      if current_series == series_slug do
+        nil
+      else
+        series_slug
+      end
+
+    {:noreply,
+     socket
+     |> push_patch(to: build_path_with_series(socket, updated_series))}
+  end
+
+  def handle_event("remove_series", %{"series" => _series_slug}, socket) do
+    {:noreply,
+     socket
+     |> push_patch(to: build_path_with_series(socket, nil))}
   end
 
   def handle_event("add_tag_from_search", %{"tag" => tag}, socket) do
@@ -112,7 +146,6 @@ defmodule BlogWeb.HomeLive do
   def handle_event("search_input", %{"value" => value}, socket) do
     search_input = String.trim(value || "")
 
-    # Get tag suggestions if query looks like it might be a tag
     suggestions =
       if String.length(search_input) >= 2 do
         socket.assigns.available_tags
@@ -127,7 +160,6 @@ defmodule BlogWeb.HomeLive do
 
     {:noreply,
      socket
-     # Update for display only
      |> assign(:search_query, search_input)
      |> assign(:search_suggestions, suggestions)}
   end
@@ -135,12 +167,10 @@ defmodule BlogWeb.HomeLive do
   def handle_event("search", %{"query" => query}, socket) do
     search_query = String.trim(query || "")
 
-    # If the search query matches an available tag exactly, add it as a tag
     if search_query in socket.assigns.available_tags and
          search_query not in socket.assigns.selected_tags do
       updated_tags = [search_query | socket.assigns.selected_tags]
 
-      # Track tag selection as search analytics
       Analytics.track_search("tag:#{search_query}", length(updated_tags))
 
       {:noreply,
@@ -149,8 +179,6 @@ defmodule BlogWeb.HomeLive do
        |> assign(:search_suggestions, [])
        |> push_patch(to: build_path_with_tags(socket, updated_tags))}
     else
-      # Otherwise, treat it as a text search
-      # We'll track actual results in load_posts
       {:noreply,
        socket
        |> assign(:search_suggestions, [])
@@ -162,6 +190,7 @@ defmodule BlogWeb.HomeLive do
     {:noreply,
      socket
      |> assign(:selected_tags, [])
+     |> assign(:selected_series, nil)
      |> assign(:search_query, "")
      |> assign(:search_suggestions, [])
      |> assign(:posts, [])
@@ -188,46 +217,61 @@ defmodule BlogWeb.HomeLive do
       per_page: per_page,
       posts: existing_posts,
       selected_tags: selected_tags,
+      selected_series: selected_series,
       search_query: search_query
     } = socket.assigns
 
     opts = [page: page, per_page: per_page]
     opts = if selected_tags != [], do: Keyword.put(opts, :tags, selected_tags), else: opts
+    opts = if selected_series != nil, do: Keyword.put(opts, :series, [selected_series]), else: opts
     opts = if search_query != "", do: Keyword.put(opts, :search, search_query), else: opts
 
     new_posts = Content.list_published_posts(opts)
     all_posts = existing_posts ++ new_posts
     has_more = length(new_posts) == per_page
 
-    # Track search analytics if there's a search query or tags
-    if search_query != "" or selected_tags != [] do
+    if search_query != "" or selected_tags != [] or selected_series != nil do
       search_term =
-        if search_query != "", do: search_query, else: "tags:#{Enum.join(selected_tags, ",")}"
+        cond do
+          search_query != "" -> search_query
+          selected_tags != [] and selected_series != nil -> 
+            "tags:#{Enum.join(selected_tags, ",")} series:#{selected_series}"
+          selected_tags != [] -> "tags:#{Enum.join(selected_tags, ",")}"
+          selected_series != nil -> "series:#{selected_series}"
+        end
 
       Analytics.track_search(search_term, length(new_posts))
     end
 
-    # Track general page view analytics
     if page == 1 do
       Analytics.track_page_view("/", "Blog Home")
     end
 
-    assign(socket, posts: all_posts, has_more: has_more)
+    series_empty_state = if selected_series != nil do
+      Content.get_series_empty_state(selected_series)
+    else
+      nil
+    end
+
+    assign(socket, posts: all_posts, has_more: has_more, series_empty_state: series_empty_state)
   end
 
   defp build_path_with_tags(socket, tags) do
-    %{search_query: search_query} = socket.assigns
-    build_path_with_params(tags, search_query)
+    %{search_query: search_query, selected_series: selected_series} = socket.assigns
+    build_path_with_params(tags, selected_series, search_query)
   end
 
   defp build_path_with_search(socket, search_query) do
-    %{selected_tags: selected_tags} = socket.assigns
-    build_path_with_params(selected_tags, search_query)
+    %{selected_tags: selected_tags, selected_series: selected_series} = socket.assigns
+    build_path_with_params(selected_tags, selected_series, search_query)
+  end
+
+  defp build_path_with_series(socket, series) do
+    %{selected_tags: selected_tags, search_query: search_query} = socket.assigns
+    build_path_with_params(selected_tags, series, search_query)
   end
 
   defp detect_viewport(socket) do
-    # Simple viewport detection based on user agent
-    # In a real app, you might want more sophisticated detection
     case get_connect_info(socket, :user_agent) do
       user_agent when is_binary(user_agent) ->
         mobile_patterns = [
@@ -250,13 +294,11 @@ defmodule BlogWeb.HomeLive do
         if is_mobile, do: "mobile", else: "desktop"
 
       _ ->
-        # Default to desktop if user agent not available
         "desktop"
     end
   end
 
-  defp build_path_with_params(selected_tags, search_query) do
-    # Ensure search_query is always a string
+  defp build_path_with_params(selected_tags, selected_series, search_query) do
     clean_search_query =
       case search_query do
         query when is_binary(query) -> String.trim(query)
@@ -268,6 +310,9 @@ defmodule BlogWeb.HomeLive do
 
     params =
       if selected_tags != [], do: [{"tags", Enum.join(selected_tags, ",")} | params], else: params
+
+    params =
+      if selected_series != nil, do: [{"series", selected_series} | params], else: params
 
     params =
       if clean_search_query != "", do: [{"search", clean_search_query} | params], else: params
@@ -282,25 +327,23 @@ defmodule BlogWeb.HomeLive do
     ~H"""
     <div class="bg-mantle min-h-screen" phx-hook="ViewportDetector" id="viewport-container">
       <%= if @viewport == "desktop" do %>
-        <!-- Desktop Layout -->
-        <!-- Theme Toggle - Top Right -->
         <div class="fixed top-6 right-6 z-50">
           <.theme_toggle />
         </div>
 
         <div class="w-full px-8" style="height: 100dvh; height: 100vh;">
           <div class="max-w-6xl mx-auto flex overflow-hidden" style="height: 100dvh; height: 100vh;">
-            <!-- Navigation Adjacent to Blog Posts -->
             <.content_nav
               current_user={assigns[:current_user]}
               top_tags={@top_tags}
               available_tags={@available_tags}
               selected_tags={@selected_tags}
+              available_series={@available_series}
+              selected_series={@selected_series}
               search_query={@search_query}
               search_suggestions={@search_suggestions}
             />
             
-    <!-- Blog Posts Scroll Area -->
             <main
               class="flex-1 overflow-y-auto scrollbar-hide px-6"
               id="posts-container"
@@ -309,16 +352,16 @@ defmodule BlogWeb.HomeLive do
               <.posts_content
                 posts={@posts}
                 selected_tags={@selected_tags}
+                selected_series={@selected_series}
                 search_query={@search_query}
                 has_more={@has_more}
+                series_empty_state={@series_empty_state}
               />
             </main>
           </div>
         </div>
       <% else %>
-        <!-- Mobile Layout -->
         <div id="mobile-layout" class="w-full safari-scroll-fix">
-          <!-- Mobile Posts Flow Directly in Document -->
           <div
             class="px-4 safari-scroll-content"
             id="mobile-posts-container"
@@ -327,26 +370,27 @@ defmodule BlogWeb.HomeLive do
             <.posts_content
               posts={@posts}
               selected_tags={@selected_tags}
+              selected_series={@selected_series}
               search_query={@search_query}
               has_more={@has_more}
+              series_empty_state={@series_empty_state}
             />
           </div>
           
-    <!-- Mobile Drawer -->
           <.mobile_drawer id="mobile-nav" open={@drawer_open}>
             <div class="space-y-6">
-              <!-- Theme Toggle in Mobile Drawer -->
               <div class="flex items-center justify-between">
                 <h2 class="text-lg font-semibold text-text">Settings</h2>
                 <.theme_toggle id="mobile-theme-toggle" />
               </div>
               
-    <!-- Mobile Navigation Content -->
               <.mobile_content_nav
                 current_user={assigns[:current_user]}
                 top_tags={@top_tags}
                 available_tags={@available_tags}
                 selected_tags={@selected_tags}
+                available_series={@available_series}
+                selected_series={@selected_series}
                 search_query={@search_query}
                 search_suggestions={@search_suggestions}
               />

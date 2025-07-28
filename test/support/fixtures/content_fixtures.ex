@@ -10,6 +10,11 @@ defmodule Blog.ContentFixtures do
   def unique_post_slug, do: "some slug#{System.unique_integer([:positive])}"
 
   @doc """
+  Generate a unique series slug.
+  """
+  def unique_series_slug, do: "some-series#{System.unique_integer([:positive])}"
+
+  @doc """
   Generate a post.
   """
   def post_fixture(attrs \\ %{}) do
@@ -26,5 +31,21 @@ defmodule Blog.ContentFixtures do
       |> Blog.Content.create_post()
 
     post
+  end
+
+  @doc """
+  Generate a series.
+  """
+  def series_fixture(attrs \\ %{}) do
+    {:ok, series} =
+      attrs
+      |> Enum.into(%{
+        title: "some series title",
+        description: "some series description",
+        slug: unique_series_slug()
+      })
+      |> Blog.Content.create_series()
+
+    series
   end
 end

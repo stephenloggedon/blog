@@ -70,6 +70,32 @@ defmodule Blog.TursoRepoAdapter do
   end
 
   @impl true
+  def one(queryable) do
+    case queryable do
+      %Ecto.Query{} = query ->
+        # Convert Ecto query to SQL and extract parameters
+        {sql, params} = convert_ecto_query_to_sql_with_params(query)
+        schema = determine_schema_from_query(query)
+
+        case TursoHttpClient.query_one(sql, params) do
+          {:ok, nil} -> {:error, :not_found}
+          {:ok, {row, columns}} -> {:ok, convert_row_to_struct(schema, row, columns)}
+          error -> error
+        end
+
+      schema when is_atom(schema) ->
+        table_name = get_table_name(schema)
+        sql = "SELECT * FROM #{table_name} LIMIT 1"
+
+        case TursoHttpClient.query_one(sql, []) do
+          {:ok, nil} -> {:error, :not_found}
+          {:ok, {row, columns}} -> {:ok, convert_row_to_struct(schema, row, columns)}
+          error -> error
+        end
+    end
+  end
+
+  @impl true
   def insert(changeset) do
     # Extract data from changeset
     schema = changeset.data.__struct__
@@ -125,6 +151,41 @@ defmodule Blog.TursoRepoAdapter do
   end
 
   @impl true
+  def update_all(queryable, updates) do
+    case queryable do
+      %Ecto.Query{} = query ->
+        # Convert Ecto query to determine table and conditions
+        schema = determine_schema_from_query(query)
+        table_name = get_table_name(schema)
+        
+        # Extract where conditions
+        {where_clause, where_params} = extract_where_from_query(query)
+        
+        # Build SET clause from updates
+        {set_clause, update_params} = build_set_clause(updates)
+        
+        # Combine parameters
+        all_params = update_params ++ where_params
+        
+        # Build SQL
+        sql = "UPDATE #{table_name} SET #{set_clause}"
+        sql = if where_clause != "", do: sql <> " WHERE #{where_clause}", else: sql
+        
+        case TursoHttpClient.execute(sql, all_params) do
+          {:ok, result} ->
+            # Return count of affected rows - Turso should return this in result
+            count = Map.get(result, :rows_affected, 0)
+            {:ok, count}
+          error ->
+            {:error, error}
+        end
+        
+      _schema ->
+        {:error, :unsupported_queryable}
+    end
+  end
+
+  @impl true
   def delete(record) do
     schema = record.__struct__
     table_name = get_table_name(schema)
@@ -166,6 +227,7 @@ defmodule Blog.TursoRepoAdapter do
 
   defp get_table_name(Post), do: "posts"
   defp get_table_name(Image), do: "images"
+  defp get_table_name(Blog.Content.Series), do: "series"
   defp get_table_name(schema), do: schema.__schema__(:source)
 
   defp build_where_clause(clauses) do
@@ -552,6 +614,40 @@ defmodule Blog.TursoRepoAdapter do
 
       nil ->
         {sql_with_limit, params_with_limit}
+    end
+  end
+
+  # Helper functions for update_all
+  defp extract_where_from_query(%Ecto.Query{wheres: wheres} = query) do
+    case wheres do
+      [] -> {"", []}
+      _ -> convert_posts_where_clauses_with_params(wheres, query)
+    end
+  end
+
+  defp build_set_clause(updates) do
+    # Handle different update formats
+    case updates do
+      [set: keyword_updates] ->
+        # Format: [set: [field1: value1, field2: value2]]
+        {conditions, values} = Enum.unzip(keyword_updates)
+        set_conditions = Enum.map(conditions, fn field -> "#{field} = ?" end)
+        {Enum.join(set_conditions, ", "), values}
+      
+      [inc: keyword_increments] ->
+        # Format: [inc: [field1: amount1, field2: amount2]]
+        {conditions, values} = Enum.unzip(keyword_increments)
+        set_conditions = Enum.map(conditions, fn field -> "#{field} = #{field} + ?" end)
+        {Enum.join(set_conditions, ", "), values}
+      
+      keyword_updates when is_list(keyword_updates) ->
+        # Direct keyword list: [field1: value1, field2: value2]
+        {conditions, values} = Enum.unzip(keyword_updates)
+        set_conditions = Enum.map(conditions, fn field -> "#{field} = ?" end)
+        {Enum.join(set_conditions, ", "), values}
+      
+      _ ->
+        {"", []}
     end
   end
 end

@@ -682,7 +682,6 @@ defmodule BlogWeb.CoreComponents do
 
   def page_header(assigns) do
     ~H"""
-    <!-- Page Header -->
     <header class="bg-surface0 border-b border-surface1 w-full">
       <div class="w-full px-6 py-6">
         <h1 class="text-4xl font-bold text-text text-center">
@@ -700,19 +699,17 @@ defmodule BlogWeb.CoreComponents do
   attr :top_tags, :list, default: []
   attr :available_tags, :list, default: []
   attr :selected_tags, :list, default: []
+  attr :available_series, :list, default: []
+  attr :selected_series, :string, default: nil
   attr :search_query, :string, default: ""
   attr :search_suggestions, :list, default: []
 
   def content_nav(assigns) do
     ~H"""
-    <!-- Navigation Bar Adjacent to Content -->
     <nav class="flex flex-col h-full border-r border-surface1" style="width: 30%">
-      <!-- Search and Filters -->
       <div class="p-6 border-b border-surface1">
-        <!-- Enhanced Search Box -->
         <div class="relative mb-4">
           <div class="rounded-lg focus-within:border-blue transition-colors">
-            <!-- Search Input -->
             <form phx-submit="search" class="relative">
               <input
                 type="text"
@@ -725,8 +722,6 @@ defmodule BlogWeb.CoreComponents do
                 autocomplete="off"
               />
             </form>
-            
-    <!-- Tag Suggestions -->
             <%= if @search_query != "" && @search_suggestions != [] do %>
               <div class="absolute z-10 w-full mt-1 bg-surface0 border border-surface1 rounded-lg shadow-lg max-h-40 overflow-y-auto">
                 <%= for suggestion <- @search_suggestions do %>
@@ -747,9 +742,7 @@ defmodule BlogWeb.CoreComponents do
           </div>
         </div>
         
-    <!-- Tag Filters -->
         <div>
-          <!-- Tag Count -->
           <div class="mb-4 text-center">
             <div class="text-2xl font-bold text-text">
               {length(@available_tags)} tags
@@ -769,7 +762,6 @@ defmodule BlogWeb.CoreComponents do
             <% end %>
           </div>
           
-    <!-- Tag Grid Layout -->
           <div class="flex flex-wrap gap-2 mb-4">
             <%= for tag <- @top_tags do %>
               <button
@@ -788,7 +780,6 @@ defmodule BlogWeb.CoreComponents do
             <% end %>
           </div>
           
-    <!-- Show more tags if any are selected that aren't in top tags -->
           <%= if Enum.any?(@selected_tags, fn tag -> tag not in @top_tags end) do %>
             <div class="mb-4">
               <h4 class="text-xs font-medium text-subtext1 mb-2">Additional Tags</h4>
@@ -806,9 +797,49 @@ defmodule BlogWeb.CoreComponents do
             </div>
           <% end %>
         </div>
+
+        <%= if @available_series != [] do %>
+          <div class="-mx-6 border-t border-surface1 mb-4"></div>
+          <div class="pt-0">
+            <div class="mb-4 text-center">
+              <div class="text-2xl font-bold text-text">
+                {length(@available_series)} series
+              </div>
+              <div class="text-xs text-subtext1">Available</div>
+            </div>
+            
+            <%= if @selected_series != nil do %>
+              <div class="flex justify-center mb-3">
+                <button
+                  phx-click="clear_filters"
+                  class="text-xs text-subtext0 hover:text-text transition-colors px-2 py-1 hover:bg-surface0 rounded"
+                >
+                  Clear
+                </button>
+              </div>
+            <% end %>
+            
+            <div class="space-y-2">
+              <%= for series <- @available_series do %>
+                <button
+                  phx-click="toggle_series"
+                  phx-value-series={series.slug}
+                  class={[
+                    "block w-full text-left px-2 py-1 text-sm transition-all duration-200 hover:bg-surface0 rounded",
+                    if(series.slug == @selected_series,
+                      do: "text-blue font-bold border-b-2 border-blue",
+                      else: "text-subtext1 hover:text-text hover:border-b border-transparent"
+                    )
+                  ]}
+                >
+                  {series.title}
+                </button>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
       </div>
       
-    <!-- Admin Navigation Links -->
       <%= if @current_user do %>
         <div class="p-6 flex-1">
           <h3 class="text-sm font-medium text-text mb-3">Admin</h3>
@@ -833,7 +864,6 @@ defmodule BlogWeb.CoreComponents do
         </div>
       <% end %>
       
-    <!-- User Info/Logout (if logged in) -->
       <%= if @current_user do %>
         <div class="p-6 border-t border-surface1 mt-auto">
           <div class="text-subtext1 text-sm mb-2">{@current_user.email}</div>
@@ -870,7 +900,6 @@ defmodule BlogWeb.CoreComponents do
       title="Toggle theme"
       aria-label="Toggle between light and dark theme"
     >
-      <!-- Sun Icon (visible in dark mode, hidden in light) -->
       <svg
         class="sun-icon w-5 h-5 text-maroon transition-all duration-200 group-hover:scale-110"
         fill="currentColor"
@@ -884,7 +913,6 @@ defmodule BlogWeb.CoreComponents do
         />
       </svg>
       
-    <!-- Moon Icon (visible in light mode, hidden in dark) -->
       <svg
         class="moon-icon w-5 h-5 text-lavender transition-all duration-200 group-hover:scale-110 hidden"
         fill="currentColor"
@@ -913,7 +941,6 @@ defmodule BlogWeb.CoreComponents do
 
   def mobile_drawer(assigns) do
     ~H"""
-    <!-- Mobile Drawer Backdrop -->
     <div
       id={"#{@id}-backdrop"}
       class={[
@@ -925,7 +952,6 @@ defmodule BlogWeb.CoreComponents do
     >
     </div>
 
-    <!-- Mobile Drawer -->
     <div
       id={@id}
       class={[
@@ -939,18 +965,15 @@ defmodule BlogWeb.CoreComponents do
       tabindex="-1"
       style="overscroll-behavior: contain; -webkit-overflow-scrolling: touch;"
     >
-      <!-- Drawer Handle -->
       <div class="flex justify-center p-2">
         <div class="w-12 h-1.5 bg-surface2 rounded-full"></div>
       </div>
       
-    <!-- Drawer Content -->
       <div class="px-6 pb-6 max-h-[70vh] overflow-y-auto">
         {render_slot(@inner_block)}
       </div>
     </div>
 
-    <!-- Mobile Drawer Trigger (floating button) -->
     <div class={[
       "fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40 lg:hidden",
       if(@open, do: "hidden", else: "block")
@@ -979,24 +1002,43 @@ defmodule BlogWeb.CoreComponents do
   """
   attr :posts, :list, required: true
   attr :selected_tags, :list, default: []
+  attr :selected_series, :string, default: nil
   attr :search_query, :string, default: ""
   attr :has_more, :boolean, default: false
+  attr :series_empty_state, :atom, default: nil
 
   def posts_content(assigns) do
     ~H"""
-    <!-- Filter Status -->
-    <%= if @selected_tags != [] || @search_query != "" do %>
+    <%= if @selected_tags != [] || @selected_series != nil || @search_query != "" do %>
       <div class="mb-6 p-4 bg-surface0/50 rounded-lg border border-surface1">
         <div class="flex items-center justify-between">
           <div class="text-sm text-subtext1">
             <%= cond do %>
+              <% @selected_tags != [] && @selected_series != nil && @search_query != "" -> %>
+                Showing posts tagged with
+                <span class="text-blue">{Enum.join(@selected_tags, ", ")}</span>,
+                in series
+                <span class="text-blue">{@selected_series}</span>,
+                matching "<span class="text-blue"><%= @search_query %></span>"
+              <% @selected_tags != [] && @selected_series != nil -> %>
+                Showing posts tagged with
+                <span class="text-blue">{Enum.join(@selected_tags, ", ")}</span>
+                in series
+                <span class="text-blue">{@selected_series}</span>
               <% @selected_tags != [] && @search_query != "" -> %>
                 Showing posts tagged with
                 <span class="text-blue">{Enum.join(@selected_tags, ", ")}</span>
                 matching "<span class="text-blue"><%= @search_query %></span>"
+              <% @selected_series != nil && @search_query != "" -> %>
+                Showing posts in series
+                <span class="text-blue">{@selected_series}</span>
+                matching "<span class="text-blue"><%= @search_query %></span>"
               <% @selected_tags != [] -> %>
                 Showing posts tagged with
                 <span class="text-blue">{Enum.join(@selected_tags, ", ")}</span>
+              <% @selected_series != nil -> %>
+                Showing posts in series
+                <span class="text-blue">{@selected_series}</span>
               <% @search_query != "" -> %>
                 Showing posts matching "<span class="text-blue"><%= @search_query %></span>"
             <% end %>
@@ -1011,7 +1053,6 @@ defmodule BlogWeb.CoreComponents do
       </div>
     <% end %>
 
-    <!-- Posts List -->
     <%= for post <- @posts do %>
       <article>
         <.link
@@ -1054,14 +1095,12 @@ defmodule BlogWeb.CoreComponents do
               </div>
             </div>
           </div>
-          <!-- Fade effect covering the entire link area -->
           <div class="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-mantle via-mantle/90 via-mantle/60 via-mantle/40 to-transparent pointer-events-none">
           </div>
         </.link>
       </article>
     <% end %>
 
-    <!-- Loading Indicator for Infinite Scroll -->
     <%= if @has_more do %>
       <div class="mt-12 text-center py-8" id="loading-indicator">
         <div class="inline-flex items-center space-x-2 text-subtext1">
@@ -1071,23 +1110,46 @@ defmodule BlogWeb.CoreComponents do
       </div>
     <% end %>
 
-    <!-- Empty State -->
     <%= if @posts == [] do %>
       <div class="text-center py-12">
-        <%= if @selected_tags != [] || @search_query != "" do %>
-          <div class="text-6xl mb-4">🔍</div>
-          <h2 class="text-xl font-semibold text-text mb-2">No posts found</h2>
-          <p class="text-subtext1 mb-4">No posts match your current filters.</p>
+        <%= if @selected_series != nil && (Map.get(assigns, :series_empty_state) == :upcoming_only || match?({:upcoming_only, _}, Map.get(assigns, :series_empty_state))) do %>
+          <div class="text-6xl mb-4">🚀</div>
+          <%= case Map.get(assigns, :series_empty_state) do %>
+            <% {:upcoming_only, publish_date} when not is_nil(publish_date) -> %>
+              <h2 class="text-xl font-semibold text-text mb-2">New Content Coming Soon!</h2>
+              <p class="text-subtext1 mb-4">
+                The first post in this series will be available on 
+                <span class="font-medium text-text">
+                  <%= Calendar.strftime(publish_date, "%B %d, %Y at %I:%M %p") %>
+                </span>
+                . Please check back then!
+              </p>
+            <% _ -> %>
+              <h2 class="text-xl font-semibold text-text mb-2">Coming Soon!</h2>
+              <p class="text-subtext1 mb-4">This series has exciting content in development. Please return later for new posts!</p>
+          <% end %>
           <button
             phx-click="clear_filters"
             class="px-4 py-2 bg-blue hover:bg-blue/80 text-base rounded-lg font-medium transition-colors"
           >
-            Clear Filters
+            View All Posts
           </button>
         <% else %>
-          <div class="text-6xl mb-4">📝</div>
-          <h2 class="text-xl font-semibold text-text mb-2">No posts yet</h2>
-          <p class="text-subtext1">Check back later for new content.</p>
+          <%= if @selected_tags != [] || @selected_series != nil || @search_query != "" do %>
+            <div class="text-6xl mb-4">🔍</div>
+            <h2 class="text-xl font-semibold text-text mb-2">No posts found</h2>
+            <p class="text-subtext1 mb-4">No posts match your current filters.</p>
+            <button
+              phx-click="clear_filters"
+              class="px-4 py-2 bg-blue hover:bg-blue/80 text-base rounded-lg font-medium transition-colors"
+            >
+              Clear Filters
+            </button>
+          <% else %>
+            <div class="text-6xl mb-4">📝</div>
+            <h2 class="text-xl font-semibold text-text mb-2">No posts yet</h2>
+            <p class="text-subtext1">Check back later for new content.</p>
+          <% end %>
         <% end %>
       </div>
     <% end %>
@@ -1101,15 +1163,15 @@ defmodule BlogWeb.CoreComponents do
   attr :top_tags, :list, default: []
   attr :available_tags, :list, default: []
   attr :selected_tags, :list, default: []
+  attr :available_series, :list, default: []
+  attr :selected_series, :string, default: nil
   attr :search_query, :string, default: ""
   attr :search_suggestions, :list, default: []
 
   def mobile_content_nav(assigns) do
     ~H"""
-    <!-- Enhanced Search Box -->
     <div class="relative mb-6">
       <div class="rounded-lg focus-within:border-blue transition-colors p-3">
-        <!-- Search Input -->
         <form phx-submit="search" class="relative">
           <input
             type="text"
@@ -1123,7 +1185,6 @@ defmodule BlogWeb.CoreComponents do
           />
         </form>
         
-    <!-- Tag Suggestions -->
         <%= if @search_query != "" && @search_suggestions != [] do %>
           <div class="mt-2 space-y-1">
             <%= for suggestion <- @search_suggestions do %>
@@ -1144,9 +1205,7 @@ defmodule BlogWeb.CoreComponents do
       </div>
     </div>
 
-    <!-- Tag Filters -->
     <div>
-      <!-- Tag Count -->
       <div class="mb-4 text-center">
         <div class="text-2xl font-bold text-text">
           {length(@available_tags)} tags
@@ -1166,7 +1225,6 @@ defmodule BlogWeb.CoreComponents do
         <% end %>
       </div>
       
-    <!-- Tag Grid Layout -->
       <div class="flex flex-wrap gap-2 mb-4">
         <%= for tag <- @top_tags do %>
           <button
@@ -1185,7 +1243,6 @@ defmodule BlogWeb.CoreComponents do
         <% end %>
       </div>
       
-    <!-- Show more tags if any are selected that aren't in top tags -->
       <%= if Enum.any?(@selected_tags, fn tag -> tag not in @top_tags end) do %>
         <div class="mb-4">
           <h4 class="text-xs font-medium text-subtext1 mb-2">Additional Tags</h4>
@@ -1202,9 +1259,48 @@ defmodule BlogWeb.CoreComponents do
           </div>
         </div>
       <% end %>
+
+      <%= if @available_series != [] do %>
+        <div class="border-t border-surface1 pt-4">
+          <div class="mb-4 text-center">
+            <div class="text-2xl font-bold text-text">
+              {length(@available_series)} series
+            </div>
+            <div class="text-xs text-subtext1">Available</div>
+          </div>
+          
+          <%= if @selected_series != nil do %>
+            <div class="flex justify-center mb-3">
+              <button
+                phx-click="clear_filters"
+                class="text-xs text-subtext0 hover:text-text transition-colors px-2 py-1 hover:bg-surface0 rounded"
+              >
+                Clear
+              </button>
+            </div>
+          <% end %>
+          
+          <div class="space-y-2">
+            <%= for series <- @available_series do %>
+              <button
+                phx-click="toggle_series"
+                phx-value-series={series.slug}
+                class={[
+                  "block w-full text-left px-2 py-1 text-sm transition-all duration-200 hover:bg-surface0 rounded",
+                  if(series.slug == @selected_series,
+                    do: "text-blue font-bold border-b-2 border-blue",
+                    else: "text-subtext1 hover:text-text hover:border-b border-transparent"
+                  )
+                ]}
+              >
+                {series.title}
+              </button>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
     </div>
 
-    <!-- Admin Navigation Links -->
     <%= if @current_user do %>
       <div class="pt-6 border-t border-surface1">
         <h3 class="text-sm font-medium text-text mb-3">Admin</h3>

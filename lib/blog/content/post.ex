@@ -15,7 +15,9 @@ defmodule Blog.Content.Post do
     field :published, :boolean, default: false
     field :published_at, :utc_datetime
     field :rendered_content, :string, virtual: true
+    field :series_position, :integer
 
+    belongs_to :series, Blog.Content.Series
     has_many :images, Blog.Image, foreign_key: :post_id
 
     timestamps(type: :utc_datetime)
@@ -32,17 +34,21 @@ defmodule Blog.Content.Post do
       :subtitle,
       :tags,
       :published,
-      :published_at
+      :published_at,
+      :series_id,
+      :series_position
     ])
     |> validate_required([:title, :content])
     |> validate_length(:title, min: 1, max: 200)
     |> validate_length(:content, min: 1)
+    |> validate_series_position()
     |> maybe_generate_slug()
     |> maybe_generate_excerpt()
     |> maybe_set_published_at()
     |> convert_content_links()
     |> parse_tags()
     |> unique_constraint(:slug)
+    |> unique_constraint([:series_id, :series_position])
   end
 
   @doc """
@@ -215,6 +221,29 @@ defmodule Blog.Content.Post do
 
       _ ->
         changeset
+    end
+  end
+
+  defp validate_series_position(changeset) do
+    series_id = get_field(changeset, :series_id)
+    series_position = get_field(changeset, :series_position)
+
+    cond do
+      is_nil(series_id) and is_nil(series_position) ->
+        # Both nil is valid
+        changeset
+
+      not is_nil(series_id) and not is_nil(series_position) ->
+        # Both set is valid, validate position is positive
+        validate_number(changeset, :series_position, greater_than: 0)
+
+      is_nil(series_id) and not is_nil(series_position) ->
+        # Position set without series is invalid
+        add_error(changeset, :series_position, "cannot be set without a series")
+
+      not is_nil(series_id) and is_nil(series_position) ->
+        # Series set without position is invalid
+        add_error(changeset, :series_position, "must be set when post belongs to a series")
     end
   end
 end
