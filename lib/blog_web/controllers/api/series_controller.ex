@@ -7,7 +7,7 @@ defmodule BlogWeb.Api.SeriesController do
 
   def index(conn, _params) do
     series = Content.list_series()
-    
+
     conn
     |> put_status(:ok)
     |> render(:index, series: series)

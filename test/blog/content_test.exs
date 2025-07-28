@@ -516,7 +516,7 @@ defmodule Blog.ContentTest do
 
     test "list_published_posts/1 with series filter" do
       now = DateTime.utc_now() |> DateTime.truncate(:second)
-      
+
       # Create series
       series1 = series_fixture(%{title: "Phoenix Series", slug: "phoenix-series"})
       series2 = series_fixture(%{title: "Elixir Series", slug: "elixir-series"})
@@ -568,7 +568,7 @@ defmodule Blog.ContentTest do
 
     test "list_published_posts/1 with series and tags combined" do
       now = DateTime.utc_now() |> DateTime.truncate(:second)
-      
+
       series = series_fixture(%{title: "Tutorial Series", slug: "tutorial-series"})
 
       {:ok, post1} =
@@ -620,8 +620,10 @@ defmodule Blog.ContentTest do
 
       series_list = Content.list_series()
       assert length(series_list) == 2
-      assert hd(series_list).id == series2.id  # A Series comes first
-      assert List.last(series_list).id == series1.id  # Z Series comes last
+      # A Series comes first
+      assert hd(series_list).id == series2.id
+      # Z Series comes last
+      assert List.last(series_list).id == series1.id
     end
 
     test "list_series_for_filtering/0 returns all series ordered by title" do
@@ -800,7 +802,7 @@ defmodule Blog.ContentTest do
 
       # Add first post
       {:ok, _} = Content.add_post_to_series(post1, series.id, 1)
-      
+
       # Add second post at position 1 (should shift first post)
       assert {:ok, updated_post2} = Content.add_post_to_series(post2, series.id, 1)
       assert updated_post2.series_position == 1

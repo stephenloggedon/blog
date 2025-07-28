@@ -741,7 +741,7 @@ defmodule BlogWeb.CoreComponents do
             <% end %>
           </div>
         </div>
-        
+
         <div>
           <div class="mb-4 text-center">
             <div class="text-2xl font-bold text-text">
@@ -761,7 +761,7 @@ defmodule BlogWeb.CoreComponents do
               </button>
             <% end %>
           </div>
-          
+
           <div class="flex flex-wrap gap-2 mb-4">
             <%= for tag <- @top_tags do %>
               <button
@@ -779,7 +779,7 @@ defmodule BlogWeb.CoreComponents do
               </button>
             <% end %>
           </div>
-          
+
           <%= if Enum.any?(@selected_tags, fn tag -> tag not in @top_tags end) do %>
             <div class="mb-4">
               <h4 class="text-xs font-medium text-subtext1 mb-2">Additional Tags</h4>
@@ -807,7 +807,7 @@ defmodule BlogWeb.CoreComponents do
               </div>
               <div class="text-xs text-subtext1">Available</div>
             </div>
-            
+
             <%= if @selected_series != nil do %>
               <div class="flex justify-center mb-3">
                 <button
@@ -818,7 +818,7 @@ defmodule BlogWeb.CoreComponents do
                 </button>
               </div>
             <% end %>
-            
+
             <div class="space-y-2">
               <%= for series <- @available_series do %>
                 <button
@@ -839,7 +839,7 @@ defmodule BlogWeb.CoreComponents do
           </div>
         <% end %>
       </div>
-      
+
       <%= if @current_user do %>
         <div class="p-6 flex-1">
           <h3 class="text-sm font-medium text-text mb-3">Admin</h3>
@@ -863,7 +863,7 @@ defmodule BlogWeb.CoreComponents do
           </ul>
         </div>
       <% end %>
-      
+
       <%= if @current_user do %>
         <div class="p-6 border-t border-surface1 mt-auto">
           <div class="text-subtext1 text-sm mb-2">{@current_user.email}</div>
@@ -912,7 +912,7 @@ defmodule BlogWeb.CoreComponents do
           clip-rule="evenodd"
         />
       </svg>
-      
+
       <svg
         class="moon-icon w-5 h-5 text-lavender transition-all duration-200 group-hover:scale-110 hidden"
         fill="currentColor"
@@ -968,7 +968,7 @@ defmodule BlogWeb.CoreComponents do
       <div class="flex justify-center p-2">
         <div class="w-12 h-1.5 bg-surface2 rounded-full"></div>
       </div>
-      
+
       <div class="px-6 pb-6 max-h-[70vh] overflow-y-auto">
         {render_slot(@inner_block)}
       </div>
@@ -1015,30 +1015,25 @@ defmodule BlogWeb.CoreComponents do
           <div class="text-sm text-subtext1">
             <%= cond do %>
               <% @selected_tags != [] && @selected_series != nil && @search_query != "" -> %>
-                Showing posts tagged with
-                <span class="text-blue">{Enum.join(@selected_tags, ", ")}</span>,
-                in series
-                <span class="text-blue">{@selected_series}</span>,
+                Showing posts tagged with <span class="text-blue">{Enum.join(@selected_tags, ", ")}</span>,
+                in series <span class="text-blue">{@selected_series}</span>,
                 matching "<span class="text-blue"><%= @search_query %></span>"
               <% @selected_tags != [] && @selected_series != nil -> %>
                 Showing posts tagged with
                 <span class="text-blue">{Enum.join(@selected_tags, ", ")}</span>
-                in series
-                <span class="text-blue">{@selected_series}</span>
+                in series <span class="text-blue">{@selected_series}</span>
               <% @selected_tags != [] && @search_query != "" -> %>
                 Showing posts tagged with
                 <span class="text-blue">{Enum.join(@selected_tags, ", ")}</span>
                 matching "<span class="text-blue"><%= @search_query %></span>"
               <% @selected_series != nil && @search_query != "" -> %>
-                Showing posts in series
-                <span class="text-blue">{@selected_series}</span>
+                Showing posts in series <span class="text-blue">{@selected_series}</span>
                 matching "<span class="text-blue"><%= @search_query %></span>"
               <% @selected_tags != [] -> %>
                 Showing posts tagged with
                 <span class="text-blue">{Enum.join(@selected_tags, ", ")}</span>
               <% @selected_series != nil -> %>
-                Showing posts in series
-                <span class="text-blue">{@selected_series}</span>
+                Showing posts in series <span class="text-blue">{@selected_series}</span>
               <% @search_query != "" -> %>
                 Showing posts matching "<span class="text-blue"><%= @search_query %></span>"
             <% end %>
@@ -1118,15 +1113,17 @@ defmodule BlogWeb.CoreComponents do
             <% {:upcoming_only, publish_date} when not is_nil(publish_date) -> %>
               <h2 class="text-xl font-semibold text-text mb-2">New Content Coming Soon!</h2>
               <p class="text-subtext1 mb-4">
-                The first post in this series will be available on 
+                The first post in this series will be available on
                 <span class="font-medium text-text">
-                  <%= Calendar.strftime(publish_date, "%B %d, %Y at %I:%M %p") %>
+                  {Calendar.strftime(publish_date, "%B %d, %Y at %I:%M %p")}
                 </span>
                 . Please check back then!
               </p>
             <% _ -> %>
               <h2 class="text-xl font-semibold text-text mb-2">Coming Soon!</h2>
-              <p class="text-subtext1 mb-4">This series has exciting content in development. Please return later for new posts!</p>
+              <p class="text-subtext1 mb-4">
+                This series has exciting content in development. Please return later for new posts!
+              </p>
           <% end %>
           <button
             phx-click="clear_filters"
@@ -1184,7 +1181,7 @@ defmodule BlogWeb.CoreComponents do
             autocomplete="off"
           />
         </form>
-        
+
         <%= if @search_query != "" && @search_suggestions != [] do %>
           <div class="mt-2 space-y-1">
             <%= for suggestion <- @search_suggestions do %>
@@ -1224,7 +1221,7 @@ defmodule BlogWeb.CoreComponents do
           </button>
         <% end %>
       </div>
-      
+
       <div class="flex flex-wrap gap-2 mb-4">
         <%= for tag <- @top_tags do %>
           <button
@@ -1242,7 +1239,7 @@ defmodule BlogWeb.CoreComponents do
           </button>
         <% end %>
       </div>
-      
+
       <%= if Enum.any?(@selected_tags, fn tag -> tag not in @top_tags end) do %>
         <div class="mb-4">
           <h4 class="text-xs font-medium text-subtext1 mb-2">Additional Tags</h4>
@@ -1268,7 +1265,7 @@ defmodule BlogWeb.CoreComponents do
             </div>
             <div class="text-xs text-subtext1">Available</div>
           </div>
-          
+
           <%= if @selected_series != nil do %>
             <div class="flex justify-center mb-3">
               <button
@@ -1279,7 +1276,7 @@ defmodule BlogWeb.CoreComponents do
               </button>
             </div>
           <% end %>
-          
+
           <div class="space-y-2">
             <%= for series <- @available_series do %>
               <button

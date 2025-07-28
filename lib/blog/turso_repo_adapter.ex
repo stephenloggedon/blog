@@ -157,29 +157,30 @@ defmodule Blog.TursoRepoAdapter do
         # Convert Ecto query to determine table and conditions
         schema = determine_schema_from_query(query)
         table_name = get_table_name(schema)
-        
+
         # Extract where conditions
         {where_clause, where_params} = extract_where_from_query(query)
-        
+
         # Build SET clause from updates
         {set_clause, update_params} = build_set_clause(updates)
-        
+
         # Combine parameters
         all_params = update_params ++ where_params
-        
+
         # Build SQL
         sql = "UPDATE #{table_name} SET #{set_clause}"
         sql = if where_clause != "", do: sql <> " WHERE #{where_clause}", else: sql
-        
+
         case TursoHttpClient.execute(sql, all_params) do
           {:ok, result} ->
             # Return count of affected rows - Turso should return this in result
             count = Map.get(result, :rows_affected, 0)
             {:ok, count}
+
           error ->
             {:error, error}
         end
-        
+
       _schema ->
         {:error, :unsupported_queryable}
     end
@@ -633,19 +634,19 @@ defmodule Blog.TursoRepoAdapter do
         {conditions, values} = Enum.unzip(keyword_updates)
         set_conditions = Enum.map(conditions, fn field -> "#{field} = ?" end)
         {Enum.join(set_conditions, ", "), values}
-      
+
       [inc: keyword_increments] ->
         # Format: [inc: [field1: amount1, field2: amount2]]
         {conditions, values} = Enum.unzip(keyword_increments)
         set_conditions = Enum.map(conditions, fn field -> "#{field} = #{field} + ?" end)
         {Enum.join(set_conditions, ", "), values}
-      
+
       keyword_updates when is_list(keyword_updates) ->
         # Direct keyword list: [field1: value1, field2: value2]
         {conditions, values} = Enum.unzip(keyword_updates)
         set_conditions = Enum.map(conditions, fn field -> "#{field} = ?" end)
         {Enum.join(set_conditions, ", "), values}
-      
+
       _ ->
         {"", []}
     end

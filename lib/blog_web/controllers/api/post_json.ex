@@ -25,7 +25,6 @@ defmodule BlogWeb.Api.PostJSON do
     end)
   end
 
-  # Handle both Post structs and maps dynamically
   defp data(%Post{} = post) do
     post |> Map.from_struct() |> data()
   end
@@ -41,7 +40,7 @@ defmodule BlogWeb.Api.PostJSON do
       :updated_at
     ]
 
-    optional_fields = [:content, :subtitle]
+    optional_fields = [:content, :subtitle, :series_id, :series_position]
 
     all_fields = base_fields ++ optional_fields
 

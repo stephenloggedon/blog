@@ -116,7 +116,8 @@ defmodule Blog.Content.SeriesTest do
 
     test "invalid changeset with title too long" do
       attrs = %{
-        title: String.duplicate("a", 256),  # 256 characters, max is 255
+        # 256 characters, max is 255
+        title: String.duplicate("a", 256),
         slug: "test-slug"
       }
 
@@ -128,7 +129,8 @@ defmodule Blog.Content.SeriesTest do
     test "invalid changeset with slug too long" do
       attrs = %{
         title: "Test Series",
-        slug: String.duplicate("a", 256)  # 256 characters, max is 255
+        # 256 characters, max is 255
+        slug: String.duplicate("a", 256)
       }
 
       changeset = Series.changeset(%Series{}, attrs)
@@ -152,7 +154,8 @@ defmodule Blog.Content.SeriesTest do
       assert changeset.valid?
       assert get_field(changeset, :title) == "New Title"
       assert get_field(changeset, :description) == "New description"
-      assert get_field(changeset, :slug) == "old-slug"  # Should preserve existing slug
+      # Should preserve existing slug
+      assert get_field(changeset, :slug) == "old-slug"
     end
 
     test "updating existing series can override slug" do
@@ -207,7 +210,9 @@ defmodule Blog.Content.SeriesTest do
       # This test would require database interaction and should be in the Content context test
       # Just verify the changeset has the constraint
       changeset = Series.changeset(%Series{}, %{title: "Test", slug: "test"})
-      assert changeset.constraints |> Enum.any?(fn c -> c.field == :slug and c.type == :unique end)
+
+      assert changeset.constraints
+             |> Enum.any?(fn c -> c.field == :slug and c.type == :unique end)
     end
   end
 end

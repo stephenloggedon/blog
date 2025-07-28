@@ -8,7 +8,6 @@ defmodule BlogWeb.ImageController do
       {:ok, image} ->
         conn
         |> put_resp_content_type(image.content_type)
-        # 1 year
         |> put_resp_header("cache-control", "public, max-age=31536000")
         |> put_resp_header("etag", generate_etag(image))
         |> maybe_send_not_modified(conn, image)
@@ -25,7 +24,6 @@ defmodule BlogWeb.ImageController do
       {:ok, %{thumbnail_data: thumbnail_data, content_type: content_type}} ->
         conn
         |> put_resp_content_type(content_type)
-        # 1 year
         |> put_resp_header("cache-control", "public, max-age=31536000")
         |> send_resp(200, thumbnail_data)
 
@@ -35,7 +33,6 @@ defmodule BlogWeb.ImageController do
         |> text("Image not found")
 
       {:error, :no_thumbnail} ->
-        # Fallback to full image if no thumbnail
         show(conn, %{"id" => id})
     end
   end

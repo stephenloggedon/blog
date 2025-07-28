@@ -30,7 +30,6 @@ defmodule BlogWeb.Plugs.RequestLogger do
         query_string: conn.query_string,
         response_size: get_response_size(conn),
         request_id: Logger.metadata()[:request_id],
-        # Geographic data
         country: geo_data.country,
         country_code: geo_data.country_code,
         ip_type: geo_data.ip_type
@@ -48,7 +47,6 @@ defmodule BlogWeb.Plugs.RequestLogger do
   end
 
   defp get_client_ip(conn) do
-    # Check for forwarded IP headers first (common with load balancers)
     case get_req_header(conn, "x-forwarded-for") do
       [forwarded_ip | _] ->
         forwarded_ip
@@ -57,13 +55,11 @@ defmodule BlogWeb.Plugs.RequestLogger do
         |> String.trim()
 
       [] ->
-        # Fall back to remote IP
         case conn.remote_ip do
           {a, b, c, d} ->
             "#{a}.#{b}.#{c}.#{d}"
 
           {a, b, c, d, e, f, g, h} ->
-            # IPv6 - convert to string
             parts = [a, b, c, d, e, f, g, h]
             Enum.map_join(parts, ":", &Integer.to_string(&1, 16))
 

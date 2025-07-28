@@ -37,6 +37,16 @@ defmodule Blog.EctoRepoAdapter do
   end
 
   @impl true
+  def one(queryable) do
+    case Repo.one(queryable) do
+      nil -> {:error, :not_found}
+      record -> {:ok, record}
+    end
+  catch
+    error -> {:error, error}
+  end
+
+  @impl true
   def insert(changeset) do
     case Repo.insert(changeset) do
       {:ok, record} -> {:ok, record}
@@ -69,6 +79,16 @@ defmodule Blog.EctoRepoAdapter do
   end
 
   @impl true
+  def update_all(queryable, updates) do
+    case Repo.update_all(queryable, updates) do
+      {count, nil} -> {:ok, count}
+      {count, records} -> {:ok, {count, records}}
+    end
+  catch
+    error -> {:error, error}
+  end
+
+  @impl true
   def transaction(fun) do
     case Repo.transaction(fun) do
       {:ok, result} -> {:ok, result}
@@ -76,7 +96,6 @@ defmodule Blog.EctoRepoAdapter do
     end
   end
 
-  # Helper functions for common queries
   def list_published_posts(opts \\ []) do
     page = Keyword.get(opts, :page, 1)
     per_page = Keyword.get(opts, :per_page, 10)

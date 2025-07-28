@@ -21,7 +21,6 @@ defmodule BlogWeb.Api.PostController do
 
     posts = Content.list_posts(opts)
 
-    # Track API usage for analytics
     Analytics.track_api_usage("/api/posts", "GET", 200, conn)
 
     conn
@@ -37,7 +36,6 @@ defmodule BlogWeb.Api.PostController do
         |> render(:error, %{message: "Post not found"})
 
       post ->
-        # Track individual post API access
         Analytics.track_api_usage("/api/posts/#{id}", "GET", 200, conn)
         Analytics.track_post_view(post.id, post.title, post.slug, conn)
 
@@ -63,7 +61,6 @@ defmodule BlogWeb.Api.PostController do
     content = get_in(params, ["content"]) || get_in(params, ["post", "content"]) || ""
     content_size = byte_size(content)
 
-    # If content is very large (>50KB) or if chunks are explicitly provided, use chunked
     if content_size > 50_000 or Map.has_key?(params, "chunks") do
       :chunked
     else
@@ -167,7 +164,6 @@ defmodule BlogWeb.Api.PostController do
     chunks = chunk_string(content, chunk_size)
 
     Enum.reduce_while(chunks, {:ok, post}, fn {chunk, index}, {:ok, current_post} ->
-      # For first chunk, replace placeholder content; for subsequent chunks, append
       updated_content =
         if index == 0 do
           # Replace placeholder content with first chunk
@@ -283,7 +279,6 @@ defmodule BlogWeb.Api.PostController do
   end
 
   defp parse_metadata(params) do
-    # Handle nested post parameters or direct parameters
     post_params = params["post"] || params
 
     metadata = %{
@@ -299,7 +294,6 @@ defmodule BlogWeb.Api.PostController do
   end
 
   defp parse_patch_params(params) do
-    # Handle nested post parameters or direct parameters
     post_params = params["post"] || params
 
     # Only include non-nil values for partial updates
@@ -311,6 +305,8 @@ defmodule BlogWeb.Api.PostController do
       |> maybe_put("tags", post_params["tags"])
       |> maybe_put("published", post_params["published"])
       |> maybe_put("subtitle", post_params["subtitle"])
+      |> maybe_put("series_id", post_params["series_id"])
+      |> maybe_put("series_position", post_params["series_position"])
 
     {:ok, patch_data}
   end

@@ -10,7 +10,6 @@ defmodule Blog.Images do
   alias Vix.Vips.Image, as: VipsImage
   alias Vix.Vips.Operation, as: VipsOperation
 
-  # 5MB
   @max_image_size 5 * 1024 * 1024
   @allowed_types ["image/jpeg", "image/png", "image/gif", "image/webp"]
   @thumbnail_size 400
@@ -95,7 +94,6 @@ defmodule Blog.Images do
     end
   end
 
-  # Private functions
 
   defp get_post(post_id) do
     case RepoService.get(Post, post_id) do
@@ -128,22 +126,16 @@ defmodule Blog.Images do
     end
   rescue
     _ ->
-      # If Vix is not available, do basic header checks
       basic_image_validation(image_binary)
   end
 
-  # PNG
   defp basic_image_validation(<<0x89, 0x50, 0x4E, 0x47, _rest::binary>>), do: true
-  # JPEG
   defp basic_image_validation(<<0xFF, 0xD8, 0xFF, _rest::binary>>), do: true
-  # GIF
   defp basic_image_validation(<<0x47, 0x49, 0x46, _rest::binary>>), do: true
-  # WebP
   defp basic_image_validation(<<"RIFF", _size::32-little, "WEBP", _rest::binary>>), do: true
   defp basic_image_validation(_), do: false
 
   defp create_thumbnail(image_binary, _content_type) do
-    # Create a thumbnail using Vix
     with {:ok, _image} <- VipsImage.new_from_buffer(image_binary),
          {:ok, resized} <-
            VipsOperation.thumbnail_buffer(image_binary, @thumbnail_size, height: @thumbnail_size),
@@ -151,12 +143,10 @@ defmodule Blog.Images do
       {:ok, thumbnail_binary}
     else
       _error ->
-        # Fallback to original image if thumbnail creation fails
         {:ok, image_binary}
     end
   rescue
     _ ->
-      # Fallback to original image if Vix is not available or fails
       {:ok, image_binary}
   end
 end

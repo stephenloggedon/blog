@@ -29,7 +29,7 @@ defmodule Blog.Content.Series do
     slug = get_field(changeset, :slug)
 
     if title && (!slug || slug == "") do
-      generated_slug = 
+      generated_slug =
         title
         |> String.downcase()
         |> String.replace(~r/[^a-z0-9\s-]/, "")

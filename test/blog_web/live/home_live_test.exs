@@ -239,17 +239,19 @@ defmodule BlogWeb.HomeLiveTest do
       now = DateTime.utc_now() |> DateTime.truncate(:second)
 
       # Create test series
-      {:ok, series1} = Content.create_series(%{
-        title: "Phoenix Tutorial Series",
-        slug: "phoenix-tutorial",
-        description: "Complete Phoenix tutorial"
-      })
+      {:ok, series1} =
+        Content.create_series(%{
+          title: "Phoenix Tutorial Series",
+          slug: "phoenix-tutorial",
+          description: "Complete Phoenix tutorial"
+        })
 
-      {:ok, series2} = Content.create_series(%{
-        title: "Elixir Basics Series", 
-        slug: "elixir-basics",
-        description: "Learn Elixir fundamentals"
-      })
+      {:ok, series2} =
+        Content.create_series(%{
+          title: "Elixir Basics Series",
+          slug: "elixir-basics",
+          description: "Learn Elixir fundamentals"
+        })
 
       # Create posts with series relationships
       {:ok, post1} =
@@ -301,7 +303,11 @@ defmodule BlogWeb.HomeLiveTest do
       }
     end
 
-    test "initial mount loads series for filtering", %{conn: conn, series1: series1, series2: series2} do
+    test "initial mount loads series for filtering", %{
+      conn: conn,
+      series1: series1,
+      series2: series2
+    } do
       {:ok, _view, html} = live(conn, "/")
 
       # Should display series filter section
@@ -315,7 +321,9 @@ defmodule BlogWeb.HomeLiveTest do
       {:ok, view, _html} = live(conn, "/")
 
       # Click on Phoenix Tutorial series
-      view |> element("button[phx-click='toggle_series'][phx-value-series='#{series1.slug}']") |> render_click()
+      view
+      |> element("button[phx-click='toggle_series'][phx-value-series='#{series1.slug}']")
+      |> render_click()
 
       # Should navigate to URL with series parameter
       assert_patch(view, "/?series=#{series1.slug}")
@@ -328,7 +336,10 @@ defmodule BlogWeb.HomeLiveTest do
       refute rendered =~ "Standalone Post"
     end
 
-    test "toggle_series event deselects currently selected series", %{conn: conn, series1: series1} do
+    test "toggle_series event deselects currently selected series", %{
+      conn: conn,
+      series1: series1
+    } do
       # Start with series already selected
       {:ok, view, _html} = live(conn, "/?series=#{series1.slug}")
 
@@ -338,7 +349,9 @@ defmodule BlogWeb.HomeLiveTest do
       refute rendered =~ "Elixir Pattern Matching"
 
       # Click the same series again to deselect it
-      view |> element("button[phx-click='toggle_series'][phx-value-series='#{series1.slug}']") |> render_click()
+      view
+      |> element("button[phx-click='toggle_series'][phx-value-series='#{series1.slug}']")
+      |> render_click()
 
       # Should navigate back to home (no series parameter)
       assert_patch(view, "/")
@@ -351,7 +364,11 @@ defmodule BlogWeb.HomeLiveTest do
       assert rendered =~ "Standalone Post"
     end
 
-    test "selecting a different series replaces current selection", %{conn: conn, series1: series1, series2: series2} do
+    test "selecting a different series replaces current selection", %{
+      conn: conn,
+      series1: series1,
+      series2: series2
+    } do
       # Start with series1 selected
       {:ok, view, _html} = live(conn, "/?series=#{series1.slug}")
 
@@ -361,7 +378,9 @@ defmodule BlogWeb.HomeLiveTest do
       refute rendered =~ "Elixir Pattern Matching"
 
       # Select series2 (should replace series1)
-      view |> element("button[phx-click='toggle_series'][phx-value-series='#{series2.slug}']") |> render_click()
+      view
+      |> element("button[phx-click='toggle_series'][phx-value-series='#{series2.slug}']")
+      |> render_click()
 
       # Should navigate to series2 URL (replacing series1)
       assert_patch(view, "/?series=#{series2.slug}")
@@ -381,7 +400,9 @@ defmodule BlogWeb.HomeLiveTest do
       assert_patch(view, "/?tags=phoenix")
 
       # Then select a series
-      view |> element("button[phx-click='toggle_series'][phx-value-series='#{series1.slug}']") |> render_click()
+      view
+      |> element("button[phx-click='toggle_series'][phx-value-series='#{series1.slug}']")
+      |> render_click()
 
       # Should have both filters active
       rendered = render(view)
@@ -419,14 +440,19 @@ defmodule BlogWeb.HomeLiveTest do
       refute rendered =~ "Elixir Pattern Matching"
     end
 
-    test "series selection shows proper visual indication", %{conn: conn, series1: series1, series2: series2} do
+    test "series selection shows proper visual indication", %{
+      conn: conn,
+      series1: series1,
+      series2: series2
+    } do
       {:ok, view, _html} = live(conn, "/?series=#{series1.slug}")
 
       rendered = render(view)
-      
+
       # Selected series should have bold and underline styling
-      assert rendered =~ ~r/class="[^"]*text-blue[^"]*font-bold[^"]*border-b-2[^"]*border-blue[^"]*"/
-      
+      assert rendered =~
+               ~r/class="[^"]*text-blue[^"]*font-bold[^"]*border-b-2[^"]*border-blue[^"]*"/
+
       # Unselected series should have different styling  
       assert rendered =~ series2.title
     end
@@ -453,7 +479,7 @@ defmodule BlogWeb.HomeLiveTest do
       {:ok, view, _html} = live(conn, "/?series=#{series1.slug}")
 
       rendered = render(view)
-      
+
       # Should show filter status indicating series selection
       assert rendered =~ "Showing posts in series"
       assert rendered =~ series1.title
@@ -464,10 +490,12 @@ defmodule BlogWeb.HomeLiveTest do
 
       # Select a tag
       view |> element("button", "phoenix") |> render_click()
-      
+
       # Select a series
-      view |> element("button[phx-click='toggle_series'][phx-value-series='#{series1.slug}']") |> render_click()
-      
+      view
+      |> element("button[phx-click='toggle_series'][phx-value-series='#{series1.slug}']")
+      |> render_click()
+
       # Add a search term
       view
       |> form("form[phx-submit='search']", %{query: "LiveView"})
@@ -485,15 +513,16 @@ defmodule BlogWeb.HomeLiveTest do
 
     test "empty state when series filter returns no results", %{conn: conn} do
       # Create a series with no published posts
-      {:ok, _empty_series} = Content.create_series(%{
-        title: "Empty Series",
-        slug: "empty-series"
-      })
+      {:ok, _empty_series} =
+        Content.create_series(%{
+          title: "Empty Series",
+          slug: "empty-series"
+        })
 
       {:ok, view, _html} = live(conn, "/?series=empty-series")
 
       rendered = render(view)
-      
+
       # Should show empty state
       assert rendered =~ "No posts found"
       assert rendered =~ "No posts match your current filters"
@@ -504,7 +533,9 @@ defmodule BlogWeb.HomeLiveTest do
       {:ok, view, _html} = live(conn, "/")
 
       # Select series (this should trigger analytics tracking in load_posts)
-      view |> element("button[phx-click='toggle_series'][phx-value-series='#{series1.slug}']") |> render_click()
+      view
+      |> element("button[phx-click='toggle_series'][phx-value-series='#{series1.slug}']")
+      |> render_click()
 
       # The analytics tracking happens internally, we can't directly test it
       # but we can verify the page loaded correctly with the series filter

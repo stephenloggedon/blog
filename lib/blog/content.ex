@@ -442,7 +442,6 @@ defmodule Blog.Content do
     _ -> []
   end
 
-
   @doc """
   Returns the list of series.
 
@@ -621,12 +620,13 @@ defmodule Blog.Content do
   def get_posts_in_series(series_id, opts \\ []) do
     allow_unpublished = Keyword.get(opts, :allow_unpublished, false)
 
-    base_query = 
+    base_query =
       if allow_unpublished do
         from(p in Post, where: p.series_id == ^series_id)
       else
-        from(p in Post, 
-          where: p.series_id == ^series_id and p.published == true and not is_nil(p.published_at))
+        from(p in Post,
+          where: p.series_id == ^series_id and p.published == true and not is_nil(p.published_at)
+        )
       end
 
     base_query
@@ -653,7 +653,7 @@ defmodule Blog.Content do
   """
   def add_post_to_series(%Post{} = post, series_id, position \\ nil) do
     final_position = position || get_next_series_position(series_id)
-    
+
     # If inserting in the middle, shift other posts
     if position && position <= get_max_series_position(series_id) do
       shift_series_positions(series_id, position, 1)
@@ -676,14 +676,16 @@ defmodule Blog.Content do
   """
   def remove_post_from_series(%Post{} = post) do
     case post do
-      %{series_id: nil} -> {:ok, post}
+      %{series_id: nil} ->
+        {:ok, post}
+
       %{series_id: series_id, series_position: position} ->
         # Remove from series
         result = update_post(post, %{series_id: nil, series_position: nil})
-        
+
         # Shift remaining posts down
         shift_series_positions(series_id, position + 1, -1)
-        
+
         result
     end
   end
@@ -704,6 +706,7 @@ defmodule Blog.Content do
       case get_post(post_id, allow_unpublished: true) do
         %Post{} = post ->
           update_post(post, %{series_position: position})
+
         nil ->
           :skip
       end
@@ -725,10 +728,12 @@ defmodule Blog.Content do
 
   """
   def get_next_post_in_series(%Post{series_id: nil}), do: nil
+
   def get_next_post_in_series(%Post{series_id: series_id, series_position: position}) do
     from(p in Post,
-      where: p.series_id == ^series_id and p.series_position == ^(position + 1) and
-             p.published == true and not is_nil(p.published_at)
+      where:
+        p.series_id == ^series_id and p.series_position == ^(position + 1) and
+          p.published == true and not is_nil(p.published_at)
     )
     |> RepoService.one()
     |> case do
@@ -750,10 +755,12 @@ defmodule Blog.Content do
 
   """
   def get_previous_post_in_series(%Post{series_id: nil}), do: nil
+
   def get_previous_post_in_series(%Post{series_id: series_id, series_position: position}) do
     from(p in Post,
-      where: p.series_id == ^series_id and p.series_position == ^(position - 1) and
-             p.published == true and not is_nil(p.published_at)
+      where:
+        p.series_id == ^series_id and p.series_position == ^(position - 1) and
+          p.published == true and not is_nil(p.published_at)
     )
     |> RepoService.one()
     |> case do
@@ -790,15 +797,15 @@ defmodule Blog.Content do
 
   @doc """
   Checks if a series (by slug) has unpublished posts but no published posts.
-  
+
   Returns metadata about the series empty state:
   - `:no_posts` - Series has no posts at all
   - `:has_published` - Series has published posts
   - `{:upcoming_only, nil}` - Series has only unpublished posts with no scheduled date
   - `{:upcoming_only, datetime}` - Series has unpublished posts with earliest publication date
-  
+
   ## Examples
-  
+
       iex> get_series_empty_state("my-series")
       {:upcoming_only, ~U[2024-12-01 10:00:00Z]}
       
@@ -814,47 +821,54 @@ defmodule Blog.Content do
       series -> get_series_empty_state_by_id(series.id)
     end
   end
-  
+
   def get_series_empty_state(nil), do: :no_posts
-  
+
   defp get_series_empty_state_by_id(series_id) do
-    published_count = from(p in Post,
-      where: p.series_id == ^series_id and p.published == true,
-      select: count(p.id)
-    )
-    |> RepoService.one()
-    |> case do
-      {:ok, count} -> count
-      {:error, _} -> 0
-    end
-    
-    total_count = from(p in Post,
-      where: p.series_id == ^series_id,
-      select: count(p.id)
-    )
-    |> RepoService.one()
-    |> case do
-      {:ok, count} -> count
-      {:error, _} -> 0
-    end
-    
+    published_count =
+      from(p in Post,
+        where: p.series_id == ^series_id and p.published == true,
+        select: count(p.id)
+      )
+      |> RepoService.one()
+      |> case do
+        {:ok, count} -> count
+        {:error, _} -> 0
+      end
+
+    total_count =
+      from(p in Post,
+        where: p.series_id == ^series_id,
+        select: count(p.id)
+      )
+      |> RepoService.one()
+      |> case do
+        {:ok, count} -> count
+        {:error, _} -> 0
+      end
+
     cond do
-      total_count == 0 -> :no_posts
-      published_count > 0 -> :has_published
-      published_count == 0 and total_count > 0 -> 
+      total_count == 0 ->
+        :no_posts
+
+      published_count > 0 ->
+        :has_published
+
+      published_count == 0 and total_count > 0 ->
         # Get the earliest scheduled publication date
-        earliest_date = from(p in Post,
-          where: p.series_id == ^series_id and p.published == false,
-          select: min(p.published_at),
-          order_by: [asc: :series_position]
-        )
-        |> RepoService.one()
-        |> case do
-          {:ok, nil} -> nil
-          {:ok, datetime} -> datetime
-          {:error, _} -> nil
-        end
-        
+        earliest_date =
+          from(p in Post,
+            where: p.series_id == ^series_id and p.published == false,
+            select: min(p.published_at),
+            order_by: [asc: :series_position]
+          )
+          |> RepoService.one()
+          |> case do
+            {:ok, nil} -> nil
+            {:ok, datetime} -> datetime
+            {:error, _} -> nil
+          end
+
         {:upcoming_only, earliest_date}
     end
   end

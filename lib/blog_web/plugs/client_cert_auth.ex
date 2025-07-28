@@ -34,14 +34,12 @@ defmodule BlogWeb.Plugs.ClientCertAuth do
     end
   end
 
-  # Check if a client certificate was presented
   defp has_client_certificate?(conn) do
     case conn.adapter do
       {Plug.Cowboy.Conn, cowboy_req} ->
         :cowboy_req.cert(cowboy_req) != :undefined
 
       _ ->
-        # For testing, check peer data
         case Plug.Conn.get_peer_data(conn) do
           %{ssl_cert: cert_der} when is_binary(cert_der) -> true
           _ -> false
@@ -49,7 +47,6 @@ defmodule BlogWeb.Plugs.ClientCertAuth do
     end
   end
 
-  # Send unauthorized response
   defp send_unauthorized(conn, message) do
     conn
     |> Plug.Conn.put_status(:unauthorized)

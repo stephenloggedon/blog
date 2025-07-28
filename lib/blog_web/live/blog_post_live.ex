@@ -12,7 +12,6 @@ defmodule BlogWeb.BlogPostLive do
          |> redirect(to: "/")}
 
       post ->
-        # Track post view for analytics
         Analytics.track_post_view(post.id, post.title, post.slug)
 
         {:ok,
@@ -25,15 +24,12 @@ defmodule BlogWeb.BlogPostLive do
   def render(assigns) do
     ~H"""
     <div class="min-h-screen bg-base">
-      <!-- Theme Toggle - Desktop only -->
       <div class="fixed top-6 right-6 z-50 hidden lg:block">
         <.theme_toggle />
       </div>
       
-    <!-- Main Article Content -->
       <main class="max-w-4xl mx-auto px-4 lg:px-6 py-8 lg:py-12">
         <article class="prose prose-invert prose-xl max-w-none">
-          <!-- Article Header -->
           <header class="mb-12 text-center">
             <h1 class="text-4xl font-bold text-text mb-6 leading-tight">{@post.title}</h1>
 
@@ -60,14 +56,12 @@ defmodule BlogWeb.BlogPostLive do
             </div>
           </header>
           
-    <!-- Article Content -->
           <div class="prose-catppuccin">
             {raw(Blog.Content.Post.render_content(@post))}
           </div>
         </article>
       </main>
       
-    <!-- Floating Back Button -->
       <div class="fixed bottom-4 left-4 lg:bottom-6 lg:left-6 z-50">
         <.link
           navigate="/"

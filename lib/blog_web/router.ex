@@ -35,7 +35,7 @@ defmodule BlogWeb.Router do
 
     get "/posts", PostController, :index
     get "/posts/:id", PostController, :show
-    
+
     get "/series", SeriesController, :index
     get "/series/:id", SeriesController, :show
   end

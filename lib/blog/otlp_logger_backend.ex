@@ -215,7 +215,7 @@ defmodule Blog.OTLPLoggerBackend do
       {:ok, json_str} ->
         # Remove outer quotes if it's a simple string
         case String.starts_with?(json_str, "\"") and String.ends_with?(json_str, "\"") do
-          true -> String.slice(json_str, 1..-2)
+          true -> String.slice(json_str, 1..-2//1)
           false -> json_str
         end
 

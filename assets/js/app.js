@@ -146,10 +146,6 @@ Hooks.MobileScrollFix = {
   mounted() {
     // Only apply on mobile devices
     if (window.innerWidth >= 1024) return
-    
-    // Ensure the mobile layout allows natural document scrolling for Safari browser controls
-    // No scroll containers - posts flow directly in document body
-    console.log('Mobile layout initialized for Safari browser controls')
   }
 }
 

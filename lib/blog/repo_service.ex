@@ -20,8 +20,10 @@ defmodule Blog.RepoService do
   defdelegate all(queryable, opts \\ []), to: __MODULE__, as: :delegate_all
   defdelegate get(schema, id), to: __MODULE__, as: :delegate_get
   defdelegate get_by(schema, clauses), to: __MODULE__, as: :delegate_get_by
+  defdelegate one(queryable), to: __MODULE__, as: :delegate_one
   defdelegate insert(changeset), to: __MODULE__, as: :delegate_insert
   defdelegate update(changeset), to: __MODULE__, as: :delegate_update
+  defdelegate update_all(queryable, updates), to: __MODULE__, as: :delegate_update_all
   defdelegate delete(record), to: __MODULE__, as: :delegate_delete
   defdelegate query(sql, params), to: __MODULE__, as: :delegate_query
   defdelegate transaction(fun), to: __MODULE__, as: :delegate_transaction
@@ -29,13 +31,14 @@ defmodule Blog.RepoService do
   def delegate_all(queryable, opts), do: repo_adapter().all(queryable, opts)
   def delegate_get(schema, id), do: repo_adapter().get(schema, id)
   def delegate_get_by(schema, clauses), do: repo_adapter().get_by(schema, clauses)
+  def delegate_one(queryable), do: repo_adapter().one(queryable)
   def delegate_insert(changeset), do: repo_adapter().insert(changeset)
   def delegate_update(changeset), do: repo_adapter().update(changeset)
+  def delegate_update_all(queryable, updates), do: repo_adapter().update_all(queryable, updates)
   def delegate_delete(record), do: repo_adapter().delete(record)
   def delegate_query(sql, params), do: repo_adapter().query(sql, params)
   def delegate_transaction(fun), do: repo_adapter().transaction(fun)
 
-  # High-level convenience functions
 
   @doc """
   List published posts with pagination.
@@ -46,7 +49,6 @@ defmodule Blog.RepoService do
     if function_exported?(adapter, :list_published_posts, 1) do
       adapter.list_published_posts(opts)
     else
-      # Fallback implementation
       all("SELECT * FROM posts WHERE published_at IS NOT NULL ORDER BY published_at DESC", [])
     end
   end
@@ -60,7 +62,6 @@ defmodule Blog.RepoService do
     if function_exported?(adapter, :get_post_by_slug, 1) do
       adapter.get_post_by_slug(slug)
     else
-      # Fallback implementation
       get_by(Blog.Content.Post, slug: slug)
     end
   end

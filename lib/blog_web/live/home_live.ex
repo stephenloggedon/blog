@@ -223,7 +223,10 @@ defmodule BlogWeb.HomeLive do
 
     opts = [page: page, per_page: per_page]
     opts = if selected_tags != [], do: Keyword.put(opts, :tags, selected_tags), else: opts
-    opts = if selected_series != nil, do: Keyword.put(opts, :series, [selected_series]), else: opts
+
+    opts =
+      if selected_series != nil, do: Keyword.put(opts, :series, [selected_series]), else: opts
+
     opts = if search_query != "", do: Keyword.put(opts, :search, search_query), else: opts
 
     new_posts = Content.list_published_posts(opts)
@@ -233,11 +236,17 @@ defmodule BlogWeb.HomeLive do
     if search_query != "" or selected_tags != [] or selected_series != nil do
       search_term =
         cond do
-          search_query != "" -> search_query
-          selected_tags != [] and selected_series != nil -> 
+          search_query != "" ->
+            search_query
+
+          selected_tags != [] and selected_series != nil ->
             "tags:#{Enum.join(selected_tags, ",")} series:#{selected_series}"
-          selected_tags != [] -> "tags:#{Enum.join(selected_tags, ",")}"
-          selected_series != nil -> "series:#{selected_series}"
+
+          selected_tags != [] ->
+            "tags:#{Enum.join(selected_tags, ",")}"
+
+          selected_series != nil ->
+            "series:#{selected_series}"
         end
 
       Analytics.track_search(search_term, length(new_posts))
@@ -247,11 +256,12 @@ defmodule BlogWeb.HomeLive do
       Analytics.track_page_view("/", "Blog Home")
     end
 
-    series_empty_state = if selected_series != nil do
-      Content.get_series_empty_state(selected_series)
-    else
-      nil
-    end
+    series_empty_state =
+      if selected_series != nil do
+        Content.get_series_empty_state(selected_series)
+      else
+        nil
+      end
 
     assign(socket, posts: all_posts, has_more: has_more, series_empty_state: series_empty_state)
   end
@@ -343,7 +353,7 @@ defmodule BlogWeb.HomeLive do
               search_query={@search_query}
               search_suggestions={@search_suggestions}
             />
-            
+
             <main
               class="flex-1 overflow-y-auto scrollbar-hide px-6"
               id="posts-container"
@@ -376,14 +386,14 @@ defmodule BlogWeb.HomeLive do
               series_empty_state={@series_empty_state}
             />
           </div>
-          
+
           <.mobile_drawer id="mobile-nav" open={@drawer_open}>
             <div class="space-y-6">
               <div class="flex items-center justify-between">
                 <h2 class="text-lg font-semibold text-text">Settings</h2>
                 <.theme_toggle id="mobile-theme-toggle" />
               </div>
-              
+
               <.mobile_content_nav
                 current_user={assigns[:current_user]}
                 top_tags={@top_tags}
