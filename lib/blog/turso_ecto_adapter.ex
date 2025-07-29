@@ -126,7 +126,7 @@ defmodule Blog.TursoEctoAdapter do
     inserted_at = Keyword.get(params, :inserted_at)
 
     datetime_string = format_datetime(inserted_at)
-    sql = "INSERT INTO schema_migrations (version, inserted_at) VALUES (?, ?)"
+    sql = "INSERT OR IGNORE INTO schema_migrations (version, inserted_at) VALUES (?, ?)"
 
     case Blog.TursoHttpClient.execute(sql, [version, datetime_string]) do
       {:ok, %{num_rows: _count}} -> {:ok, []}
