@@ -8,7 +8,7 @@
 import Config
 
 config :blog,
-  ecto_repos: [Blog.Repo],
+  ecto_repos: [Blog.Repo, Blog.TursoEctoRepo],
   generators: [timestamp_type: :utc_datetime]
 
 # Configures the endpoint

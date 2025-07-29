@@ -24,7 +24,16 @@ if config_env() == :prod do
   # Use Turso for production database operations
   config :blog, :repo_adapter, Blog.TursoRepoAdapter
 
-  # Turso distributed SQLite configuration for production
+  # Turso Ecto Repo configuration for production migrations and operations
+  config :blog, Blog.TursoEctoRepo,
+    # Use memory database since we're using HTTP for actual operations
+    database: ":memory:",
+    adapter: Blog.TursoEctoAdapter,
+    pool_size: 1,
+    # Use the same migrations as the main repo
+    priv: "priv/repo"
+
+  # Turso distributed SQLite configuration for production (legacy)
   # Local SQLite is only used for development and testing
   config :blog, Blog.TursoRepo,
     uri: System.get_env("LIBSQL_URI"),

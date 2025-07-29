@@ -1,7 +1,7 @@
 import Config
 
-# Use local SQLite for development
-config :blog, :repo_adapter, Blog.EctoRepoAdapter
+# Temporarily use Turso for development testing
+config :blog, :repo_adapter, Blog.TursoRepoAdapter
 
 # Configure your database (fallback - not used when Turso adapter is active)
 config :blog, Blog.Repo,
@@ -10,6 +10,13 @@ config :blog, Blog.Repo,
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
+
+# Configure TursoEctoRepo for development testing
+config :blog, Blog.TursoEctoRepo,
+  database: ":memory:",
+  adapter: Blog.TursoEctoAdapter,
+  pool_size: 1,
+  priv: "priv/repo"
 
 # For development, we disable any cache and enable
 # debugging and code reloading.

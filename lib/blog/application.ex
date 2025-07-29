@@ -28,15 +28,30 @@ defmodule Blog.Application do
     # Only start local SQLite repo in development and test environments
     children =
       if Application.get_env(:blog, :repo_adapter) == Blog.EctoRepoAdapter do
-        [BlogWeb.Telemetry, Blog.Repo | Enum.drop(children, 1)]
+        [Blog.Repo | Enum.drop(children, 1)]
       else
-        children
+        # Add TursoEctoRepo to children when using Turso adapter
+        [Blog.TursoEctoRepo | children]
       end
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Blog.Supervisor]
-    Supervisor.start_link(children, opts)
+
+    # Start the supervision tree
+    case Supervisor.start_link(children, opts) do
+      {:ok, _pid} = result ->
+        # Run migrations automatically when using Turso adapter after supervisor starts
+        if Application.get_env(:blog, :repo_adapter) == Blog.TursoRepoAdapter do
+          # Run synchronously to see any errors
+          run_turso_migrations()
+        end
+
+        result
+
+      error ->
+        error
+    end
   end
 
   # Tell Phoenix to update the endpoint configuration
@@ -45,6 +60,18 @@ defmodule Blog.Application do
   def config_change(changed, _new, removed) do
     BlogWeb.Endpoint.config_change(changed, removed)
     :ok
+  end
+
+  defp run_turso_migrations do
+    :timer.sleep(2000)
+
+    Ecto.Migrator.with_repo(Blog.TursoEctoRepo, fn repo ->
+      Ecto.Migrator.run(repo, :up, all: true)
+    end)
+  rescue
+    error -> IO.puts("Migration failed: #{Exception.message(error)}")
+  catch
+    _type, error -> IO.puts("Migration error: #{inspect(error)}")
   end
 
   # Initialize OpenTelemetry automatic instrumentation

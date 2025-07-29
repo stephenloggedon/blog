@@ -11,7 +11,7 @@ defmodule Blog.Release do
     # Check if we're using Turso in production
     case Application.get_env(:blog, :repo_adapter) do
       Blog.TursoRepoAdapter ->
-        IO.puts("Running Turso migrations...")
+        IO.puts("Running Turso migrations via Ecto...")
 
         # Start required dependencies for Turso HTTP client
         Application.ensure_all_started(:finch)
@@ -29,12 +29,18 @@ defmodule Blog.Release do
             System.halt(1)
         end
 
-        case Blog.TursoMigrator.migrate() do
-          {:ok, message} ->
-            IO.puts(message)
+        # Use TursoEctoRepo for proper Ecto migrations
+        case Blog.TursoEctoRepo.ensure_started() do
+          :ok ->
+            IO.puts("TursoEctoRepo started successfully")
 
-          {:error, error} ->
-            IO.puts("Migration failed: #{inspect(error)}")
+            {:ok, _, _} =
+              Ecto.Migrator.with_repo(Blog.TursoEctoRepo, &Ecto.Migrator.run(&1, :up, all: true))
+
+            IO.puts("Turso migrations completed successfully")
+
+          {:error, reason} ->
+            IO.puts("Failed to start TursoEctoRepo: #{inspect(reason)}")
             System.halt(1)
         end
 
