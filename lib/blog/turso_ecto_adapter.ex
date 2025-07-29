@@ -53,13 +53,15 @@ defmodule Blog.TursoEctoAdapter do
 
   @impl Ecto.Adapter
   def init(config) do
+    # Since we're using HTTP, we don't need a persistent connection process
+    # Just return a minimal child_spec that Ecto expects
     child_spec = %{
-      id: Blog.TursoEctoServer,
-      start: {Blog.TursoEctoServer, :start_link, [config]},
+      id: __MODULE__,
+      start: {Agent, :start_link, [fn -> config end, [name: __MODULE__]]},
       type: :worker
     }
 
-    meta = %{pid: Blog.TursoEctoServer, opts: config}
+    meta = %{pid: __MODULE__, opts: config}
     {:ok, child_spec, meta}
   end
 
