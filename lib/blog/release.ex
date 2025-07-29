@@ -29,20 +29,15 @@ defmodule Blog.Release do
             System.halt(1)
         end
 
+        # Start Ecto and required applications
+        Application.ensure_all_started(:ecto)
+        Application.ensure_all_started(:ecto_sql)
+
         # Use TursoEctoRepo for proper Ecto migrations
-        case Blog.TursoEctoRepo.ensure_started() do
-          :ok ->
-            IO.puts("TursoEctoRepo started successfully")
+        {:ok, _, _} =
+          Ecto.Migrator.with_repo(Blog.TursoEctoRepo, &Ecto.Migrator.run(&1, :up, all: true))
 
-            {:ok, _, _} =
-              Ecto.Migrator.with_repo(Blog.TursoEctoRepo, &Ecto.Migrator.run(&1, :up, all: true))
-
-            IO.puts("Turso migrations completed successfully")
-
-          {:error, reason} ->
-            IO.puts("Failed to start TursoEctoRepo: #{inspect(reason)}")
-            System.halt(1)
-        end
+        IO.puts("Turso migrations completed successfully")
 
       _ ->
         # Use standard Ecto migrations for other environments

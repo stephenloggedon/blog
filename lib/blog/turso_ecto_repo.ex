@@ -9,16 +9,4 @@ defmodule Blog.TursoEctoRepo do
   use Ecto.Repo,
     otp_app: :blog,
     adapter: Blog.TursoEctoAdapter
-
-  @doc """
-  Dynamically starts the repo when required.
-  Used in production to ensure the repo is available for migrations.
-  """
-  def ensure_started do
-    case __MODULE__.start_link() do
-      {:ok, _pid} -> :ok
-      {:error, {:already_started, _pid}} -> :ok
-      error -> error
-    end
-  end
 end
