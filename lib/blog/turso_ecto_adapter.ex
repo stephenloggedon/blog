@@ -307,7 +307,7 @@ defmodule Blog.TursoEctoAdapter do
       Enum.map(changes, fn
         {:add, column_name, type, opts} ->
           column_def = format_column_definition({:add, column_name, type, opts})
-          "ALTER TABLE #{table_name} ADD COLUMN #{column_def}"
+          generate_safe_add_column_sql(table_name, column_name, column_def)
 
         {:modify, _column_name, _type, _opts} ->
           raise "SQLite doesn't support column modification. Use migrations to recreate table."
@@ -317,6 +317,12 @@ defmodule Blog.TursoEctoAdapter do
       end)
 
     Enum.join(change_sqls, ";\n")
+  end
+
+  defp generate_safe_add_column_sql(table_name, _column_name, column_def) do
+    # For SQLite, we need to handle duplicate columns at the execution level
+    # since SQLite doesn't support conditional DDL directly
+    "ALTER TABLE #{table_name} ADD COLUMN #{column_def}"
   end
 
   defp generate_create_index_sql(%Ecto.Migration.Index{
@@ -421,8 +427,15 @@ defmodule Blog.TursoEctoAdapter do
 
   defp execute_single_statement(statement, params) do
     case Blog.TursoHttpClient.execute(statement, params) do
-      {:ok, _} -> :ok
-      {:error, reason} -> raise "Turso SQL execution failed: #{reason}"
+      {:ok, _} ->
+        :ok
+
+      {:error, reason} ->
+        if should_ignore_error?(reason, statement) do
+          :ok
+        else
+          raise "Turso SQL execution failed: #{reason}"
+        end
     end
   end
 
@@ -432,8 +445,24 @@ defmodule Blog.TursoEctoAdapter do
 
   defp execute_statement_without_params(statement) do
     case Blog.TursoHttpClient.execute(statement, []) do
-      {:ok, _} -> :ok
-      {:error, reason} -> raise "Turso SQL execution failed: #{reason}"
+      {:ok, _} ->
+        :ok
+
+      {:error, reason} ->
+        if should_ignore_error?(reason, statement) do
+          :ok
+        else
+          raise "Turso SQL execution failed: #{reason}"
+        end
     end
+  end
+
+  defp should_ignore_error?(reason, statement) do
+    reason_str = to_string(reason)
+
+    # Ignore duplicate column errors for ALTER TABLE ADD COLUMN
+    String.contains?(reason_str, "duplicate column name") and
+      String.contains?(statement, "ALTER TABLE") and
+      String.contains?(statement, "ADD COLUMN")
   end
 end
