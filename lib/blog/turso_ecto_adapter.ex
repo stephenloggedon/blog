@@ -299,7 +299,7 @@ defmodule Blog.TursoEctoAdapter do
   defp generate_create_table_sql(table_name, columns) do
     column_definitions = Enum.map(columns, &format_column_definition/1)
     column_sql = Enum.join(column_definitions, ",\n  ")
-    "CREATE TABLE #{table_name} (\n  #{column_sql}\n)"
+    "CREATE TABLE IF NOT EXISTS #{table_name} (\n  #{column_sql}\n)"
   end
 
   defp generate_alter_table_sql(table_name, changes) do
@@ -328,7 +328,7 @@ defmodule Blog.TursoEctoAdapter do
     index_type = if unique, do: "UNIQUE INDEX", else: "INDEX"
     column_list = Enum.join(columns, ", ")
     index_name = name || "#{table}_#{Enum.join(columns, "_")}_index"
-    "CREATE #{index_type} #{index_name} ON #{table} (#{column_list})"
+    "CREATE #{index_type} IF NOT EXISTS #{index_name} ON #{table} (#{column_list})"
   end
 
   defp format_column_definition({:add, column_name, type, opts}) do
