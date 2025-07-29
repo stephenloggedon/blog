@@ -1,5 +1,8 @@
 import Config
 
+# Use only the main repo for tests, not TursoEctoRepo
+config :blog, ecto_repos: [Blog.Repo]
+
 # Only in tests, remove the complexity from the password hashing algorithm
 
 # Configure your database
@@ -19,6 +22,13 @@ config :blog, Blog.TursoRepo,
   auth_token: nil,
   database: "blog_test.db",
   sync: false
+
+# Configure TursoEctoRepo for testing
+config :blog, Blog.TursoEctoRepo,
+  database: ":memory:",
+  adapter: Blog.TursoEctoAdapter,
+  pool_size: 1,
+  priv: "priv/repo"
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
