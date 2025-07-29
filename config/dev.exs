@@ -1,9 +1,9 @@
 import Config
 
-# Temporarily use Turso for development testing
-config :blog, :repo_adapter, Blog.TursoRepoAdapter
+# Use local SQLite for development
+config :blog, :repo_adapter, Blog.EctoRepoAdapter
 
-# Configure your database (fallback - not used when Turso adapter is active)
+# Configure your database
 config :blog, Blog.Repo,
   adapter: Ecto.Adapters.SQLite3,
   database: Path.expand("~/.local/share/blog/blog_dev.db"),
