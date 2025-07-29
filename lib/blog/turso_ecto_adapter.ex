@@ -7,6 +7,7 @@ defmodule Blog.TursoEctoAdapter do
   @behaviour Ecto.Adapter.Migration
   @behaviour Ecto.Adapter.Queryable
   @behaviour Ecto.Adapter.Schema
+  @behaviour Ecto.Adapter.Storage
   @behaviour Ecto.Adapter.Transaction
 
   def query(_repo, sql, params, _opts \\ []) do
@@ -218,11 +219,20 @@ defmodule Blog.TursoEctoAdapter do
       _ -> raise "Unsupported DDL operation: #{inspect(definition)}"
     end
   rescue
-    error -> reraise "Unsupported DDL operation: #{inspect(definition)}", __STACKTRACE__
+    _error -> reraise "Unsupported DDL operation: #{inspect(definition)}", __STACKTRACE__
   end
 
   @impl Ecto.Adapter.Migration
   def lock_for_migrations(_repo, _options, fun), do: fun.()
+
+  @impl Ecto.Adapter.Storage
+  def storage_up(_opts), do: :ok
+
+  @impl Ecto.Adapter.Storage
+  def storage_down(_opts), do: :ok
+
+  @impl Ecto.Adapter.Storage
+  def storage_status(_opts), do: :up
 
   @impl Ecto.Adapter.Transaction
   def transaction(_repo, _options, function) do
