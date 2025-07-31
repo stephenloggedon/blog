@@ -9,6 +9,7 @@ defmodule Blog.TursoRepoAdapter do
   @behaviour Blog.RepoAdapter
 
   alias Blog.Content.Post
+  alias Blog.Content.Series
   alias Blog.Image
   alias Blog.TursoHttpClient
 
@@ -228,7 +229,7 @@ defmodule Blog.TursoRepoAdapter do
 
   defp get_table_name(Post), do: "posts"
   defp get_table_name(Image), do: "images"
-  defp get_table_name(Blog.Content.Series), do: "series"
+  defp get_table_name(Series), do: "series"
   defp get_table_name(schema), do: schema.__schema__(:source)
 
   defp build_where_clause(clauses) do
@@ -335,6 +336,25 @@ defmodule Blog.TursoRepoAdapter do
     |> convert_string_keys_to_atoms()
   end
 
+  defp convert_types_for_schema(fields, Series) do
+    fields
+    |> Map.update("inserted_at", nil, fn
+      val when is_binary(val) and val != "" ->
+        parse_sqlite_datetime(val)
+
+      _ ->
+        nil
+    end)
+    |> Map.update("updated_at", nil, fn
+      val when is_binary(val) and val != "" ->
+        parse_sqlite_datetime(val)
+
+      _ ->
+        nil
+    end)
+    |> convert_string_keys_to_atoms()
+  end
+
   defp convert_types_for_schema(fields, _schema) do
     convert_string_keys_to_atoms(fields)
   end
@@ -373,47 +393,57 @@ defmodule Blog.TursoRepoAdapter do
   end
 
   defp convert_ecto_query_to_sql_with_params(query) do
-    # Extract basic components from Ecto query and return SQL with parameters
     case query do
-      %Ecto.Query{
-        from: %{source: {"posts", _}},
-        wheres: wheres,
-        order_bys: order_bys,
-        limit: limit,
-        offset: offset
-      } ->
-        # Handle posts queries with filtering, search, and pagination
-        {where_clause, extracted_params} = convert_posts_where_clauses_with_params(wheres, query)
-        order_clause = convert_posts_order_clauses(order_bys)
+      %Ecto.Query{from: %{source: {"posts", _}}} = q ->
+        convert_posts_query_to_sql(q)
 
-        base_sql = "SELECT * FROM posts"
-        sql = if where_clause != "", do: base_sql <> " WHERE " <> where_clause, else: base_sql
-        sql = if order_clause != "", do: sql <> " ORDER BY " <> order_clause, else: sql
+      %Ecto.Query{from: %{source: {"images", _}}} = q ->
+        convert_images_query_to_sql(q)
 
-        # Add LIMIT and OFFSET
-        {sql, params} = add_limit_offset_to_query(sql, extracted_params, limit, offset)
-
-        {sql, params}
-
-      %Ecto.Query{from: %{source: {"images", _}}, wheres: wheres, order_bys: order_bys} = query ->
-        # Handle images queries
-        {where_clause, extracted_params} = convert_where_clauses_with_params(wheres, query)
-        order_clause = convert_order_clauses(order_bys)
-
-        base_sql = "SELECT * FROM images"
-        sql = if where_clause != "", do: base_sql <> " WHERE " <> where_clause, else: base_sql
-        sql = if order_clause != "", do: sql <> " ORDER BY " <> order_clause, else: sql
-        {sql, extracted_params}
+      %Ecto.Query{from: %{source: {"series", _}}} = q ->
+        convert_series_query_to_sql(q)
 
       _ ->
-        # Fallback for other queries
         {"SELECT * FROM posts WHERE published = 1 AND published_at IS NOT NULL ORDER BY published_at DESC",
          []}
     end
   end
 
+  defp convert_posts_query_to_sql(
+         %Ecto.Query{wheres: wheres, order_bys: order_bys, limit: limit, offset: offset} = query
+       ) do
+    {where_clause, extracted_params} = convert_posts_where_clauses_with_params(wheres, query)
+    order_clause = convert_posts_order_clauses(order_bys)
+
+    sql = build_select_sql("posts", where_clause, order_clause)
+    add_limit_offset_to_query(sql, extracted_params, limit, offset)
+  end
+
+  defp convert_images_query_to_sql(%Ecto.Query{wheres: wheres, order_bys: order_bys} = query) do
+    {where_clause, extracted_params} = convert_where_clauses_with_params(wheres, query)
+    order_clause = convert_order_clauses(order_bys)
+
+    sql = build_select_sql("images", where_clause, order_clause)
+    {sql, extracted_params}
+  end
+
+  defp convert_series_query_to_sql(%Ecto.Query{wheres: wheres, order_bys: order_bys} = query) do
+    {where_clause, extracted_params} = convert_series_where_clauses_with_params(wheres, query)
+    order_clause = convert_series_order_clauses(order_bys)
+
+    sql = build_select_sql("series", where_clause, order_clause)
+    {sql, extracted_params}
+  end
+
+  defp build_select_sql(table_name, where_clause, order_clause) do
+    base_sql = "SELECT * FROM #{table_name}"
+    sql = if where_clause != "", do: base_sql <> " WHERE " <> where_clause, else: base_sql
+    if order_clause != "", do: sql <> " ORDER BY " <> order_clause, else: sql
+  end
+
   defp determine_schema_from_query(%Ecto.Query{from: %{source: {"posts", _}}}), do: Post
   defp determine_schema_from_query(%Ecto.Query{from: %{source: {"images", _}}}), do: Image
+  defp determine_schema_from_query(%Ecto.Query{from: %{source: {"series", _}}}), do: Series
   defp determine_schema_from_query(_), do: Post
 
   defp convert_where_clauses_with_params([], _query), do: {"", []}
@@ -650,5 +680,35 @@ defmodule Blog.TursoRepoAdapter do
       _ ->
         {"", []}
     end
+  end
+
+  # Helper functions for Series query conversion
+  defp convert_series_where_clauses_with_params([], _query), do: {"", []}
+
+  defp convert_series_where_clauses_with_params(wheres, query) do
+    {all_conditions, all_params} =
+      Enum.reduce(wheres, {[], []}, fn where_expr, {conditions, params} ->
+        case convert_single_where_clause(where_expr, query) do
+          {condition, new_params} when condition != "" ->
+            {[condition | conditions], params ++ new_params}
+
+          _ ->
+            {conditions, params}
+        end
+      end)
+
+    final_conditions = Enum.reverse(all_conditions)
+    where_clause = Enum.join(final_conditions, " AND ")
+    {where_clause, all_params}
+  end
+
+  defp convert_series_order_clauses([]), do: "title ASC"
+
+  defp convert_series_order_clauses(order_bys) do
+    Enum.map_join(order_bys, ", ", fn
+      %{expr: [asc: _]} -> "title ASC"
+      %{expr: [desc: _]} -> "title DESC"
+      _ -> "title ASC"
+    end)
   end
 end

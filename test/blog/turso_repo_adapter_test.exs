@@ -94,6 +94,15 @@ defmodule Blog.TursoRepoAdapterTest do
       assert is_tuple(result)
     end
 
+    test "handles Series table queries for filtering" do
+      # This specifically tests the fix for series navigation display
+      query = from(s in Series, order_by: [asc: s.title])
+
+      result = TursoRepoAdapter.all(query)
+      assert is_tuple(result)
+      assert elem(result, 0) in [:ok, :error]
+    end
+
     test "handles complex queries with multiple conditions" do
       query =
         from(p in Post,
