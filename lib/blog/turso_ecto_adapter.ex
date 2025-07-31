@@ -461,8 +461,12 @@ defmodule Blog.TursoEctoAdapter do
     reason_str = to_string(reason)
 
     # Ignore duplicate column errors for ALTER TABLE ADD COLUMN
-    String.contains?(reason_str, "duplicate column name") and
-      String.contains?(statement, "ALTER TABLE") and
-      String.contains?(statement, "ADD COLUMN")
+    # Ignore "no such column" errors for ALTER TABLE DROP COLUMN
+    (String.contains?(reason_str, "duplicate column name") and
+       String.contains?(statement, "ALTER TABLE") and
+       String.contains?(statement, "ADD COLUMN")) or
+      (String.contains?(reason_str, "no such column") and
+         String.contains?(statement, "ALTER TABLE") and
+         String.contains?(statement, "DROP COLUMN"))
   end
 end
