@@ -12,12 +12,18 @@ defmodule BlogWeb.Api.PostController do
     page = Map.get(params, "page", 1) |> parse_integer(1)
     per_page = Map.get(params, "per_page", 20) |> parse_integer(20) |> min(100)
     include_content = Map.get(params, "include_content", "false") |> parse_boolean()
+    preview_lines = Map.get(params, "preview_lines") |> parse_integer(nil)
+    include_preview = Map.get(params, "include_preview", "false") |> parse_boolean()
 
-    opts = [
-      page: page,
-      per_page: per_page,
-      include_content: include_content
-    ]
+    opts =
+      [
+        page: page,
+        per_page: per_page,
+        include_content: include_content,
+        preview_lines: preview_lines,
+        include_preview: include_preview
+      ]
+      |> Enum.reject(fn {_key, value} -> is_nil(value) end)
 
     posts = Content.list_posts(opts)
 

@@ -10,6 +10,7 @@ defmodule Blog.Content.Post do
     field :slug, :string
     field :content, :string
     field :excerpt, :string
+    field :preview, :string
     field :subtitle, :string
     field :tags, :string
     field :published, :boolean, default: false
@@ -31,6 +32,7 @@ defmodule Blog.Content.Post do
       :slug,
       :content,
       :excerpt,
+      :preview,
       :subtitle,
       :tags,
       :published,
@@ -44,6 +46,8 @@ defmodule Blog.Content.Post do
     |> validate_series_position()
     |> maybe_generate_slug()
     |> maybe_generate_excerpt()
+    |> maybe_generate_preview()
+    |> validate_required([:preview])
     |> maybe_set_published_at()
     |> convert_content_links()
     |> parse_tags()
@@ -117,7 +121,14 @@ defmodule Blog.Content.Post do
       |> Enum.take(lines)
       |> Enum.join("\n")
 
-    html = Earmark.as_html!(truncated_markdown)
+    render_preview_content(truncated_markdown)
+  end
+
+  @doc """
+  Renders preview markdown content to HTML, removing anchor tags to avoid nested links.
+  """
+  def render_preview_content(preview_markdown) when is_binary(preview_markdown) do
+    html = Earmark.as_html!(preview_markdown)
 
     # Parse the HTML and remove any anchor tags to avoid nested links.
     # The text content of the links will be preserved.
@@ -133,6 +144,8 @@ defmodule Blog.Content.Post do
 
     Phoenix.HTML.raw(cleaned_html)
   end
+
+  def render_preview_content(_), do: ""
 
   defp maybe_generate_slug(changeset) do
     case get_change(changeset, :slug) do
@@ -171,6 +184,28 @@ defmodule Blog.Content.Post do
               |> String.slice(0, 200)
 
             put_change(changeset, :excerpt, excerpt)
+        end
+
+      _ ->
+        changeset
+    end
+  end
+
+  defp maybe_generate_preview(changeset) do
+    case get_change(changeset, :preview) do
+      nil ->
+        case get_change(changeset, :content) do
+          nil ->
+            changeset
+
+          content ->
+            preview =
+              content
+              |> String.split("\n")
+              |> Enum.take(6)
+              |> Enum.join("\n")
+
+            put_change(changeset, :preview, preview)
         end
 
       _ ->

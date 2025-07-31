@@ -31,7 +31,8 @@ defmodule Blog.ContentTest do
           :content,
           :excerpt,
           :inserted_at,
-          :published
+          :published,
+          :preview
         ])
         |> Enum.reject(fn {_key, value} -> is_nil(value) end)
         |> Map.new()
@@ -45,7 +46,15 @@ defmodule Blog.ContentTest do
       expected =
         post
         |> Map.from_struct()
-        |> Map.drop([:__meta__, :rendered_content, :images, :excerpt, :inserted_at, :published])
+        |> Map.drop([
+          :__meta__,
+          :rendered_content,
+          :images,
+          :excerpt,
+          :inserted_at,
+          :published,
+          :preview
+        ])
         |> Enum.reject(fn {_key, value} -> is_nil(value) end)
         |> Map.new()
 

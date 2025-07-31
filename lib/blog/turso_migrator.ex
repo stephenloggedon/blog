@@ -212,6 +212,11 @@ defmodule Blog.TursoMigrator do
           "UPDATE posts SET content = REPLACE(content, '](/09_blog_development)', '](/blog/the-mobile-revolution-when-ai-discovers-the-power-of-touch-interfaces)')"
         ]
 
+      Blog.Repo.Migrations.AddPreviewToPosts ->
+        [
+          "ALTER TABLE posts ADD COLUMN preview TEXT"
+        ]
+
       _ ->
         []
     end

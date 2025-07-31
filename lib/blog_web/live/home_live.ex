@@ -222,7 +222,7 @@ defmodule BlogWeb.HomeLive do
     } = socket.assigns
 
     opts = build_post_query_opts(page, per_page, selected_tags, selected_series, search_query)
-    new_posts = Content.list_published_posts(opts)
+    new_posts = Content.list_posts(opts)
     all_posts = existing_posts ++ new_posts
     has_more = length(new_posts) == per_page
 
@@ -233,7 +233,7 @@ defmodule BlogWeb.HomeLive do
   end
 
   defp build_post_query_opts(page, per_page, selected_tags, selected_series, search_query) do
-    [page: page, per_page: per_page]
+    [page: page, per_page: per_page, include_preview: true]
     |> maybe_add_tags(selected_tags)
     |> maybe_add_series(selected_series)
     |> maybe_add_search(search_query)

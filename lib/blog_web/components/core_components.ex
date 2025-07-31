@@ -1078,7 +1078,7 @@ defmodule BlogWeb.CoreComponents do
               </div>
             </header>
 
-            <%= if post.subtitle do %>
+            <%= if Map.get(post, :subtitle) do %>
               <div class="text-subtext1 text-sm px-4">
                 {post.subtitle}
               </div>
@@ -1086,7 +1086,8 @@ defmodule BlogWeb.CoreComponents do
 
             <div class="relative">
               <div class="text-subtext1 overflow-hidden h-36 px-4">
-                {Blog.Content.Post.preview_content(post.content, 6)}
+                {Map.get(post, :rendered_preview) || Map.get(post, :preview_content) ||
+                  Blog.Content.Post.preview_content(Map.get(post, :content, ""), 6)}
               </div>
             </div>
           </div>

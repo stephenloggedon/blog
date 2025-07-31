@@ -19,6 +19,8 @@ defmodule Blog.Content do
   - `:search` - Search term for title/content
   - `:allow_unpublished` - Include unpublished posts (default: false)
   - `:include_content` - Include full post content (default: false)
+  - `:preview_lines` - Include truncated content for preview (number of lines, default: nil)
+  - `:include_preview` - Include preview field with rendered HTML (default: false)
 
   ## Examples
 
@@ -44,6 +46,8 @@ defmodule Blog.Content do
     series = Keyword.get(opts, :series, [])
     allow_unpublished = Keyword.get(opts, :allow_unpublished, false)
     include_content = Keyword.get(opts, :include_content, false)
+    preview_lines = Keyword.get(opts, :preview_lines)
+    include_preview = Keyword.get(opts, :include_preview, false)
 
     base_query =
       if allow_unpublished do
@@ -67,19 +71,54 @@ defmodule Blog.Content do
       end
 
     result
-    |> maybe_add_rendered_content(include_content, tags, search, page, per_page)
+    |> maybe_add_rendered_content(include_content, preview_lines, tags, search, page, per_page)
+    |> maybe_add_rendered_preview(include_preview)
     |> maybe_filter_fields(opts)
   rescue
     _ -> []
   end
 
-  defp maybe_add_rendered_content(posts, include_content, tags, search, page, per_page) do
-    if include_content and (tags != [] or search != nil or page != 1 or per_page != 10) do
-      Enum.map(posts, fn post ->
-        %{post | rendered_content: Post.render_content(post)}
-      end)
-    else
-      posts
+  defp maybe_add_rendered_preview(posts, false), do: posts
+
+  defp maybe_add_rendered_preview(posts, true) do
+    Enum.map(posts, fn post ->
+      case Map.get(post, :preview) do
+        nil ->
+          post
+
+        preview_markdown ->
+          rendered_preview = Post.render_preview_content(preview_markdown)
+          Map.put(post, :rendered_preview, rendered_preview)
+      end
+    end)
+  end
+
+  defp maybe_add_rendered_content(
+         posts,
+         include_content,
+         preview_lines,
+         tags,
+         search,
+         page,
+         per_page
+       ) do
+    cond do
+      # Add full rendered content if explicitly requested
+      include_content and (tags != [] or search != nil or page != 1 or per_page != 10) ->
+        Enum.map(posts, fn post ->
+          %{post | rendered_content: Post.render_content(post)}
+        end)
+
+      # Add preview content if preview_lines is specified
+      is_integer(preview_lines) and preview_lines > 0 ->
+        Enum.map(posts, fn post ->
+          preview_content = Post.preview_content(post.content, preview_lines)
+          Map.put(post, :preview_content, preview_content)
+        end)
+
+      # No additional content processing
+      true ->
+        posts
     end
   end
 
@@ -94,16 +133,27 @@ defmodule Blog.Content do
   defp get_excluded_fields(opts) do
     excluded = [:__meta__, :rendered_content, :images]
 
-    excluded = excluded ++ [:excerpt, :inserted_at, :published]
+    # For the preview_lines case (homepage), only exclude minimal fields and always preserve subtitle
+    cond do
+      Keyword.get(opts, :preview_lines) ->
+        # Exclude both content and preview when using preview_lines
+        excluded ++ [:content, :preview]
 
-    excluded =
-      if Keyword.get(opts, :include_content, false), do: excluded, else: [:content | excluded]
+      Keyword.get(opts, :include_preview, false) ->
+        excluded ++
+          [:excerpt, :inserted_at, :published] ++
+          if Keyword.get(opts, :include_content, false), do: [], else: [:content]
 
-    # Future field exclusions can be added here:
-    # excluded = if Keyword.get(opts, :include_images, true), do: excluded, else: [:images | excluded]
-    # excluded = if Keyword.get(opts, :include_metadata, true), do: excluded, else: [:subtitle, :excerpt | excluded]
+      true ->
+        # Always exclude these fields for consistency
+        excluded = excluded ++ [:excerpt, :inserted_at, :published, :preview]
 
-    excluded
+        # Include or exclude content based on options
+        excluded =
+          if Keyword.get(opts, :include_content, false), do: excluded, else: [:content | excluded]
+
+        excluded
+    end
   end
 
   defp exclude_fields_from_struct(%Post{} = post, fields) do
