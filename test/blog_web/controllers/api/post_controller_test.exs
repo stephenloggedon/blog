@@ -40,11 +40,11 @@ defmodule BlogWeb.Api.PostControllerTest do
         post_fixture(%{title: "Post #{i}", slug: "post-#{i}"})
       end
 
-      conn = get(conn, ~p"/api/posts?page=1&per_page=5")
-      assert length(json_response(conn, 200)["data"]) == 5
+      conn1 = get(conn, ~p"/api/posts?page=1&per_page=5")
+      assert length(json_response(conn1, 200)["data"]) == 5
 
-      conn = get(conn, ~p"/api/posts?page=2&per_page=5")
-      assert length(json_response(conn, 200)["data"]) == 5
+      conn2 = get(conn, ~p"/api/posts?page=2&per_page=5")
+      assert length(json_response(conn2, 200)["data"]) == 5
     end
   end
 

@@ -10,6 +10,7 @@ defmodule BlogWeb.ApiRouter do
 
   pipeline :api_authenticated do
     plug :accepts, ["json"]
+    plug BlogWeb.Plugs.RequireUserAgent
     plug BlogWeb.Plugs.RequestLogger
     plug BlogWeb.Plugs.ClientCertAuth
   end

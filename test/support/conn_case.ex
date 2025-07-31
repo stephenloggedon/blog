@@ -35,8 +35,14 @@ defmodule BlogWeb.ConnCase do
   end
 
   setup tags do
+    import Plug.Conn
     Blog.DataCase.setup_sandbox(tags)
-    {:ok, conn: Phoenix.ConnTest.build_conn()}
+
+    conn =
+      Phoenix.ConnTest.build_conn()
+      |> put_req_header("user-agent", "BlogWeb.Test/1.0 (Elixir Phoenix Test Suite)")
+
+    {:ok, conn: conn}
   end
 
   def register_and_log_in_user(_conn) do

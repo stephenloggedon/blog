@@ -8,11 +8,13 @@ defmodule BlogWeb.Router do
     plug :put_root_layout, html: {BlogWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug BlogWeb.Plugs.RequireUserAgent
     plug BlogWeb.Plugs.RequestLogger
   end
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug BlogWeb.Plugs.RequireUserAgent
     plug BlogWeb.Plugs.RequestLogger
   end
 
