@@ -11,30 +11,16 @@ defmodule Blog.Repo.Migrations.AddPreviewToPosts do
   end
 
   defp populate_preview_for_existing_posts do
-    # For Turso compatibility, use raw SQL to get posts and update them
-    # First, get all posts that need preview population
-    {:ok, result} =
-      repo().query("SELECT id, content FROM posts WHERE preview IS NULL OR preview = ''", [])
-
-    # Process each post and update with preview content
-    for [id, content] <- result.rows do
-      preview = generate_preview(content)
-      repo().query!("UPDATE posts SET preview = ? WHERE id = ?", [preview, id])
-    end
+    # Use simple SQL that works with both local SQLite and Turso
+    # This will take the first 500 characters as a reasonable preview
+    execute("""
+      UPDATE posts 
+      SET preview = SUBSTR(content, 1, 500)
+      WHERE preview IS NULL OR preview = ''
+    """)
   end
-
-  defp generate_preview(nil), do: ""
-
-  defp generate_preview(content) when is_binary(content) do
-    content
-    |> String.split("\n")
-    |> Enum.take(6)
-    |> Enum.join("\n")
-  end
-
-  defp generate_preview(_), do: ""
 
   defp rollback_preview_population do
-    repo().query!("UPDATE posts SET preview = NULL")
+    execute("UPDATE posts SET preview = NULL")
   end
 end
