@@ -461,11 +461,11 @@ defmodule Blog.Content do
 
   ## Examples
 
-      iex> list_top_tags(5)
+      iex> list_top_tags(15)
       ["elixir", "phoenix", "web-development", "programming", "tutorial"]
 
   """
-  def list_top_tags(limit \\ 5) do
+  def list_top_tags(limit \\ 15) do
     from(p in Post,
       where:
         p.published == true and not is_nil(p.published_at) and not is_nil(p.tags) and

@@ -18,7 +18,7 @@ defmodule BlogWeb.HomeLive do
      |> assign(:selected_series, nil)
      |> assign(:search_query, "")
      |> assign(:search_suggestions, [])
-     |> assign(:top_tags, Content.list_top_tags(5))
+     |> assign(:top_tags, Content.list_top_tags(15))
      |> assign(:available_tags, Content.list_available_tags())
      |> assign(:available_series, Content.list_series_for_filtering())
      |> assign(:drawer_open, false)
