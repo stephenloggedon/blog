@@ -134,33 +134,13 @@ defmodule Blog.TursoMigrator do
   defp convert_migration_to_sql(module, existing_tables) do
     # This is a simplified conversion - in a full implementation,
     # we would need to handle all Ecto migration commands
+    get_migration_sql(module, existing_tables)
+  end
+
+  defp get_migration_sql(module, existing_tables) do
     case module do
       Blog.Repo.Migrations.CreatePosts ->
-        if "posts" in existing_tables do
-          # Table already exists, update it to match our schema
-          [
-            "ALTER TABLE posts ADD COLUMN excerpt TEXT",
-            "ALTER TABLE posts ADD COLUMN tags TEXT"
-          ]
-        else
-          [
-            """
-            CREATE TABLE posts (
-              id INTEGER PRIMARY KEY AUTOINCREMENT,
-              title TEXT,
-              slug TEXT,
-              content TEXT,
-              excerpt TEXT,
-              tags TEXT,
-              published INTEGER DEFAULT 0 NOT NULL,
-              published_at TEXT,
-              inserted_at TEXT NOT NULL DEFAULT (datetime('now')),
-              updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-            )
-            """,
-            "CREATE UNIQUE INDEX posts_slug_index ON posts (slug)"
-          ]
-        end
+        create_posts_migration(existing_tables)
 
       Blog.Repo.Migrations.AddSubtitleToPosts ->
         [
@@ -168,37 +148,7 @@ defmodule Blog.TursoMigrator do
         ]
 
       Blog.Repo.Migrations.CreateImagesTable ->
-        if "images" in existing_tables do
-          # Table already exists, update it to match our schema
-          [
-            "ALTER TABLE images ADD COLUMN post_id INTEGER",
-            "ALTER TABLE images ADD COLUMN alt_text TEXT",
-            "ALTER TABLE images ADD COLUMN updated_at TEXT DEFAULT (datetime('now'))",
-            # Rename existing columns to match our schema
-            "ALTER TABLE images RENAME COLUMN data TO image_data",
-            "ALTER TABLE images RENAME COLUMN thumbnail TO thumbnail_data",
-            "ALTER TABLE images RENAME COLUMN size TO file_size"
-          ]
-        else
-          [
-            """
-            CREATE TABLE images (
-              id INTEGER PRIMARY KEY AUTOINCREMENT,
-              post_id INTEGER NOT NULL,
-              filename TEXT NOT NULL,
-              content_type TEXT NOT NULL,
-              alt_text TEXT,
-              image_data BLOB NOT NULL,
-              thumbnail_data BLOB,
-              file_size INTEGER,
-              inserted_at TEXT NOT NULL DEFAULT (datetime('now')),
-              updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-              FOREIGN KEY (post_id) REFERENCES posts (id) ON DELETE CASCADE
-            )
-            """,
-            "CREATE INDEX images_post_id_index ON images (post_id)"
-          ]
-        end
+        create_images_migration(existing_tables)
 
       Blog.Repo.Migrations.FixDevlogLinksSimple ->
         [
@@ -215,6 +165,17 @@ defmodule Blog.TursoMigrator do
       Blog.Repo.Migrations.AddPreviewToPosts ->
         [
           "ALTER TABLE posts ADD COLUMN preview TEXT"
+        ]
+
+      Blog.Repo.Migrations.PopulatePreviewData ->
+        [
+          """
+          UPDATE posts 
+          SET preview = SUBSTR(content, 1, 500)
+          WHERE content IS NOT NULL 
+            AND content <> ''
+            AND (preview IS NULL OR preview = '')
+          """
         ]
 
       _ ->
@@ -242,5 +203,67 @@ defmodule Blog.TursoMigrator do
 
     Path.wildcard(migrations_path)
     |> List.first()
+  end
+
+  defp create_posts_migration(existing_tables) do
+    if "posts" in existing_tables do
+      # Table already exists, update it to match our schema
+      [
+        "ALTER TABLE posts ADD COLUMN excerpt TEXT",
+        "ALTER TABLE posts ADD COLUMN tags TEXT"
+      ]
+    else
+      [
+        """
+        CREATE TABLE posts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          title TEXT,
+          slug TEXT,
+          content TEXT,
+          excerpt TEXT,
+          tags TEXT,
+          published INTEGER DEFAULT 0 NOT NULL,
+          published_at TEXT,
+          inserted_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+        """,
+        "CREATE UNIQUE INDEX posts_slug_index ON posts (slug)"
+      ]
+    end
+  end
+
+  defp create_images_migration(existing_tables) do
+    if "images" in existing_tables do
+      # Table already exists, update it to match our schema
+      [
+        "ALTER TABLE images ADD COLUMN post_id INTEGER",
+        "ALTER TABLE images ADD COLUMN alt_text TEXT",
+        "ALTER TABLE images ADD COLUMN updated_at TEXT DEFAULT (datetime('now'))",
+        # Rename existing columns to match our schema
+        "ALTER TABLE images RENAME COLUMN data TO image_data",
+        "ALTER TABLE images RENAME COLUMN thumbnail TO thumbnail_data",
+        "ALTER TABLE images RENAME COLUMN size TO file_size"
+      ]
+    else
+      [
+        """
+        CREATE TABLE images (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          post_id INTEGER NOT NULL,
+          filename TEXT NOT NULL,
+          content_type TEXT NOT NULL,
+          alt_text TEXT,
+          image_data BLOB NOT NULL,
+          thumbnail_data BLOB,
+          file_size INTEGER,
+          inserted_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+          FOREIGN KEY (post_id) REFERENCES posts (id) ON DELETE CASCADE
+        )
+        """,
+        "CREATE INDEX images_post_id_index ON images (post_id)"
+      ]
+    end
   end
 end
