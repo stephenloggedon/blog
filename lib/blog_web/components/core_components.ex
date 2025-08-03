@@ -1059,23 +1059,15 @@ defmodule BlogWeb.CoreComponents do
               <h2 class="text-xl font-semibold text-text mb-2">
                 {post.title}
               </h2>
-              <div class="flex items-center text-sm text-subtext1 space-x-4">
-                <time datetime={post.published_at}>
-                  {Calendar.strftime(post.published_at, "%B %d, %Y")}
-                </time>
-                <%= if Blog.Content.Post.tag_list(post) != [] do %>
-                  <div class="flex items-center space-x-2">
-                    <span>•</span>
-                    <div class="flex flex-wrap gap-2">
-                      <%= for tag <- Blog.Content.Post.tag_list(post) do %>
-                        <span class="bg-surface1 text-subtext0 px-2 py-1 rounded text-xs">
-                          {tag}
-                        </span>
-                      <% end %>
-                    </div>
-                  </div>
-                <% end %>
-              </div>
+              <%= if Blog.Content.Post.tag_list(post) != [] do %>
+                <div class="flex flex-wrap gap-2">
+                  <%= for tag <- Blog.Content.Post.tag_list(post) do %>
+                    <span class="bg-surface1 text-subtext0 px-2 py-1 rounded text-xs">
+                      {tag}
+                    </span>
+                  <% end %>
+                </div>
+              <% end %>
             </header>
 
             <%= if Map.get(post, :subtitle) do %>
