@@ -63,6 +63,12 @@ remove_title_from_content() {
     fi
 }
 
+# Function to generate preview from content (first 6 lines, excluding title)
+generate_preview() {
+    local file="$1"
+    remove_title_from_content "$file" | head -n 6
+}
+
 # Function to escape JSON (using jq for proper escaping)
 escape_json() {
     # Use jq to properly escape content for JSON
@@ -195,10 +201,14 @@ fi
 # Get content without title (already JSON-escaped)
 CONTENT=$(remove_title_from_content "$MARKDOWN_FILE" | escape_json)
 
+# Generate preview from content (first 6 lines, excluding title)
+PREVIEW=$(generate_preview "$MARKDOWN_FILE" | escape_json)
+
 # Build JSON payload
 JSON_PAYLOAD=$(jq -n \
     --arg title "$TITLE" \
     --argjson content "$CONTENT" \
+    --argjson preview "$PREVIEW" \
     --arg slug "$SLUG" \
     --arg tags "$TAGS" \
     --arg subtitle "$SUBTITLE" \
@@ -206,6 +216,7 @@ JSON_PAYLOAD=$(jq -n \
     '{
         title: $title,
         content: $content,
+        preview: $preview,
         slug: $slug,
         tags: $tags,
         subtitle: $subtitle,

@@ -290,6 +290,7 @@ defmodule BlogWeb.Api.PostController do
     metadata = %{
       "title" => post_params["title"],
       "content" => post_params["content"],
+      "preview" => post_params["preview"],
       "slug" => post_params["slug"],
       "tags" => post_params["tags"] || [],
       "published" => post_params["published"] || false,
@@ -307,6 +308,7 @@ defmodule BlogWeb.Api.PostController do
       %{}
       |> maybe_put("title", post_params["title"])
       |> maybe_put("content", post_params["content"])
+      |> maybe_put("preview", post_params["preview"])
       |> maybe_put("slug", post_params["slug"])
       |> maybe_put("tags", post_params["tags"])
       |> maybe_put("published", post_params["published"])
@@ -343,6 +345,7 @@ defmodule BlogWeb.Api.PostController do
       "title" => post_params["title"],
       # Temporary placeholder content
       "content" => "Draft content - uploading in chunks...",
+      "preview" => post_params["preview"],
       "slug" => post_params["slug"],
       "tags" => post_params["tags"] || [],
       # Don't publish until finalized

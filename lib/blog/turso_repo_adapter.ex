@@ -528,11 +528,12 @@ defmodule Blog.TursoRepoAdapter do
   end
 
   defp handle_like_expr(
-         {:like, [], [{{:., [], [{:&, [], [0]}, :tags]}, [], []}, {:^, [], [0]}]},
+         {:like, [], [{{:., [], [{:&, [], [0]}, field]}, [], []}, {:^, [], [param_idx]}]},
          param_values
-       ) do
-    param_value = List.first(param_values) || ""
-    {"tags LIKE ?", [param_value]}
+       )
+       when field in [:tags, :title, :content, :subtitle] do
+    param_value = Enum.at(param_values, param_idx) || ""
+    {"#{field} LIKE ?", [param_value]}
   end
 
   defp handle_like_expr(_, _), do: {"", []}
@@ -552,10 +553,11 @@ defmodule Blog.TursoRepoAdapter do
   defp handle_equality_expr(_, _), do: {"", []}
 
   defp handle_not_expr(
-         {:not, [], [{:is_nil, [], [{{:., [], [{:&, [], [0]}, :published_at]}, [], []}]}]},
+         {:not, [], [{:is_nil, [], [{{:., [], [{:&, [], [0]}, field]}, [], []}]}]},
          _
-       ) do
-    {"published_at IS NOT NULL", []}
+       )
+       when field in [:published_at, :subtitle] do
+    {"#{field} IS NOT NULL", []}
   end
 
   defp handle_not_expr(_, _), do: {"", []}
@@ -587,10 +589,18 @@ defmodule Blog.TursoRepoAdapter do
     {left_condition, left_params} = convert_where_expr_simple(left_expr, param_values)
     {right_condition, right_params} = convert_where_expr_simple(right_expr, param_values)
 
-    if left_condition != "" and right_condition != "" do
-      {"(#{left_condition}) OR (#{right_condition})", left_params ++ right_params}
-    else
-      {"", []}
+    cond do
+      left_condition != "" and right_condition != "" ->
+        {"(#{left_condition}) OR (#{right_condition})", left_params ++ right_params}
+
+      left_condition != "" ->
+        {left_condition, left_params}
+
+      right_condition != "" ->
+        {right_condition, right_params}
+
+      true ->
+        {"", []}
     end
   end
 
