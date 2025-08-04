@@ -63,8 +63,10 @@ defmodule BlogWeb.BlogPostLive do
       </main>
 
       <div class="fixed bottom-4 left-4 lg:bottom-6 lg:left-6 z-50">
-        <.link
-          navigate="/"
+        <a
+          href="/"
+          phx-hook="BackButton"
+          id="back-button"
           class="flex items-center justify-center w-12 h-12 lg:w-14 lg:h-14 bg-blue hover:bg-blue/80 text-base rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
           title="Back to Blog"
         >
@@ -77,7 +79,7 @@ defmodule BlogWeb.BlogPostLive do
             >
             </path>
           </svg>
-        </.link>
+        </a>
       </div>
     </div>
     """

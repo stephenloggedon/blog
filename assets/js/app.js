@@ -120,6 +120,7 @@ Hooks.MobileDrawer = {
 Hooks.ViewportDetector = {
   mounted() {
     this.updateViewport()
+    this.saveCurrentFilters()
     
     // Add resize listener for responsive behavior
     this.resizeHandler = () => {
@@ -127,6 +128,10 @@ Hooks.ViewportDetector = {
     }
     
     window.addEventListener('resize', this.resizeHandler)
+  },
+  
+  updated() {
+    this.saveCurrentFilters()
   },
   
   destroyed() {
@@ -138,6 +143,30 @@ Hooks.ViewportDetector = {
   updateViewport() {
     const viewport = window.innerWidth >= 1024 ? 'desktop' : 'mobile'
     this.pushEvent('set_viewport', { viewport: viewport })
+  },
+  
+  saveCurrentFilters() {
+    // Only save filters if we're on the home page
+    if (window.location.pathname !== '/' && window.location.pathname !== '') {
+      return
+    }
+    
+    // Extract filter state from current URL
+    const urlParams = new URLSearchParams(window.location.search)
+    const filterState = {
+      tags: urlParams.get('tags') || '',
+      series: urlParams.get('series') || '',
+      search: urlParams.get('search') || '',
+      timestamp: Date.now()
+    }
+    
+    // Only save if there are actual filters applied
+    if (filterState.tags || filterState.series || filterState.search) {
+      sessionStorage.setItem('blog_filter_state', JSON.stringify(filterState))
+    } else {
+      // Clear saved state if no filters
+      sessionStorage.removeItem('blog_filter_state')
+    }
   }
 }
 
@@ -146,6 +175,44 @@ Hooks.MobileScrollFix = {
   mounted() {
     // Only apply on mobile devices
     if (window.innerWidth >= 1024) return
+  }
+}
+
+
+// Back Button Hook - navigates back with preserved filter state
+Hooks.BackButton = {
+  mounted() {
+    this.el.addEventListener('click', (e) => {
+      e.preventDefault()
+      
+      // Try to get saved filter state
+      const savedState = sessionStorage.getItem('blog_filter_state')
+      
+      if (savedState) {
+        try {
+          const filterState = JSON.parse(savedState)
+          
+          // Check if state is not too old (1 hour)
+          const oneHour = 60 * 60 * 1000
+          if (Date.now() - filterState.timestamp < oneHour) {
+            // Reconstruct filtered home URL
+            const params = []
+            if (filterState.tags) params.push(['tags', filterState.tags])
+            if (filterState.series) params.push(['series', filterState.series])
+            if (filterState.search) params.push(['search', filterState.search])
+            
+            const homeUrl = params.length > 0 ? '/?' + new URLSearchParams(params).toString() : '/'
+            window.location.href = homeUrl
+            return
+          }
+        } catch (e) {
+          // Silently fall back to home page if parsing fails
+        }
+      }
+      
+      // Fallback to plain home page
+      window.location.href = '/'
+    })
   }
 }
 
