@@ -63,7 +63,9 @@ defmodule Blog.Application do
   end
 
   defp run_turso_migrations do
-    :timer.sleep(2000)
+    # Migrations are handled by Fly.io release command, so this is a no-op at runtime
+    # Only needed for first-time setup or manual runs
+    # :timer.sleep(2000)
 
     Ecto.Migrator.with_repo(Blog.TursoEctoRepo, fn repo ->
       Ecto.Migrator.run(repo, :up, all: true)

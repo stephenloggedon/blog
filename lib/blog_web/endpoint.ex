@@ -22,7 +22,8 @@ defmodule BlogWeb.Endpoint do
   plug Plug.Static,
     at: "/",
     from: :blog,
-    gzip: false,
+    gzip: true,
+    cache_control_for_etags: "public, max-age=31536000",
     only: BlogWeb.static_paths()
 
   # Code reloading can be explicitly enabled under the
