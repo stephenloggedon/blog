@@ -112,12 +112,6 @@ if config_env() == :prod do
 
   config :blog, BlogWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
-    check_origin: [
-      "https://#{host}",
-      "//#{host}",
-      "https://blog-nameless-grass-3626.fly.dev",
-      "//blog-nameless-grass-3626.fly.dev"
-    ],
     server: true,
     http: [
       # Enable IPv6 and bind on all interfaces.
