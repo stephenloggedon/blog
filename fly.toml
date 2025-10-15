@@ -14,7 +14,7 @@ kill_signal = 'SIGTERM'
   release_command = '/app/bin/blog eval "Blog.Release.migrate"'
 
 [env]
-  PHX_HOST = 'stephenloggedon.com'
+  PHX_HOST = 'blog.stephenloggedon.com'
   PORT = '8080'
   MTLS_PORT = '8443'
   PHX_SERVER = 'true'
