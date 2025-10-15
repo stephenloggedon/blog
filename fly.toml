@@ -4,7 +4,7 @@
 #
 
 app = 'blog-nameless-grass-3626'
-primary_region = 'sea'
+primary_region = 'iad'
 kill_signal = 'SIGTERM'
 
 [build]
